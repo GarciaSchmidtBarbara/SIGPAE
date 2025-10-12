@@ -1,10 +1,8 @@
-<html lang={{ str_replace('_', '-', app()->getLocale()) }}>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SIGPAE</title>
-</head>
-<body>
-    sadaad
-</body>
-</html>
+@extends('layouts.base')
+
+@section('titulo', 'SIGPAE')
+
+@section('contenido')
+    <h1>BIENVENIDOS A SIGPAE</h1>
+    <!-- contenido específico -->
+@endsection
