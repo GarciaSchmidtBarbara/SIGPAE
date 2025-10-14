@@ -10,3 +10,8 @@ Route::get('/', function () {
 Route::get('/planDeAccion', function () {
     return view('planDeAccion.principal');
 })->name('planDeAccion.principal');
+
+//Rutas Planillas
+Route::get('/planillas', function () {
+    return view('planillas.principal');
+})->name('planillas.principal');

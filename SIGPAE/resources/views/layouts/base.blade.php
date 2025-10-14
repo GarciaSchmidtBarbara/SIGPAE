@@ -27,7 +27,7 @@
                 <a href="https://www.untdf.edu.ar" target="_blank">Eventos</a>
                 <a href="https://www.untdf.edu.ar" target="_blank">Intervenciones</a>
                 <a href="{{ route('planDeAccion.principal') }}" class="{{ request()->routeIs('planDeAccion.principal') ? 'activo' : '' }}">Planes de Acción</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Planillas</a>
+                <a href="{{ route('planillas.principal') }}" class="{{ request()->routeIs('planillas.principal') ? 'activo' : '' }}">Planillas</a>
                 <a href="https://www.untdf.edu.ar" target="_blank">Documentos</a>
                 <a href="https://www.untdf.edu.ar" target="_blank">Reportes</a>
                 <a href="https://www.untdf.edu.ar" target="_blank">Notificaciones</a>
