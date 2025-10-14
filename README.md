@@ -3,6 +3,7 @@ Proyecto de laboratorio de software 2025
 
 # Guia de instalación
 En la consola sin comillas:
+0. Descargar https://www.apachefriends.org/es/index.html de ahi el XAMPP e instalar con el PHP
 1. Escribir "cd SIGPAE" para acceder a la carpeta del proyecto
 2. Escribir "cp .env.example .env" para clonar el .env de ejemplo
 3. Escribir "composer install" para instalar las dependencias de PHP  Si se queda colgado en "Generating optmized autoload files" ejecutar "composer install --no-scripts". Si se hace esto, luego del paso 4 ejecutar "composer dump-autoload"
