@@ -1,15 +1,35 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Auth\LoginController;
 
-Route::get('/', function () {
+
+// Página de inicio → formulario de login
+Route::get('/', [LoginController::class, 'showLoginForm'])->name('login.form');
+
+// Rutas de autenticación
+Route::post('/login', [LoginController::class, 'login']);
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Ruta protegida
+Route::get('/welcome', function () {
     return view('welcome');
-})->name('welcome');
+})->middleware('auth')->name('welcome');
+
+Route::post('/probar-post', function () {
+    return 'POST recibido correctamente';
+});
+
+
+
+
 
 //Rutas Plan de Acción
 Route::get('/planDeAccion', function () {
     return view('planDeAccion.principal');
-})->name('planDeAccion.principal');
+})->middleware('auth')->name('planDeAccion.principal');
 
 //Rutas Planillas
 Route::get('/planillas', function () {
