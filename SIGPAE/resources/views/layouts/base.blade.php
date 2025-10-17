@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Estilos globales -->
-    <link href="{{ asset('css/base.css') }}" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,35 +17,34 @@
     @stack('estilos')
 </head>
 <body>
-    <div class="layout">
+    <div class="layout min-h-screen w-screen flex flex-row">
         <!-- Menú lateral -->
-        <nav class="sidebar">
-            <p>SIGPAE</p>
-            <div class="menu-divisor"></div>
-
-            <div class="menu-superior">
-                <a href="{{ route('welcome') }}" class="{{ request()->routeIs('welcome') ? 'activo' : '' }}">Principal</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Alumnos</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Eventos</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Intervenciones</a>
-                <a href="{{ route('planDeAccion.principal') }}" class="{{ request()->routeIs('planDeAccion.principal') ? 'activo' : '' }}">Planes de Acción</a>
-                <a href="{{ route('planillas.principal') }}" class="{{ request()->routeIs('planillas.principal') ? 'activo' : '' }}">Planillas</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Documentos</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Reportes</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Notificaciones</a>
-            </div>
-
-            <div class="menu-divisor"></div>
-
-            <div class="menu-inferior">
-                <a href="https://www.untdf.edu.ar" target="_blank">Usuarios</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Mi perfil</a>
-                <a href="https://www.untdf.edu.ar" target="_blank">Cerrar Sesión</a>
+        <nav class="sidebar bg-fondo basis-1/5 rounded-r-3xl p-[20px] flex flex-col h-screen">
+            <p class="text-white text-3xl font-bold my-3 text-shadow-lg ">SIGPAE</p>
+            <div class="menu flex flex-col justify-between flex-1 text-white">
+                <div class="menu-superior flex flex-col">
+                    <hr>
+                    <a href="{{ route('welcome') }}" class="{{ request()->routeIs('welcome') ? 'activo' : '' }} links">Principal</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Alumnos</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Eventos</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Intervenciones</a>
+                    <a href="{{ route('planDeAccion.principal') }}" class="{{ request()->routeIs('planDeAccion.principal') ? 'activo' : '' }} links">Planes de Acción</a>
+                    <a href="{{ route('planillas.principal') }}" class="{{ request()->routeIs('planillas.principal') ? 'activo' : '' }} links">Planillas</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Documentos</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Reportes</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Notificaciones</a>
+                </div>
+                <div class="menu-inferior flex flex-col">
+                    <hr>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Usuarios</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Mi perfil</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Cerrar Sesión</a>
+                </div>
             </div>
         </nav>
 
         <!-- Contenido principal -->
-        <main class="contenido">
+        <main class="contenido grow bg-white p-[30px] overflow-y-auto">
             <div class="titulo-seccion">
                 @yield('encabezado', 'Sección')
             </div>

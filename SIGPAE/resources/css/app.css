@@ -8,4 +8,21 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-fondo: #5557C0;
+    --color-estado: #9992FF;
+}
+@layer elements {
+
+    .links {
+        @apply text-shadow-lg px-[6px] py-[4px] my-[6px] font-medium text-base rounded-md transition-colors duration-200 ease-in-out
+    }
+    .links:hover {
+        @apply bg-estado
+    }
+    .links.activo{
+        @apply bg-estado
+    }
+    .titulo-seccion {
+        @apply text-2xl mb-[20px] text-[#1E1E1E] font-bold
+    }
 }
