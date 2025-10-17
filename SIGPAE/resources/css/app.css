@@ -28,5 +28,10 @@
     .btn-aceptar {
         @apply bg-[#9992FF] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md 
     }
-
+    .separador{
+        @apply bg-estado text-white text-shadow-lg py-1 px-3 mt-1 text-lg
+    }
+    .caja{
+        @apply  mr-5 px-1 h-8 content-center text-gray-600 rounded-md border-1 
+    }
 }

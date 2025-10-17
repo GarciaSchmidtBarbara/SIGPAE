@@ -33,11 +33,11 @@
                     <a href="https://www.untdf.edu.ar" target="_blank" class="links">Documentos</a>
                     <a href="https://www.untdf.edu.ar" target="_blank" class="links">Reportes</a>
                     <a href="https://www.untdf.edu.ar" target="_blank" class="links">Notificaciones</a>
+                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Usuarios</a>
                 </div>
                 <div class="menu-inferior flex flex-col">
                     <hr>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Usuarios</a>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Mi perfil</a>
+                    <a href="{{ route('perfil.principal') }}" class="{{ request()->routeIs('perfil.principal') ? 'activo' : '' }} links">Mi perfil</a>
                     <a href="https://www.untdf.edu.ar" target="_blank" class="links">Cerrar Sesión</a>
                 </div>
             </div>

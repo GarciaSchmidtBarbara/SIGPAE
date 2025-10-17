@@ -15,3 +15,8 @@ Route::get('/planDeAccion', function () {
 Route::get('/planillas', function () {
     return view('planillas.principal');
 })->name('planillas.principal');
+
+//Ruta Perfil
+Route::get('/perfil', function(){
+    return view('perfil.principal');
+})->name('perfil.principal');
