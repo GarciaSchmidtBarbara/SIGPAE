@@ -25,4 +25,8 @@
     .titulo-seccion {
         @apply text-2xl mb-[20px] text-[#1E1E1E] font-bold
     }
+    .btn-aceptar {
+        @apply bg-[#9992FF] text-white text-shadow-lg px-[10px] py-[20px] rounded-md text-base text-xs 
+    }
+
 }
