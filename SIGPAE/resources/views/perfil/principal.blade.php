@@ -33,7 +33,7 @@
             </div>
             <div>
                 <p>editar</p>
-                <p class="caja">texto</p>
+                <button></button>
             </div>
             <div>
                 <p>Mail registrado</p>
