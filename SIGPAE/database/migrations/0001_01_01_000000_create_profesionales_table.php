@@ -6,19 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+        Schema::create('profesionales', function (Blueprint $table) {
+            $table->id('id_profesional'); // Clave primaria personalizada
+            //campos heredados de personaTrair
+            $table->string('nombre');
+            $table->string('apellido');
+            $table->string('dni')->unique();
+
+            //campos propios de profesional
+            $table->string('profesion')->unique();
+            $table->string('telefono')->unique();
+            $table->string('usuario')->unique();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
-            $table->timestamps();
+            $table->timestamps(); // created_at y updated_at
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -37,12 +42,10 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    /** Metodo para revertir la migración y eliminar la tabla */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('profesionales');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
