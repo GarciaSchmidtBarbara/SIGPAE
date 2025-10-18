@@ -1,20 +1,44 @@
 @extends('layouts.base')
 
-@section('encabezado', 'nombre de la sección')
+@section('encabezado', 'Ejemplo de Componentes')
 
 @section('contenido')
-    <!-- contenido específico -->
-    <p>Ejemplo de uso de componentes Blade</p>
-    <x-boton-aceptar>Guardar</x-boton-aceptar>
-    <x-boton-aceptar class="bg-danger">Eliminar mi cuenta</x-boton-aceptar>
+    <div class="space-y-8">
+        <!-- Sección de botones -->
+        <div class="space-y-4">
+            <h2 class="titulo-seccion">Botones</h2>
+            <div class="flex gap-4">
+                <button class="btn-aceptar">Guardar</button>
+                <button class="btn-eliminar">Eliminar mi cuenta</button>
+            </div>
+        </div>
 
-    @php
-    $intervenciones = ['Psicopedagógica', 'Social', 'Académica', 'Familiar'];
-    @endphp
+        @php
+        $intervenciones = ['Psicopedagógica', 'Social', 'Académica', 'Familiar'];
+        @endphp
 
-    <p>Selección múltiple:</p>
-    <x-checkboxes :items="$intervenciones" name="tipo_intervencion" />
+        <!-- Sección de checkboxes vertical -->
+        <div class="space-y-4">
+            <h2 class="titulo-seccion">Selección múltiple (Vertical)</h2>
+            <x-checkboxes :items="$intervenciones" name="tipo_intervencion_vertical" layout="vertical" />
+        </div>
 
-    <p>Selección única:</p>
-    <x-opcion-unica :items="$intervenciones" name="tipo_intervencion_unica" />
+        <!-- Sección de checkboxes horizontal -->
+        <div class="space-y-4">
+            <h2 class="titulo-seccion">Selección múltiple (Horizontal)</h2>
+            <x-checkboxes :items="$intervenciones" name="tipo_intervencion_horizontal" layout="horizontal" />
+        </div>
+
+        <!-- Sección de radio buttons vertical -->
+        <div class="space-y-4">
+            <h2 class="titulo-seccion">Selección única (Vertical)</h2>
+            <x-opcion-unica :items="$intervenciones" name="tipo_intervencion_unica_vertical" layout="vertical" />
+        </div>
+
+        <!-- Sección de radio buttons horizontal -->
+        <div class="space-y-4">
+            <h2 class="titulo-seccion">Selección única (Horizontal)</h2>
+            <x-opcion-unica :items="$intervenciones" name="tipo_intervencion_unica_horizontal" layout="horizontal" />
+        </div>
+    </div>
 @endsection
