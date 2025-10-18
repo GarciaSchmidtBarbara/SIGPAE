@@ -31,11 +31,11 @@
     }
 
     .btn-aceptar {
-        @apply bg-[#9992FF] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md
+        @apply bg-[#9992FF] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#7b74cc] hover:shadow-md hover:scale-105 transform
     }
 
     .btn-eliminar {
-        @apply bg-red-600 text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md
+        @apply bg-[#D32F2F] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#a52828] hover:shadow-md hover:scale-105 transform
     }
 
     .separador {
