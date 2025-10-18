@@ -4,7 +4,7 @@
     'name' => ''
 ])
 
-<div class="{{ $layout === 'horizontal' ? 'flex flex-wrap gap-4' : 'space-y-2' }}">
+<div class="custom-radio-group {{ $layout === 'horizontal' ? 'flex flex-wrap gap-4' : 'space-y-2' }}">
     @foreach ($items as $item)
         <label class="flex items-center gap-2 cursor-pointer {{ $layout === 'horizontal' ? 'min-w-[150px]' : '' }}">
             <input type="radio"

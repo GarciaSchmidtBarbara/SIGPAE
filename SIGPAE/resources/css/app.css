@@ -8,6 +8,7 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-selected: #9992FF;
     --color-fondo: #5557C0;
     --color-estado: #9992FF;
 }
@@ -31,11 +32,27 @@
     }
 
     .btn-aceptar {
-        @apply bg-[#9992FF] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#7b74cc] hover:shadow-md hover:scale-105 transform
+        @apply bg-[#9992FF] text-white text-shadow-lg px-[10px] py-[5px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#7b74cc] hover:shadow-md hover:scale-105 transform
     }
 
     .btn-eliminar {
-        @apply bg-[#D32F2F] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#a52828] hover:shadow-md hover:scale-105 transform
+        @apply bg-[#D32F2F] text-white text-shadow-lg px-[10px] py-[5px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#a52828] hover:shadow-md hover:scale-105 transform
+    }
+
+    .btn-volver {
+        @apply inline-flex items-center pl-10 pr-4 py-2 bg-gray-300 text-gray-800 text-shadow-lg cursor-pointer rounded-md transition-all duration-200 hover:bg-gray-400 hover:shadow-md hover:scale-105 transform;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 19l-7-7m0 0l7-7m-7 7h18'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 12px center;
+        background-size: 20px 20px;
+    }
+
+    .btn-subir {
+        @apply inline-flex items-center px-4 py-2 pl-10 bg-gray-100 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transform transition-all duration-200;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' class='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 12px center;
+        background-size: 20px 20px;
     }
 
     .separador {
@@ -63,5 +80,9 @@
 
     .custom-radio:checked::after {
         @apply absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white content-[''];
+    }
+
+    .fila-botones {
+        @apply flex justify-start gap-4 flex-wrap;
     }
 }

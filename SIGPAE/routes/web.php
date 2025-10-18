@@ -31,6 +31,10 @@ Route::get('/planDeAccion', function () {
     return view('planDeAccion.principal');
 })->middleware('auth')->name('planDeAccion.principal');
 
+Route::get('/planDeAccion/crear', function () {
+    return view('planDeAccion.crear-editar');
+})->middleware('auth')->name('planDeAccion.crear-editar');
+
 //Rutas Planillas
 Route::get('/planillas', function () {
     return view('planillas.principal');
