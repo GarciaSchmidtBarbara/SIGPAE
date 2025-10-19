@@ -11,7 +11,13 @@
                    class="custom-radio"
                    name="{{ $name }}"
                    value="{{ $item }}"
-                   {{ old($name) === $item ? 'checked' : '' }}>
+                   {{ old($name) === $item ? 'checked' : '' }}
+                   
+                   {{-- ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ PRESENTE --}}
+                   {{ $attributes->whereStartsWith('x-model') }} 
+                   {{-- Esto adjunta el atributo x-model al radio input --}}
+                   
+                   >
             <span class="text-gray-700">{{ $item }}</span>
         </label>
     @endforeach
