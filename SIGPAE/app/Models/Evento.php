@@ -57,14 +57,8 @@ class Evento extends Model{
     //Para notificar invesigue que se usa observadores de laravel o eventos del dominio. No van en el modelo
 
     protected $casts = [
-        'otros_asistentes' => 'array',
         'fecha_hora' => 'datetime',
     ];
-
-    public function setOtrosAsistentesAttribute(array $value): void
-    {
-        $this->attributes['otros_asistentes'] = json_encode($value); //Nos da un string JSON para guardar en la BD
-    }
 
      public function aulas(): BelongsToMany
     {
