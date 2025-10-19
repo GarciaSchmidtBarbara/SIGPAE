@@ -6,8 +6,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\PersonaTrait;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class User extends Authenticatable
+class Profesional extends Authenticatable
 {
     use HasFactory, Notifiable, PersonaTrait;
 
@@ -27,14 +28,12 @@ class User extends Authenticatable
      * Deben coincidir con los nombres de columnas en la tabla 'users'.
      */
     protected $fillable = [
-        'nombre',
-        'apellido',
-        'dni',
         'profesion',
         'telefono',
         'usuario',
         'email',
         'password',
+        'fk_id_persona',
     ];
 
     /**
@@ -50,10 +49,25 @@ class User extends Authenticatable
      * Esto permite que 'fecha_nacimiento' sea un objeto DateTime, y 'password' se hashee automáticamente.
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'dni' => 'integer',
+        'email_verified_at' => 'datetime', //Movi dni para persona
         'password' => 'hashed',
     ];
+
+    public function persona(): BelongsTo
+    {   //Un profesional es una persona
+        return $this->belongsTo(Persona::class, 'fk_id_persona', 'id_persona');
+    }
+    
+    public function eventos()
+    {   //Un profesional puede crear muchos eventos
+        return $this->hasMany(Evento::class, 'creador_id', 'id_profesional');
+    }
+
+     public function eventosAsistidos()
+    {   //Un profesional puede asistir a muchos eventos (relación muchos a muchos)
+        return $this->belongsToMany(Evento::class, 'evento_profesional', 'id_profesional', 'id_evento')
+                    ->withPivot('asistio');
+    }
 
     /**
      * Método personalizado que sobrescribe el del Trait.
@@ -63,14 +77,7 @@ class User extends Authenticatable
     {
         return "Usuario: {$this->getNombreCompleto()}, Profesion: {$this->profesion}";
     }
-
-    //relaciones con otros modelos
-    //Esto asume que tenés un modelo Evento y una tabla eventos con una columna user_id que referencia al usuario.
-    public function eventos() {
-        return $this->hasMany(Evento::class);
-    }
-
-
+    
     public function getAuthPassword(){
         return $this->password;
     }
