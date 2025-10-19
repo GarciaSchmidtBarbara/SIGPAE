@@ -244,8 +244,20 @@
     <div class="fila-botones mt-8" x-show="true">
         <button class="btn-aceptar">Marcar como cerrado</button>
         <button class="btn-aceptar">Guardar</button>
-        <button class="btn-eliminar">Eliminar</button>
+        <button class="btn-eliminar" >Eliminar</button>
         <a class="btn-volver" href="{{ route('planDeAccion.principal') }}" >Volver</a>
     </div>
 </div>
 @endsection
+
+{{-- IGNORE ESTO
+ PARA CUANDO ESTE EL MODELO Y CONTROLADOR
+  Determinar si el plan de acción está cerrado 
+ <button class="btn-aceptar" {{ $esCerrado ? 'disabled' : '' }}>Guardar</button>
+    <button class="btn-eliminar" {{ $esCerrado ? 'disabled' : '' }}>Eliminar</button>
+    
+    Mantener visible solo botones de acción final si aplica
+    @if ($planDeAccion->estado === 'Cerrado')
+        <a class="btn-volver" href="...">Imprimir</a>
+    @endif
+--}}
