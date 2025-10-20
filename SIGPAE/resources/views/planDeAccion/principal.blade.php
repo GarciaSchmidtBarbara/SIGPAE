@@ -4,11 +4,11 @@
 
 @section('contenido')
     <div class="fila-componentes">
-      <x-boton-aceptar>Crear</x-boton-aceptar>
-      <boton>Tipo</boton>
-      <boton>Estado</boton>
-      <boton>Curso</boton>
-      <boton>Buscar</boton>
+      <button class="btn-crear">Crear</button>
+      <button class="btn-eliminar">Tipo</button>
+      <button class="btn-estado">Estado</button>
+      <button class="btn-curso">Curso</button>
+      <button class="btn-buscar">Buscar</button>
     </div>
     <p>Aquí va la tabla de planes. REDEFINIR CON COMPONENTES BLADE</p>
     <table>

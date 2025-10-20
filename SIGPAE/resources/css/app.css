@@ -11,27 +11,57 @@
     --color-fondo: #5557C0;
     --color-estado: #9992FF;
 }
+
 @layer elements {
 
     .links {
         @apply text-shadow-lg px-[6px] py-[4px] my-[6px] font-medium text-base rounded-md transition-colors duration-200 ease-in-out
     }
+
     .links:hover {
         @apply bg-estado
     }
-    .links.activo{
+
+    .links.activo {
         @apply bg-estado
     }
+
     .titulo-seccion {
         @apply text-2xl mb-[20px] text-[#1E1E1E] font-bold
     }
+
     .btn-aceptar {
-        @apply bg-[#9992FF] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md 
+        @apply bg-[#9992FF] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#7b74cc] hover:shadow-md hover:scale-105 transform
     }
-    .separador{
+
+    .btn-eliminar {
+        @apply bg-[#D32F2F] text-white text-shadow-lg px-[20px] py-[10px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#a52828] hover:shadow-md hover:scale-105 transform
+    }
+
+    .separador {
         @apply bg-estado text-white text-shadow-lg py-1 px-3 mt-1 text-lg
     }
-    .caja{
-        @apply  mr-5 px-1 h-8 content-center text-gray-600 rounded-md border-1 
+
+    .caja {
+        @apply mr-5 px-1 h-8 content-center text-gray-600 rounded-md border-1
+    }
+
+    /* Checkbox personalizado */
+    .custom-checkbox {
+        @apply relative h-5 w-5 cursor-pointer appearance-none rounded border border-gray-300 bg-white checked:border-[#9992FF] checked:bg-[#9992FF] focus:outline-none focus:ring-2 focus:ring-[#9992FF] focus:ring-offset-2;
+    }
+
+    .custom-checkbox:checked::after {
+        @apply absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 transform content-[''];
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='white' viewBox='0 0 24 24'%3E%3Cpath d='M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z'/%3E%3C/svg%3E");
+    }
+
+    /* Radio button personalizado */
+    .custom-radio {
+        @apply relative h-5 w-5 cursor-pointer appearance-none rounded-full border border-gray-300 bg-white checked:border-[#9992FF] checked:bg-[#9992FF] focus:outline-none focus:ring-2 focus:ring-[#9992FF] focus:ring-offset-2;
+    }
+
+    .custom-radio:checked::after {
+        @apply absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 transform rounded-full bg-white content-[''];
     }
 }
