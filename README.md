@@ -142,5 +142,5 @@ Sigue los pasos a continuación
 17. **Acceder a la Aplicación:**
     * Abre tu navegador web y ve a: **http://localhost:8000/**.
     * **Credenciales de Prueba:**
-        * **Email:** `barbara@example.com`
+        * **Usuario:** `bgonzalez`
         * **Contraseña:** `claveSegura123`
