@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Traits\PersonaTrait;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\Persona;
 
 class Profesional extends Authenticatable
 {
-    use HasFactory, Notifiable, PersonaTrait;
+    use HasFactory, Notifiable;
 
     /**
      * Nombre de la tabla asociada en la base de datos.
@@ -28,13 +28,16 @@ class Profesional extends Authenticatable
      * Deben coincidir con los nombres de columnas en la tabla 'users'.
      */
     protected $fillable = [
-        'profesion',
-        'telefono',
-        'usuario',
-        'email',
-        'password',
-        'fk_id_persona',
-    ];
+    'nombre',
+    'apellido',
+    'dni',
+    'profesion',
+    'telefono',
+    'usuario',
+    'email',
+    'password',
+    'fk_id_persona',
+];
 
     /**
      * Campos que se ocultan al serializar el modelo (por ejemplo, al devolverlo como JSON).
