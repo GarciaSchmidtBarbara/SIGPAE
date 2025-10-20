@@ -5,12 +5,11 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Traits\PersonaTrait;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Profesional extends Authenticatable
 {
-    use HasFactory, Notifiable, PersonaTrait;
+    use HasFactory, Notifiable;
 
     /**
      * Nombre de la tabla asociada en la base de datos.
