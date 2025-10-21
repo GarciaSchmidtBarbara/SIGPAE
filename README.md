@@ -140,7 +140,7 @@ Sigue los pasos a continuación
     ```
 
 17. **Acceder a la Aplicación:**
-    * Abre tu navegador web y ve a: **http://localhost:8000/**.
+    * Abre tu navegador web y ve a: **http://127.0.0.1:8000/**.
     * **Credenciales de Prueba:**
         * **Usuario:** `lucia.g`
         * **Contraseña:** `segura123`
