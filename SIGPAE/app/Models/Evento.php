@@ -18,7 +18,10 @@ class Evento extends Model{
         //'otros_asistentes', no va en filleable porque se maneja como arreglo
         'creador_id',
         'tipo',
-        'notas' //No pongo alumnos y profesionales porque se manejan con relaciones
+        'notas', //No pongo alumnos y profesionales porque se manejan con relaciones
+        'es_derivacion_externa',
+        'profesional_tratante',
+        'periodo_recordatorio',
     ];
 
     public function creador(): BelongsTo
@@ -34,13 +37,18 @@ class Evento extends Model{
 
     public function profesionalesAsistentes(): BelongsToMany
     {
-        //tabla relacion será evento_profesional
-        return $this->belongsToMany(Profesional::class, 'evento_profesional', 'id_evento', 'id_profesional');
+        // tabla relacion será evento_profesional
+        return $this->belongsToMany(Profesional::class, 'evento_profesional', 'id_evento', 'id_profesional')
+                    ->using(Asiste::class)
+                    ->withPivot('asistio', 'asistencia_confirmada')
+                    ->withTimestamps();
     }
 
     public function agregarProfesionales(array $profesionalIds): void
     {
         //agrega profesionales a la lista de asistentes
+        // Si el array tiene índices numéricos -> lista simple de ids
+        // Si el array tiene la forma [id => ['asistio' => true, ...]] se respetarán los valores del pivot
         $this->profesionalesAsistentes()->syncWithoutDetaching($profesionalIds);
     }
 
@@ -58,6 +66,8 @@ class Evento extends Model{
 
     protected $casts = [
         'fecha_hora' => 'datetime',
+        'es_derivacion_externa' => 'boolean',
+        'periodo_recordatorio' => 'integer',
     ];
 
      public function aulas(): BelongsToMany
