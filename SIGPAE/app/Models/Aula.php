@@ -20,4 +20,8 @@ class Aula extends Model
     {
         return $this->curso . ' ' . $this->division;
     }
+
+    public function intervenciones(): BelongsToMany{
+        return $this->belongsToMany(Intervencion::class, 'intervencion_aula', 'fk_id_aula', 'fk_id_intervencion');
+    }
 }

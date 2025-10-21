@@ -35,7 +35,7 @@ return [
     'providers' => [
         'profesionales' => [ // CORREGIDO: Nuevo nombre de proveedor
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', App\Models\Profesional::class), // CORREGIDO: Apunta al modelo Profesional
+            'model' => env('AUTH_MODEL', App\Models\Profesional::class),
         ],
 
         // Si necesitas un proveedor basado en la tabla, descomenta y ajusta:

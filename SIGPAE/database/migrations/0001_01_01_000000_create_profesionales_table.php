@@ -11,35 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // ---------------------------------------------
-        // 0. TABLAS DE INFRAESTRUCTURA Y EVENTOS
-        // ---------------------------------------------
-        
-        Schema::create('aulas', function (Blueprint $table) {
-            $table->id('id_aula');
-            $table->string('nombre')->unique();
-            $table->string('capacidad')->nullable();
-            $table->timestamps();
-        });
-        
-        // Tabla de eventos (se crea sin FKs por ahora)
-        Schema::create('eventos', function (Blueprint $table) {
-            $table->id('id_evento');
-            // creador_id se agregará con Schema::table después de crear profesionales
-            $table->timestamp('fecha_hora');
-            $table->string('lugar');
-            $table->string('tipo'); // Enum TipoEvento: Banda, ReunionGabinete, Cita
-            $table->jsonb('otros_asistentes')->nullable();
-            $table->text('notas')->nullable();
-            $table->timestamps();
-        });
-
-
-        // ---------------------------------------------
-        // 1. TABLA BASE: PERSONAS
-        // ---------------------------------------------
-        Schema::create('personas', function (Blueprint $table) {
-            $table->id('id_persona');
+        Schema::create('profesionales', function (Blueprint $table) {
+            $table->id('id_profesional'); // Clave primaria personalizada
+            //campos heredados de composer dump-autoloadir
             $table->string('nombre');
             $table->string('apellido');
             $table->string('dni')->unique(); 
