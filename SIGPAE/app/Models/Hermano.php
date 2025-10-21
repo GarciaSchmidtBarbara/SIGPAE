@@ -22,8 +22,8 @@ class Hermano extends Model
         return $this->belongsTo(Persona::class, 'fk_id_persona');
     }
 
-    public function alumno(): BelongsTo
+    public function alumno(): BelongsToMany
     {
-        return $this->belongsTo(Alumno::class, 'fk_id_alumno');
+        return $this->belongsToMany(Alumno::class, 'alumno_hermano', 'id_hermano', 'id_alumno');
     }
 }

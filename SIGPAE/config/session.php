@@ -214,4 +214,21 @@ return [
 
     'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
 
+
+     /*
+    |--------------------------------------------------------------------------
+    | Session Database User ID Column
+    |--------------------------------------------------------------------------
+    |
+    | When using the database driver, you may specify the name of the column
+    | that should be used to store the user ID when an authenticated user
+    | is active. This is useful if you have renamed your user ID column.
+    |
+    */
+
+    // Use the standard `user_id` column for sessions so Laravel and packages
+    // that expect `user_id` work correctly. We previously used
+    // `profesional_id` but we're standardizing on `user_id`.
+    'user_id_column' => 'user_id',
+
 ];

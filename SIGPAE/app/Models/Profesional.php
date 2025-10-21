@@ -69,7 +69,9 @@ class Profesional extends Authenticatable
      public function eventosAsistidos()
     {   //Un profesional puede asistir a muchos eventos (relación muchos a muchos)
         return $this->belongsToMany(Evento::class, 'evento_profesional', 'id_profesional', 'id_evento')
-                    ->withPivot('asistio');
+                    ->using(Asiste::class)
+                    ->withPivot('asistio', 'asistencia_confirmada')
+                    ->withTimestamps();
     }
 
     /**
@@ -84,5 +86,22 @@ class Profesional extends Authenticatable
     public function getAuthPassword(){
         return $this->password;
     }
+
+    public function intervencionesCreadas(): HasMany
+    {
+        return $this->hasMany(Intervencion::class, 'fk_profesional_creador');
+    }
+
+    public function planesCreados(): HasMany
+    {
+        return $this->hasMany(PlanDeAccion::class, 'fk_id_profesional_creador');
+    }
+    
+    public function planesResponsables(): BelongsToMany
+    {
+        return $this->belongsToMany(PlanDeAccion::class, 'responsables', 'fk_id_profesional_responsable', 'fk_id_plan');
+    }
+
+
 
 }

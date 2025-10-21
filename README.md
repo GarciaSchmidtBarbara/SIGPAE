@@ -114,25 +114,25 @@ Sigue los pasos a continuación
 
 ### V. Puesta en Marcha y Pruebas
 
-15. **Crear un Usuario de Prueba (Tinker):**
-    * Inicia la consola interactiva de Laravel:
+15. **Ejecutar migraciones:**
+    * Ejecutar en la raiz del proyecto:
         ```bash
-        php artisan tinker
+        php artisan migrate
         ```
-    * Copia y pega el siguiente código para crear un usuario de prueba:
+        ⚠️ Si aparece “la tabla ya existe”, usar migrate:fresh para borrarlas y recrearlas.
+      ```bash
+        php artisan migrate:fresh
+        ```
+    * Ejecutar el seeder institucional para poblar la base de datos:
         ```php
-        App\Models\User::create([
-            'nombre' => 'Barbara',
-            'apellido' => 'González',
-            'dni' => '12345678',
-            'profesion' => 'Ingeniera',
-            'telefono' => '1122334455',
-            'usuario' => 'bgonzalez',
-            'email' => 'barbara@example.com',
-            'password' => bcrypt('claveSegura123')
-        ]);
+        php artisan db:seed
         ```
-    * Escribe `exit` para salir de Tinker.
+      Esto pobla la base con una persona y un profesional de prueba.
+   * Validar datos creados: Debería devolver “Lucía González”.
+      ```php
+        php artisan tinker
+         >>> \App\Models\Profesional::first()->persona->descripcion;
+        ```
 
 16. **Iniciar el Servidor de Desarrollo:**
     ```bash
@@ -140,7 +140,7 @@ Sigue los pasos a continuación
     ```
 
 17. **Acceder a la Aplicación:**
-    * Abre tu navegador web y ve a: **http://localhost:8000/**.
+    * Abre tu navegador web y ve a: **http://127.0.0.1:8000/**.
     * **Credenciales de Prueba:**
-        * **Usuario:** `bgonzalez`
-        * **Contraseña:** `claveSegura123`
+        * **Usuario:** `lucia.g`
+        * **Contraseña:** `segura123`

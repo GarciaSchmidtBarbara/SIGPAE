@@ -38,4 +38,12 @@ class Alumno extends Model
     public function eventos(): belongsToMany{
         return $this->belongsToMany(Evento::class, 'evento_alumno', 'id_alumno', 'id_evento');
     }
+
+    public function intervenciones(): BelongsToMany{
+        return $this->belongsToMany(Intervencion::class, 'intervencion_alumno', 'fk_id_alumno', 'fk_id_intervencion');
+    }
+
+    public function planesDeAccion(): BelongsToMany{
+        return $this->belongsToMany(PlanDeAccion::class, 'plan_alumno', 'fk_id_alumno', 'fk_id_plan');
+    }
 }
