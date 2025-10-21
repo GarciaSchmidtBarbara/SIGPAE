@@ -69,7 +69,9 @@ class Profesional extends Authenticatable
      public function eventosAsistidos()
     {   //Un profesional puede asistir a muchos eventos (relación muchos a muchos)
         return $this->belongsToMany(Evento::class, 'evento_profesional', 'id_profesional', 'id_evento')
-                    ->withPivot('asistio');
+                    ->using(Asiste::class)
+                    ->withPivot('asistio', 'asistencia_confirmada')
+                    ->withTimestamps();
     }
 
     /**

@@ -34,13 +34,18 @@ class Evento extends Model{
 
     public function profesionalesAsistentes(): BelongsToMany
     {
-        //tabla relacion será evento_profesional
-        return $this->belongsToMany(Profesional::class, 'evento_profesional', 'id_evento', 'id_profesional');
+        // tabla relacion será evento_profesional
+        return $this->belongsToMany(Profesional::class, 'evento_profesional', 'id_evento', 'id_profesional')
+                    ->using(Asiste::class)
+                    ->withPivot('asistio', 'asistencia_confirmada')
+                    ->withTimestamps();
     }
 
     public function agregarProfesionales(array $profesionalIds): void
     {
         //agrega profesionales a la lista de asistentes
+        // Si el array tiene índices numéricos -> lista simple de ids
+        // Si el array tiene la forma [id => ['asistio' => true, ...]] se respetarán los valores del pivot
         $this->profesionalesAsistentes()->syncWithoutDetaching($profesionalIds);
     }
 
