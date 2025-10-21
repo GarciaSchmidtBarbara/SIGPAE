@@ -4,11 +4,11 @@
 
 @section('contenido')
     <div class="fila-componentes">
-      <button class="btn-crear">Crear</button>
-      <button class="btn-eliminar">Tipo</button>
-      <button class="btn-estado">Estado</button>
-      <button class="btn-curso">Curso</button>
-      <button class="btn-buscar">Buscar</button>
+      <a class="btn-aceptar" href="{{ route('planDeAccion.crear-editar') }}">Crear</a>
+      <button class="btn-desplegable">Tipo</button>
+      <button class="btn-desplegable">Estado</button>
+      <button class="btn-desplegable">Curso</button>
+      <button class="desplegable">Buscar</button>
     </div>
     <p>Aquí va la tabla de planes. REDEFINIR CON COMPONENTES BLADE</p>
     <table>

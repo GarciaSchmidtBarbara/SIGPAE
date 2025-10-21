@@ -85,4 +85,21 @@ class Profesional extends Authenticatable
         return $this->password;
     }
 
+    public function intervencionesCreadas(): HasMany
+    {
+        return $this->hasMany(Intervencion::class, 'fk_profesional_creador');
+    }
+
+    public function planesCreados(): HasMany
+    {
+        return $this->hasMany(PlanDeAccion::class, 'fk_id_profesional_creador');
+    }
+    
+    public function planesResponsables(): BelongsToMany
+    {
+        return $this->belongsToMany(PlanDeAccion::class, 'responsables', 'fk_id_profesional_responsable', 'fk_id_plan');
+    }
+
+
+
 }
