@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('profesionales', function (Blueprint $table) {
             $table->id('id_profesional'); // Clave primaria personalizada
-            //campos heredados de personaTrair
+            //campos heredados de composer dump-autoloadir
             $table->string('nombre');
             $table->string('apellido');
             $table->string('dni')->unique();
