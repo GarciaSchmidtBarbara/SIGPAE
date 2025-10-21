@@ -7,28 +7,39 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
+    /**
+     * Elimina la columna profesional_id de sessions y agrega user_id vinculado a profesionales.
+     * Realiza respaldo condicional si la columna existe.
+     */
     public function up(): void
     {
-        // Backup any rows that reference profesional_id before dropping the column
-        $backupTable = 'sessions_backup_before_remove_profesional_' . date('Ymd_His');
-        DB::statement("CREATE TABLE IF NOT EXISTS \"$backupTable\" AS TABLE sessions WITH NO DATA;");
-        DB::statement("INSERT INTO \"$backupTable\" SELECT * FROM sessions WHERE profesional_id IS NOT NULL;");
+        // ------------------------------------------------------------------
+        // 1. RESPALDO CONDICIONAL DE DATOS (si existe profesional_id)
+        // ------------------------------------------------------------------
+        if (Schema::hasColumn('sessions', 'profesional_id')) {
+            $backupTable = 'sessions_backup_before_remove_profesional_' . date('Ymd_His');
 
-        Schema::table('sessions', function (Blueprint $table) {
-            // Drop foreign key constraint and column if present
-            if (Schema::hasColumn('sessions', 'profesional_id')) {
-                // Try drop constrained foreign id (works on Laravel 8+)
+            // Crear tabla vacía con misma estructura
+            DB::statement("CREATE TABLE IF NOT EXISTS \"$backupTable\" AS TABLE sessions WITH NO DATA;");
+
+            // Insertar solo si la columna existe
+            DB::statement("INSERT INTO \"$backupTable\" SELECT * FROM sessions WHERE profesional_id IS NOT NULL;");
+
+            // ------------------------------------------------------------------
+            // 2. ELIMINAR CLAVE FORÁNEA Y COLUMNA profesional_id
+            // ------------------------------------------------------------------
+            Schema::table('sessions', function (Blueprint $table) {
                 try {
                     $table->dropConstrainedForeignId('profesional_id');
                 } catch (\Throwable $e) {
-                    // If dropConstrainedForeignId isn't available or FK name differs,
-                    // try to drop column directly (it will also drop constraint)
                     $table->dropColumn('profesional_id');
                 }
-            }
-        });
+            });
+        }
 
-        // Ensure user_id exists and is constrained to profesionales.id_profesional
+        // ------------------------------------------------------------------
+        // 3. AGREGAR COLUMNA user_id VINCULADA A profesionales.id_profesional
+        // ------------------------------------------------------------------
         Schema::table('sessions', function (Blueprint $table) {
             if (! Schema::hasColumn('sessions', 'user_id')) {
                 $table->foreignId('user_id')->nullable()->after('last_activity')
@@ -38,15 +49,26 @@ return new class extends Migration
         });
     }
 
+    /**
+     * Reversión segura: restaura profesional_id si no existe.
+     * No elimina tabla de respaldo para preservar trazabilidad.
+     */
     public function down(): void
     {
-        // In down, we will recreate profesional_id as nullable unsignedBigInteger
         Schema::table('sessions', function (Blueprint $table) {
             if (! Schema::hasColumn('sessions', 'profesional_id')) {
                 $table->unsignedBigInteger('profesional_id')->nullable()->after('id')->index();
             }
+
+            if (Schema::hasColumn('sessions', 'user_id')) {
+                try {
+                    $table->dropConstrainedForeignId('user_id');
+                } catch (\Throwable $e) {
+                    $table->dropColumn('user_id');
+                }
+            }
         });
 
-        // We do not automatically drop the backup table in down() to avoid data loss.
+        // Nota: no se elimina la tabla de respaldo para evitar pérdida de datos.
     }
 };
