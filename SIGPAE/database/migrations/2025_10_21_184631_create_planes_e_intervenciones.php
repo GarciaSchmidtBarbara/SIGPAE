@@ -3,68 +3,170 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class extends Migration{
 
-    public function up(): void
-    {
-        Schema::create('planes_de_accion', function (Blueprint $table) {
-            $table->id('id_plan');
+    public function up(): void{ 
+        // ---------------------------
+        // Tablas principales
+        // ---------------------------
+        if (!Schema::hasTable('planes_de_accion')) {
+            Schema::create('planes_de_accion', function (Blueprint $table) {
+                $table->id('id_plan');
+                $table->string('estado')->default('activo');
+                $table->string('tipo');
+                $table->date('fecha_creacion');
 
-            $table->string('estado');
-            $table->string('tipo');
-            $table->date('fecha_creacion');
+                $table->foreignId('fk_id_profesional_creador')
+                    ->constrained('profesionales', 'id_profesional')
+                    ->onUpdate('cascade')
+                    ->onDelete('restrict');
 
-            $table->unsignedBigInteger('fk_id_profesional_creador')->nullable();
-            $table->unsignedBigInteger('fk_id_aula')->nullable();
+                $table->foreignId('fk_id_aula')
+                    ->nullable()
+                    ->constrained('aulas', 'id_aula')
+                    ->onUpdate('cascade')
+                    ->onDelete('restrict');
 
-            $table->foreign('fk_id_profesional_creador')
-                  ->references('id_profesional')
-                  ->on('profesionales')
-                  ->onDelete('set null');
+                $table->timestamps();
+                $table->check("(estado IN ('activo','cerrado'))");
+            });
+        }
 
-            $table->foreign('fk_id_aula')
-                  ->references('id_aula')
-                  ->on('aulas')
-                  ->onDelete('set null');
+        if (!Schema::hasTable('intervenciones')) {
+            Schema::create('intervenciones', function (Blueprint $table) {
+                $table->id('id_intervencion');
+                $table->date('fecha');
+                $table->string('lugar');
+                $table->string('tipo');
 
-            $table->timestamps();
-        });
+                $table->foreignId('fk_profesional_creador')
+                    ->constrained('profesionales', 'id_profesional')
+                    ->onUpdate('cascade')
+                    ->onDelete('restrict');
 
-        Schema::create('intervenciones', function (Blueprint $table) {
-            $table->id('id_intervencion');
+                $table->foreignId('fk_id_plan')
+                    ->constrained('planes_de_accion', 'id_plan')
+                    ->onUpdate('cascade')
+                    ->onDelete('restrict');
 
-            $table->date('fecha');
-            $table->string('lugar');
-            $table->string('tipo');
+                $table->foreignId('fk_id_evaluacion')
+                    ->nullable()
+                    ->constrained('evaluaciones', 'id_evaluacion')
+                    ->onUpdate('cascade')
+                    ->onDelete('set null');
 
-            $table->unsignedBigInteger('fk_profesional_creador')->nullable();
-            $table->unsignedBigInteger('fk_id_plan')->nullable();
-            $table->unsignedBigInteger('fk_id_evaluacion')->nullable();
+                $table->timestamps();
+            });
+        }
 
-            $table->foreign('fk_profesional_creador')
-                  ->references('id_profesional')
-                  ->on('profesionales')
-                  ->onDelete('set null');
+        // ---------------------------
+        // Tablas pivote (afuera de cualquier Blueprint)
+        // ---------------------------
+        if (!Schema::hasTable('responsables')) {
+            Schema::create('responsables', function (Blueprint $table) {
+                $table->foreignId('fk_id_plan')
+                    ->constrained('planes_de_accion', 'id_plan')
+                    ->cascadeOnDelete();
 
-            $table->foreign('fk_id_plan')
-                  ->references('id_plan')
-                  ->on('planes_de_accion')
-                  ->onDelete('set null');
+                $table->foreignId('fk_id_profesional_responsable')
+                    ->constrained('profesionales', 'id_profesional')
+                    ->cascadeOnDelete();
 
-            $table->foreign('fk_id_evaluacion')
-                  ->references('id_evaluacion')
-                  ->on('evaluaciones')
-                  ->onDelete('set null');
+                $table->primary(['fk_id_plan','fk_id_profesional_responsable']);
+                $table->timestamps();
+            });
+        }
 
-            $table->timestamps();
-        });
-    }
+        if (!Schema::hasTable('plan_alumno')) {
+            Schema::create('plan_alumno', function (Blueprint $table) {
+                $table->foreignId('fk_id_plan')
+                    ->constrained('planes_de_accion', 'id_plan')
+                    ->cascadeOnDelete();
 
+                $table->foreignId('fk_id_alumno')
+                    ->constrained('alumnos', 'id_alumno')
+                    ->cascadeOnDelete();
+
+                $table->primary(['fk_id_plan','fk_id_alumno']);
+                $table->timestamps();
+            });
+        }
+
+        if (!Schema::hasTable('intervencion_aula')) {
+            Schema::create('intervencion_aula', function (Blueprint $table) {
+                $table->foreignId('fk_id_intervencion')
+                    ->constrained('intervenciones', 'id_intervencion')
+                    ->cascadeOnDelete();
+
+                $table->foreignId('fk_id_aula')
+                    ->constrained('aulas', 'id_aula')
+                    ->cascadeOnDelete();
+
+                $table->primary(['fk_id_intervencion','fk_id_aula']);
+                $table->timestamps();
+            });
+        }
+
+        if (!Schema::hasTable('intervencion_alumno')) {
+            Schema::create('intervencion_alumno', function (Blueprint $table) {
+                $table->foreignId('fk_id_intervencion')
+                    ->constrained('intervenciones', 'id_intervencion')
+                    ->cascadeOnDelete();
+
+                $table->foreignId('fk_id_alumno')
+                    ->constrained('alumnos', 'id_alumno')
+                    ->cascadeOnDelete();
+
+                $table->primary(['fk_id_intervencion','fk_id_alumno']);
+                $table->timestamps();
+            });
+        }
+
+        if (!Schema::hasTable('documentacion_intervencion')) {
+            Schema::create('documentacion_intervencion', function (Blueprint $table) {
+                $table->foreignId('fk_id_intervencion')
+                    ->constrained('intervenciones', 'id_intervencion')
+                    ->cascadeOnDelete();
+
+                $table->foreignId('fk_id_documentacion')
+                    ->constrained('documentaciones', 'id_documentacion')
+                    ->cascadeOnDelete();
+
+                $table->primary(['fk_id_intervencion','fk_id_documentacion']);
+                $table->timestamps();
+            });
+        }
+    }    
+
+    //Revierte las migraciones (bajar).
     public function down(): void
     {
-        Schema::dropIfExists('intervenciones');
-        Schema::dropIfExists('planes_de_accion');
+        // Primero borrar tablas pivote
+        if (Schema::hasTable('plan_alumno')) {
+            Schema::dropIfExists('plan_alumno');
+        }
+        if (Schema::hasTable('responsables')) {
+            Schema::dropIfExists('responsables');
+        }
+        if (Schema::hasTable('documentacion_intervencion')) {
+            Schema::dropIfExists('documentacion_intervencion');
+        }
+        if (Schema::hasTable('intervencion_alumno')) {
+            Schema::dropIfExists('intervencion_alumno');
+        }
+        if (Schema::hasTable('intervencion_aula')) {
+            Schema::dropIfExists('intervencion_aula');
+        }
+
+        // Eliminar en orden inverso (primero dependientes)
+        if (Schema::hasTable('intervenciones')) {
+            Schema::dropIfExists('intervenciones');
+        }
+
+        if (Schema::hasTable('planes_de_accion')) {
+            Schema::dropIfExists('planes_de_accion');
+        }
     }
 };
