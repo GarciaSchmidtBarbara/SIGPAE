@@ -32,7 +32,7 @@
     }
 
     .btn-aceptar {
-        @apply bg-[#9992FF] text-white text-shadow-lg px-[10px] py-[5px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#7b74cc] hover:shadow-md hover:scale-105 transform
+        @apply bg-[#9992FF] text-center text-white text-shadow-lg px-[10px] py-[5px] min-w-[100px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#7b74cc] hover:shadow-md hover:scale-105 transform
     }
 
     .btn-eliminar {
@@ -53,6 +53,15 @@
         background-repeat: no-repeat;
         background-position: 12px center;
         background-size: 20px 20px;
+    }
+
+    .btn-buscar {
+        @apply w-40 px-10 py-2 text-gray-500 border border-gray-400 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-400 placeholder-gray-400;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' class='h-6 w-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-4.35-4.35m0 0A7.5 7.5 0 1110.5 3a7.5 7.5 0 016.15 13.65z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 12px center;
+        background-size: 20px 20px;
+        transition: all 0.2s ease-in-out;
     }
 
     .separador {

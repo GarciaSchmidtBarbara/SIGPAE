@@ -44,11 +44,11 @@
         <div class="space-y-10 mb-6">
             <p class="separador">Destinatario</p>
             <div class="fila-botones">
-                <button class="btn-aceptar">Alumno busqueda</button>
-                <button class="btn-aceptar">Documento busqueda</button>
+                <button class="btn-buscar">Alumno</button>
+                <button class="btn-buscar">Documento</button>
             </div>
             <div class="space-y-2">
-                <p class="font-semibold">Información personal del alumno</p>
+                <p class="font-semibold text-2xl">Información personal del alumno</p>
                 <div class="grid grid-cols-4 gap-4">
                     <div>
                       <p><span class="font-semibold">Nombre y Apellido:</span> Juan Pérez</p>
@@ -78,11 +78,11 @@
         <div class="space-y-10 mb-6">
             <p class="separador">Destinatarios</p>
             <div class="fila-botones">
-                <button class="btn-aceptar">Alumno busqueda</button>
-                <button class="btn-aceptar">Documento busqueda</button>
+                <button class="btn-buscar">Alumno</button>
+                <button class="btn-buscar">Documento</button>
             </div>
             <div class="space-y-2">
-                <p class="font-semibold">Información personal de los alumnos</p>
+                <p class="font-semibold text-2xl">Información personal de los alumnos</p>
                 <div class="overflow-x-auto border border-gray-200 rounded-lg">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -152,8 +152,8 @@
     <!-- Campo de texto (Común/Always) -->
     {{-- NO necesita display: none. Se muestra siempre. --}}
     <div id="campo-texto" x-show="true">
-        <p class="separador">Descripción</p>
-        <div class="space-y-2 mb-6">
+        <div class="space-y-10 mb-6">
+            <p class="separador">Descripción</p>
             {{-- Contenido del campo-texto --}}
             <label class="block text-sm font-medium text-gray-700">Objetivos <span class="text-red-500">*</span></label>
             <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="objetivos" rows="4"></textarea>
@@ -176,14 +176,20 @@
                     {{-- Placeholder para archivos cargados --}}
                     <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
                         <span class="text-sm text-gray-600">Documento1.pdf</span>
-                        <button class="text-gray-500 hover:text-red-500">
-                            {{-- SVG Icon --}}
+                        <button class="text-gray-400 hover:text-red-600 focus:outline-none">
+                        {{-- Icono de bote de basura (Tailwind Heroicons) --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
                         </button>
                     </div>
                     <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
                         <span class="text-sm text-gray-600">Documento2.pdf</span>
-                        <button class="text-gray-500 hover:text-red-500">
-                            {{-- SVG Icon --}}
+                        <button class="text-gray-400 hover:text-red-600 focus:outline-none">
+                        {{-- Icono de bote de basura (Tailwind Heroicons) --}}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -203,20 +209,25 @@
             <div class="space-y-4">
                 <label class="block text-sm font-medium text-gray-700">Profesionales <span class="text-red-500">*</span></label>
                 <div class="fila-botones">
-                    <button class="btn-aceptar">Buscar profesional</button>
-                    <button class="btn-aceptar">Agregar profesional</button>
+                    <button class="btn-buscar">Profesional</button>
                 </div>
                 <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                  <span class="text-sm text-gray-600">Profesional 1</span>
-                  <button class="text-gray-500 hover:text-red-500">
-                      {{-- SVG Icon --}}
-                  </button>
+                    <span class="text-sm text-gray-600">Profesional 1</span>
+                    <button class="text-gray-400 hover:text-red-600 focus:outline-none">
+                    {{-- Icono de bote de basura (Tailwind Heroicons) --}}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
                 <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
                   <span class="text-sm text-gray-600">Profesional 2</span>
-                  <button class="text-gray-500 hover:text-red-500">
-                      {{-- SVG Icon --}}
-                  </button>
+                  <button class="text-gray-400 hover:text-red-600 focus:outline-none">
+                    {{-- Icono de bote de basura (Tailwind Heroicons) --}}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>
