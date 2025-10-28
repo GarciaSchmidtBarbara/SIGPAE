@@ -9,7 +9,7 @@ class PlanDeAccion extends Model
 {
     protected $table = 'planes_de_accion';
 
-    protected $primaryKey = 'id_plan';
+    protected $primaryKey = 'id_plan_de_accion';
 
     protected $fillable = [
         'estado',
@@ -40,7 +40,7 @@ class PlanDeAccion extends Model
 
     public function documentaciones(): HasMany
     {
-        return $this->hasMany(Documentacion::class, 'fk_id_plan');
+        return $this->hasMany(Documentacion::class, 'fk_id_plan_accion');
     }
 
     public function aula(): BelongsTo

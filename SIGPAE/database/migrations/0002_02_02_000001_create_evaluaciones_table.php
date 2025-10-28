@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('evaluacions', function (Blueprint $table) {
+        Schema::create('evaluaciones', function (Blueprint $table) {
             $table->id('id_evaluacion');
-            $table->foreignId('fk_id_plan')->constrained()->nullOnDelete();
+            //$table->foreignId('fk_id_plan')->constrained()->nullOnDelete();
 
             $table->string('codigo')->unique();
             $table->string('criterios');
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('evaluacions');
+        Schema::dropIfExists('evaluaciones');
     }
 };
