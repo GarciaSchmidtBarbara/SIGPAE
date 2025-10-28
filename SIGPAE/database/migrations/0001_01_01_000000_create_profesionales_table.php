@@ -98,7 +98,7 @@ return new class extends Migration
         Schema::create('alumno_familiar', function (Blueprint $table) {
             $table->foreignId('id_alumno')->constrained('alumnos', 'id_alumno')->onDelete('cascade');
             $table->foreignId('id_familiar')->constrained('familiares', 'id_familiar')->onDelete('cascade');
-            $table->string('parentesco'); 
+            $table->string('parentesco');
             $table->primary(['id_alumno', 'id_familiar']);
             $table->timestamps();
         });
