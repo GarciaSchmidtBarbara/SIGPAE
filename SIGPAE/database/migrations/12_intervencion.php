@@ -32,7 +32,6 @@ return new class extends Migration
                   ->onDelete('restrict');
             //DUDA: no deberia borrarse un plan si tiene intervenciones. Cierto?
 
-          /** habilitar cuando exista evaluacion espontanea
             $table->foreignId('fk_evaluacion_espontanea')
                   ->nullable()
                   ->constrained('evaluaciones_intervenciones_espontaneas', 'id_evaluacion')
@@ -40,13 +39,12 @@ return new class extends Migration
                   ->onDelete('set null');
 
             $table->timestamps();
-          */
-            $table->timestamps();
         });
     }
 
     public function down(): void
     {
         Schema::dropIfExists('intervenciones');
+
     }
 };
