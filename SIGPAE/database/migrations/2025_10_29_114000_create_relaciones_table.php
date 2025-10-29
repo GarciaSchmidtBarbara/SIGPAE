@@ -27,6 +27,18 @@ return new class extends Migration
                   //Esto no elimina los familiares ni los alumnos, solo elimina los vínculos en tiene_familiar. (eliminar el familiar en el modelo si ya no tiene mas vinculos)
             $table->timestamps();
         });
+
+        Schema::create('tiene_asignado', function (Blueprint $table) {
+            $table->id('id_tiene_asignado');
+            $table->foreignId('fk_alumno')
+                  ->constrained('alumnos', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_plan')
+                  ->constrained('planes_de_accion', 'id_plan')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+        });
     }
 
     public function down(): void
