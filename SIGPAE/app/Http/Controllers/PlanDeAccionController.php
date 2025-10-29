@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers;
-use App\Models\PlanDeAccion;
+use App\Modules\Planes\Models\PlanDeAccion;
 
 class PlanDeAccionController extends Controller{
   public function show($id)  {

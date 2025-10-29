@@ -5,7 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth; // Importar Auth
-use App\Models\Profesional; // Importar tu modelo Profesional
+use App\Modules\Profesionales\Models\Profesional; // Importar tu modelo Profesional
 
 class AppServiceProvider extends ServiceProvider
 {

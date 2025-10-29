@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Persona;
-use App\Models\Profesional;
+use App\Modules\Personas\Models\Persona;
+use App\Modules\Profesionales\Models\Profesional;
 use Illuminate\Support\Facades\Hash;
 
 class BaseInstitucionalSeeder extends Seeder

@@ -7,8 +7,8 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-use App\Models\Persona;
-use App\Models\Profesional;
+use App\Modules\Personas\Models\Persona;
+use App\Modules\Profesionales\Models\Profesional;
 
 // Creamos o reutilizamos una persona de prueba
 $persona = Persona::firstOrCreate(
