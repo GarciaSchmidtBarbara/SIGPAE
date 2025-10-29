@@ -13,37 +13,49 @@ class Alumno extends Model
     protected $primaryKey = 'id_alumno';
 
     protected $fillable = [
-        'inasistencias',
         'cud',
-        'fk_id_persona',
-        'fk_id_aula',
+        'inasistencias',
+        'observaciones',
+        'antecedentes',
+        'intervenciones_externas',
+        'actividades_extraescolares',
+        'situacion_escolar',
+        'situacion_salud',
+        'situacion_familiar',
+        'situacion_socioeconomica',
+        'fk_persona',
+        'fk_aula',
     ];
 
     public function getDescripcionAttribute(){
-        return $this->nombre . ' ' . $this->apellido;
+        return $this->persona ? "{$this->persona->nombre} {$this->persona->apellido}" : 'Sin datos';
     }
 
      public function persona(): BelongsTo {
-        return $this->belongsTo(Persona::class, 'fk_id_persona');
+        return $this->belongsTo(Persona::class, 'fk_persona', 'id_persona');
+    }
+
+    public function aula(): BelongsTo {
+        return $this->belongsTo(Aula::class, 'fk_aula', 'id_aula');
     }
 
     public function familiares(): BelongsToMany{        
-        return $this->belongsToMany(Familiar::class, 'alumno_familiar', 'id_alumno', 'id_familiar');
+        return $this->belongsToMany(Familiar::class, 'tiene_familiar', 'fk_alumno', 'fk_familiar');
     }
 
     public function hermanos(): BelongsToMany{
-        return $this->belongsToMany(Hermano::class, 'alumno_hermano', 'id_alumno', 'id_hermano');
-    }
-
-    public function eventos(): belongsToMany{
-        return $this->belongsToMany(Evento::class, 'evento_alumno', 'id_alumno', 'id_evento');
+        return $this->belongsToMany(Alumno::class, 'es_hermano_de', 'fk_alumno', 'fk_alumno_hermano');
     }
 
     public function intervenciones(): BelongsToMany{
-        return $this->belongsToMany(Intervencion::class, 'intervencion_alumno', 'fk_id_alumno', 'fk_id_intervencion');
+        return $this->belongsToMany(Intervencion::class, 'intervencion_alumno', 'fk_alumno', 'fk_intervencion');
+    }
+
+    public function documentos(){
+        return $this->hasMany(Documento::class, 'fk_alumno', 'id_alumno');
     }
 
     public function planesDeAccion(): BelongsToMany{
-        return $this->belongsToMany(PlanDeAccion::class, 'plan_alumno', 'fk_id_alumno', 'fk_id_plan');
+        return $this->belongsToMany(PlanDeAccion::class, 'tiene_asignado', 'fk_alumno', 'fk_plan');
     }
 }
