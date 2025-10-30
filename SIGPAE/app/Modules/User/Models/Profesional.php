@@ -23,13 +23,7 @@ class Profesional extends Authenticatable
      */
     protected $primaryKey = 'id_profesional';
 
-    /**
-     * Campos que pueden asignarse masivamente (por ejemplo, al usar create() o fill()).
-     * Deben coincidir con los nombres de columnas en la tabla 'users'.
-     */
-    // Mantengo campos personales por compatibilidad (temporal). El sistema
-    // centraliza los datos personales en `Persona`. Aquí solo deben quedar
-    // los campos propios del usuario/profesional necesarios para auth/identidad.
+  
     protected $fillable = [
         // personales (idealmente en Persona)
         'nombre',
@@ -56,7 +50,7 @@ class Profesional extends Authenticatable
      * Esto permite que 'fecha_nacimiento' sea un objeto DateTime, y 'password' se hashee automáticamente.
      */
     protected $casts = [
-        'email_verified_at' => 'datetime', //Movi dni para persona
+        'email_verified_at' => 'datetime', 
         'password' => 'hashed',
     ];
 
