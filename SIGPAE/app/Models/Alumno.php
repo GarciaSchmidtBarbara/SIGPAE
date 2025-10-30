@@ -27,6 +27,12 @@ class Alumno extends Model
         'fk_aula',
     ];
 
+    protected $casts = [
+        'inasistencias' => 'integer',
+        'cud' => 'boolean',
+    ];
+
+
     public function getDescripcionAttribute(){
         return $this->persona ? "{$this->persona->nombre} {$this->persona->apellido}" : 'Sin datos';
     }
