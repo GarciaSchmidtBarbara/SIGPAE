@@ -3,11 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\relations\BelongsTo;
 use Illuminate\Database\Eloquent\relations\BelongsToMany;
 
 class Alumno extends Model
 {
+    use HasFactory; //Una factory es una clase que define cómo crear un modelo con datos de ejemplo. Laravel las usa para generar registros falsos (pero válidos) en la base de datos
+    //ejemplo: Alumno::factory()->count(10)->create(); crea 10 alumnos con datos de ejemplo
+
     protected $table = 'alumnos';
 
     protected $primaryKey = 'id_alumno';
@@ -63,5 +67,57 @@ class Alumno extends Model
 
     public function planesDeAccion(): BelongsToMany{
         return $this->belongsToMany(PlanDeAccion::class, 'tiene_asignado', 'fk_alumno', 'fk_plan');
+    }
+
+    public function eventos(): BelongsToMany {
+        return $this->belongsToMany(Evento::class, 'evento_alumno', 'fk_alumno', 'fk_evento');
+    }
+
+    // Métodos personalizados
+    public static function crearAlumno(array $data): Alumno
+    {
+        return self::create($data);
+    }
+
+    public function borrarAlumno(): void
+    {
+        $this->delete();
+    }
+
+    public function agregarFamiliar(Familiar $familiar): void
+    {
+        $this->familiares()->attach($familiar->id);
+    }
+
+    public function agregarHermano(Alumno $hermano): void
+    {
+        $this->hermanos()->attach($hermano->id);
+    }
+
+    public function agregarPlanDeAccion(PlanDeAccion $plan): void
+    {
+        $this->planesDeAccion()->attach($plan->id);
+    }
+
+    public function agregarIntervencion(Intervencion $intervencion): void
+    {
+        $this->intervenciones()->attach($intervencion->id);
+    }
+
+    public function agregarAula(Aula $aula): void
+    {
+        $this->update(['fk_aula' => $aula->id]);
+    }
+
+    public function agregarDocumento(Documento $documento): void
+    {
+        $this->documentos()->save($documento);
+    }
+
+    public function borrarDocumento(Documento $documento): void
+    {
+        if ($this->documentos->contains($documento)) {
+            $documento->delete();
+        }
     }
 }

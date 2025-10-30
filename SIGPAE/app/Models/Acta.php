@@ -22,12 +22,12 @@ class Acta extends Model
         'acuerdos',
         'observaciones',
         'fecha_proxima_reunion',
-        'fk_id_aula',
+        'fk_aula',
     ];
 
     protected $casts = [
         'fecha_hora' => 'datetime',
-        'fecha_proxima_reunion' => 'date',
+        'fecha_proxima_reunion' => 'datetime',
         'otros_participantes' => 'array', 
         'tipo_acta' => TipoActa::class,
     ];
@@ -35,7 +35,7 @@ class Acta extends Model
     // Relaciones
     public function aula(): BelongsTo
     {
-        return $this->belongsTo(Aula::class, 'fk_id_aula');
+        return $this->belongsTo(Aula::class, 'fk_aula');
     }
 
     public function profesionales(): BelongsToMany
@@ -47,6 +47,11 @@ class Acta extends Model
             'fk_profesional'
         );
     }
+
+    public function otrosAsistentes(): HasMany {
+        return $this->hasMany(OtroAsistenteA::class, 'fk_acta');
+    }
+    
 
     // Métodos personalizados
     public static function crearActa(array $data): Acta
