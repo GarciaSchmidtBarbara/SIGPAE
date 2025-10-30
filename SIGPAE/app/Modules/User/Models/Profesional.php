@@ -23,21 +23,19 @@ class Profesional extends Authenticatable
      */
     protected $primaryKey = 'id_profesional';
 
-    /**
-     * Campos que pueden asignarse masivamente (por ejemplo, al usar create() o fill()).
-     * Deben coincidir con los nombres de columnas en la tabla 'users'.
-     */
+  
     protected $fillable = [
-    'nombre',
-    'apellido',
-    'dni',
-    'profesion',
-    'telefono',
-    'usuario',
-    'email',
-    'password',
-    'fk_id_persona',
-];
+        // personales (idealmente en Persona)
+        'nombre',
+        'apellido',
+        'dni',
+        // campos mínimos de profesional / usuario
+        'telefono',
+        'usuario',
+        'email',
+        'password',
+        'fk_id_persona',
+    ];
 
     /**
      * Campos que se ocultan al serializar el modelo (por ejemplo, al devolverlo como JSON).
@@ -52,7 +50,7 @@ class Profesional extends Authenticatable
      * Esto permite que 'fecha_nacimiento' sea un objeto DateTime, y 'password' se hashee automáticamente.
      */
     protected $casts = [
-        'email_verified_at' => 'datetime', //Movi dni para persona
+        'email_verified_at' => 'datetime', 
         'password' => 'hashed',
     ];
 
@@ -80,7 +78,9 @@ class Profesional extends Authenticatable
      */
     public function getDescripcion(): string
     {
-        return "Usuario: {$this->getNombreCompleto()}, Profesion: {$this->profesion}";
+        $persona = $this->persona;
+        $nombre = $persona ? ($persona->nombre . ' ' . $persona->apellido) : ($this->usuario ?? '');
+        return "Profesional: {$nombre}";
     }
     
     public function getAuthPassword(){
