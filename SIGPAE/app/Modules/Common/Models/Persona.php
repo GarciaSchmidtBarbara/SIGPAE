@@ -1,9 +1,13 @@
 <?php
 
-namespace App\Models;
+namespace App\Modules\Common\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Modules\Alumno\Models\Alumno;
+use App\Modules\User\Models\Profesional;
+use App\Modules\Alumno\Models\Familiar;
+use App\Modules\Alumno\Models\Hermano;
 
 class Persona extends Model
 {
