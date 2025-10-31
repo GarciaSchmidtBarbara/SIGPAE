@@ -9,11 +9,6 @@ use Illuminate\Database\Eloquent\relations\BelongsToMany;
 
 class Alumno extends Model
 {
-    use HasFactory; //Una factory es una clase que define cómo crear un modelo con datos de ejemplo. Laravel las usa para generar registros falsos (pero válidos) en la base de datos
-    //ejemplo: Alumno::factory()->count(10)->create(); crea 10 alumnos con datos de ejemplo
-
-    protected $table = 'alumnos';
-
     protected $primaryKey = 'id_alumno';
 
     protected $fillable = [

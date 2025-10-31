@@ -33,7 +33,7 @@ class Persona extends Model
         return $this->nombre . ' ' . $this->apellido;
     }
 
-    public function alumno(): HasOne
+     public function alumno(): HasOne
     {   //Como es 0,1 relacion, usamos hasOne y el alumno tendrá la clave foránea
         return $this->hasOne(Alumno::class, 'fk_id_persona');
     }

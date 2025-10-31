@@ -39,10 +39,19 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
         });
+
+        Schema::create('tiene_aulas', function (Blueprint $table) {
+            $table->foreignId('Fk_aulas')->constrained('aulas', 'id_aula')->nullOnDelete()->cascadeOnUpdate();
+            $table->foreignId('Fk_evento')->constrained('eventos', 'id_evento')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->primary(['Fk_aulas', 'Fk_evento']);
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
       Schema::dropIfExists('tiene_familiar');
+      Schema::dropIfExists('tiene_asignado');
+      Schema::dropIfExists('tiene_aulas');
     }
 };
