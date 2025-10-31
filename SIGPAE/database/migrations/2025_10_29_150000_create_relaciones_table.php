@@ -53,6 +53,34 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        Schema::table('es_invitado_a', function (Blueprint $table) {
+            $table->id('id_es_invitado');
+            $table->boolean('confirmacion')->default(false);
+            $table->boolean('asistio')->default(false);
+            $table->foreignId('fk_profesional_invitado')
+                  ->constrained('profesionales', 'id_profesional')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_evento')
+                  ->constrained('eventos', 'id_evento')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->timestamps();
+        });
+
+        Schema::table('participa_plan', function (Blueprint $table) {
+            $table->id('id_participa_plan');
+            $table->foreignId('fk_profesional_participante')
+                  ->constrained('profesionales', 'id_profesional')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_plan_participante')
+                  ->constrained('planes_de_accion', 'id_plan')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->timestamps();
+        });
+
         Schema::table('intervencion_aula', function (Blueprint $table) {
             $table->foreignId('fk_id_aula')
                   ->constrained('aulas', 'id_aula')
