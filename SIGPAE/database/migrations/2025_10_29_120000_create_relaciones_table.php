@@ -46,6 +46,20 @@ return new class extends Migration
             $table->primary(['Fk_aulas', 'Fk_evento']);
             $table->timestamps();
         });
+
+         Schema::create('acta_pofesional', function (Blueprint $table) {
+            $table->foreignId('fk_profesional')
+                  ->references('id_profesional')
+                  ->on('profesionales')
+                  ->onDelete('set null');
+            $table->foreingId('fk_acta')
+                  ->references('id_acta')
+                  ->on('actas')
+                  ->onDelete('cascade');
+            $table->primary(['fk_profesional', 'fk_acta']);
+            $table->timestamps();
+            
+        });
     }
 
     public function down(): void
@@ -53,5 +67,6 @@ return new class extends Migration
       Schema::dropIfExists('tiene_familiar');
       Schema::dropIfExists('tiene_asignado');
       Schema::dropIfExists('tiene_aulas');
+      Schema::dropIfExists('acta_profesional');
     }
 };
