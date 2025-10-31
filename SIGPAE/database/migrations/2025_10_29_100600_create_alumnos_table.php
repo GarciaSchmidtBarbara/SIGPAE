@@ -24,6 +24,14 @@ return new class extends Migration
             $table->string('situacion_familiar')->nullable();
             $table->string('situacion_socioeconomica')->nullable();
             $table->timestamps();
+            $table->foreignId('fk_id_persona')
+                  ->constrained('personas', 'id_persona')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_id_aula')
+                  ->constrained('aulas', 'id_aula')
+                  ->onUpdate('cascade')
+                  ->onDelete('set null');      
         });
     }
 
