@@ -115,12 +115,12 @@ return new class extends Migration
       Schema::dropIfExists('tiene_aulas');
       Schema::dropIfExists('intervencion_aula');
       Schema::dropIfExists('intervencion_alumno');  
+      Schema::dropIfExists('es_invitado_a');
+      Schema::dropIfExists('participa_plan');
     }
 };
 
 /**Por hacer:
-es_invitado_a,
-participa_plan, 
 es_hermano_de
 acta_aula
 intervencion_planilla */
