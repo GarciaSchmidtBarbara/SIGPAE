@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('personas', function (Blueprint $table) {
             $table->id('id_persona');
-            $table->char('dni', 8)->unique();
+            $table->biginteger('dni')->unique();
             $table->string('nombre');
             $table->string('apellido');
             $table->date('fecha_nacimiento')->nullable();
