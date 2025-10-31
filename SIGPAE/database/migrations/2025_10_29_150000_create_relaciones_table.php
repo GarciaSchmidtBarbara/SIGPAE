@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('tiene_familiar', function (Blueprint $table) {
+      Schema::table('tiene_familiar', function (Blueprint $table) {
             $table->id('id_tiene_familiar');
 
             $table->foreignId('fk_alumno')
@@ -25,9 +25,9 @@ return new class extends Migration
 
                   //Esto no elimina los familiares ni los alumnos, solo elimina los vínculos en tiene_familiar. (eliminar el familiar en el modelo si ya no tiene mas vinculos)
             $table->timestamps();
-        });
+      });
 
-        Schema::create('tiene_asignado', function (Blueprint $table) {
+      Schema::create('tiene_asignado', function (Blueprint $table) {
             $table->id('id_tiene_asignado');
             $table->foreignId('fk_alumno')
                   ->constrained('alumnos', 'id_alumno')
@@ -38,9 +38,9 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             $table->timestamps();      
-        });
+      });
 
-        Schema::create('tiene_aulas', function (Blueprint $table) {
+      Schema::create('tiene_aulas', function (Blueprint $table) {
             $table->foreignId('Fk_aulas')
                 ->constrained('aulas', 'id_aula')
                 ->nullOnDelete()
@@ -51,9 +51,9 @@ return new class extends Migration
                 ->cascadeOnUpdate();
             $table->primary(['Fk_aulas', 'Fk_evento']);
             $table->timestamps();
-        });
+      });
 
-         Schema::create('acta_pofesional', function (Blueprint $table) {
+      Schema::create('acta_pofesional', function (Blueprint $table) {
             $table->foreignId('fk_profesional')
                   ->references('id_profesional')
                   ->on('profesionales')
@@ -64,8 +64,9 @@ return new class extends Migration
                   ->onDelete('cascade');
             $table->primary(['fk_profesional', 'fk_acta']);
             $table->timestamps();
-            
-        Schema::table('es_invitado_a', function (Blueprint $table) {
+      });
+
+      Schema::table('es_invitado_a', function (Blueprint $table) {
             $table->id('id_es_invitado');
             $table->boolean('confirmacion')->default(false);
             $table->boolean('asistio')->default(false);
@@ -78,9 +79,9 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             $table->timestamps();
-        });
+      });
 
-        Schema::table('participa_plan', function (Blueprint $table) {
+      Schema::table('participa_plan', function (Blueprint $table) {
             $table->id('id_participa_plan');
             $table->foreignId('fk_profesional_participante')
                   ->constrained('profesionales', 'id_profesional')
@@ -91,9 +92,9 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             $table->timestamps();
-        });
+      });
 
-        Schema::table('intervencion_aula', function (Blueprint $table) {
+      Schema::table('intervencion_aula', function (Blueprint $table) {
             $table->foreignId('fk_id_aula')
                   ->constrained('aulas', 'id_aula')
                   ->onUpdate('cascade')
@@ -104,9 +105,9 @@ return new class extends Migration
                   ->onDelete('cascade');
             $table->primary(['fk_id_aula', 'fk_id_intervencion']);  
             $table->timestamps();
-        });
+      });
 
-        Schema::table('intervencion_alumno', function (Blueprint $table) {
+      Schema::table('intervencion_alumno', function (Blueprint $table) {
             $table->foreignId('fk_id_alumno')
                   ->constrained('alumnos', 'id_alumno')
                   ->onUpdate('cascade')
@@ -117,7 +118,7 @@ return new class extends Migration
                   ->onDelete('cascade');
             $table->primary(['fk_id_alumno', 'fk_id_intervencion']);  
             $table->timestamps();
-        });
+      });
     }
 
     public function down(): void
