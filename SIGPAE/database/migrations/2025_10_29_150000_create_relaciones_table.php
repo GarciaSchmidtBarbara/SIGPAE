@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/**Todas las tablas de relaciones:
-es_invitado_a, participa_plan, tiene_familiar, es_hermano_de, acta_aula, tiene_aulas, tiene_profesional, intervencion_planilla, intervencion_aula, intervencion_alumno */
+
 
 return new class extends Migration
 {
@@ -38,12 +37,45 @@ return new class extends Migration
                   ->constrained('planes_de_accion', 'id_plan')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
+            $table->timestamps();      
         });
 
         Schema::create('tiene_aulas', function (Blueprint $table) {
-            $table->foreignId('Fk_aulas')->constrained('aulas', 'id_aula')->nullOnDelete()->cascadeOnUpdate();
-            $table->foreignId('Fk_evento')->constrained('eventos', 'id_evento')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('Fk_aulas')
+                ->constrained('aulas', 'id_aula')
+                ->nullOnDelete()
+                ->cascadeOnUpdate();
+            $table->foreignId('Fk_evento')
+                ->constrained('eventos', 'id_evento')
+                ->cascadeOnDelete()
+                ->cascadeOnUpdate();
             $table->primary(['Fk_aulas', 'Fk_evento']);
+            $table->timestamps();
+        });
+
+        Schema::table('intervencion_aula', function (Blueprint $table) {
+            $table->foreignId('fk_id_aula')
+                  ->constrained('aulas', 'id_aula')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_id_intervencion') 
+                  ->constrained('intervenciones', 'id_intervencion')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->primary(['fk_id_aula', 'fk_id_intervencion']);  
+            $table->timestamps();
+        });
+
+        Schema::table('intervencion_alumno', function (Blueprint $table) {
+            $table->foreignId('fk_id_alumno')
+                  ->constrained('alumnos', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_id_intervencion') 
+                  ->constrained('intervenciones', 'id_intervencion')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->primary(['fk_id_alumno', 'fk_id_intervencion']);  
             $table->timestamps();
         });
     }
@@ -53,5 +85,14 @@ return new class extends Migration
       Schema::dropIfExists('tiene_familiar');
       Schema::dropIfExists('tiene_asignado');
       Schema::dropIfExists('tiene_aulas');
+      Schema::dropIfExists('intervencion_aula');
+      Schema::dropIfExists('intervencion_alumno');  
     }
 };
+
+/**Por hacer:
+es_invitado_a,
+participa_plan, 
+es_hermano_de
+acta_aula
+intervencion_planilla */
