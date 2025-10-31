@@ -20,6 +20,10 @@ return new class extends Migration
             $table->string('observaciones')->nullable();
             $table->string('otro_parentesco')->nullable();
             $table->timestamps();
+            $table->foreignId('fk_id_persona')
+                  ->constrained('personas', 'id_persona')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
         });
     }
 

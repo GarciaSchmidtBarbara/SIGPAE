@@ -19,6 +19,10 @@ return new class extends Migration
             $table->string('telefono')->nullable();
             $table->string('usuario')->unique();
             $table->string('contrasenia');
+            $table->foreignId('fk_id_persona')
+                  ->constrained('personas', 'id_persona')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
             $table->timestamps();
         });
     }
