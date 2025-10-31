@@ -44,3 +44,8 @@ Route::get('/planillas', function () {
 Route::get('/perfil', function(){
     return view('perfil.principal');
 })->name('perfil.principal');
+
+//Rutas Alumnos
+Route::get('/alumnos', function () {
+    return view('alumnos.index');
+})->name('alumnos.index');
