@@ -33,23 +33,23 @@ class Persona extends Model
         return $this->nombre . ' ' . $this->apellido;
     }
 
-    //  public function alumno(): HasOne
-    // {   //Como es 0,1 relacion, usamos hasOne y el alumno tendrá la clave foránea
-    //     return $this->hasOne(Alumno::class, 'fk_id_persona');
-    // }
+     public function alumno(): HasOne
+    {   //Como es 0,1 relacion, usamos hasOne y el alumno tendrá la clave foránea
+        return $this->hasOne(Alumno::class, 'fk_id_persona');
+    }
 
-    // public function profesional(): HasOne
-    // {
-    //     return $this->hasOne(Profesional::class, 'fk_id_persona');
-    // }
+    public function profesional(): HasOne
+    {
+        return $this->hasOne(Profesional::class, 'fk_id_persona');
+    }
 
-    // public function familiar(): HasOne
-    // {
-    //     return $this->hasOne(Familiar::class, 'fk_id_persona');
-    // }
+    public function familiar(): HasOne
+    {
+        return $this->hasOne(Familiar::class, 'fk_id_persona');
+    }
 
-    // public function hermano(): HasOne
-    // {
-    //     return $this->hasOne(Hermano::class, 'fk_id_persona');
-    // }
+    public function hermano(): HasOne
+    {
+        return $this->hasOne(Hermano::class, 'fk_id_persona');
+    }
 }

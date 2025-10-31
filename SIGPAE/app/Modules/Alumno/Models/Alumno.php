@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\relations\BelongsToMany;
 
 class Alumno extends Model
 {
-    protected $table = 'alumnos';
-
     protected $primaryKey = 'id_alumno';
 
     protected $fillable = [
@@ -23,7 +21,7 @@ class Alumno extends Model
         return $this->nombre . ' ' . $this->apellido;
     }
 
-     public function persona(): BelongsTo {
+    public function persona(): BelongsTo {
         return $this->belongsTo(Persona::class, 'fk_id_persona');
     }
 
