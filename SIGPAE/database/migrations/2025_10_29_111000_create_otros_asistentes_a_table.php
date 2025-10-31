@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('otros_asistentes_a', function (Blueprint $table) {
             $table->id('id_otro_asistente_a');
-            $table->enum('funcion', ['ACOMPAÑANTE TERAPEUTICO,FONOUDIOLOGOS, PSICOPEDAGOGO, ASISTENTE SOCIAL,PSICOLOGO, DIRECTOR, SUBDIRECTOR, DOCENTES'])->default('ABIERTO');
+            $table->string('funcion');
             $table->string('nombre');
             $table->foreignId('fk_acta')->constrained('actas', 'id_acta')->onUpdate('cascade'); //no lleva onDelete por que el profesional no se borra nunca
            //no lleva onDelete por que el profesional no se borra nunca
