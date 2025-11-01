@@ -25,7 +25,7 @@ class BaseInstitucionalSeeder extends Seeder
             'telefono' => '2901-123456',
             'usuario' => 'lucia.g',
             'email' => 'lucia@example.com',
-            'password' => Hash::make('segura123'),
+            'contrasenia' => Hash::make('segura123'),
             'fk_id_persona' => $persona->id_persona,
         ]);
 
