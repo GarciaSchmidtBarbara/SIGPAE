@@ -10,7 +10,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('tiene_familiar', function (Blueprint $table) {
+      Schema::table('tiene_familiar', function (Blueprint $table) {
             $table->id('id_tiene_familiar');
 
             $table->foreignId('fk_alumno')
@@ -25,9 +25,9 @@ return new class extends Migration
 
                   //Esto no elimina los familiares ni los alumnos, solo elimina los vínculos en tiene_familiar. (eliminar el familiar en el modelo si ya no tiene mas vinculos)
             $table->timestamps();
-        });
+      });
 
-        Schema::create('tiene_asignado', function (Blueprint $table) {
+      Schema::create('tiene_asignado', function (Blueprint $table) {
             $table->id('id_tiene_asignado');
             $table->foreignId('fk_alumno')
                   ->constrained('alumnos', 'id_alumno')
@@ -38,6 +38,9 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             $table->timestamps();      
+      });
+
+      Schema::create('tiene_aulas', function (Blueprint $table) {
         });
 
         Schema::create('tiene_aulas', function (Blueprint $table) {
@@ -51,7 +54,20 @@ return new class extends Migration
                 ->cascadeOnUpdate();
             $table->primary(['Fk_aulas', 'Fk_evento']);
             $table->timestamps();
-        });
+      });
+
+      Schema::create('acta_pofesional', function (Blueprint $table) {
+            $table->foreignId('fk_profesional')
+                  ->references('id_profesional')
+                  ->on('profesionales')
+                  ->onDelete('set null');
+            $table->foreingId('fk_acta')
+                  ->references('id_acta')
+                  ->on('actas')
+                  ->onDelete('cascade');
+            $table->primary(['fk_profesional', 'fk_acta']);
+            $table->timestamps();
+      });
 
         Schema::table('es_invitado_a', function (Blueprint $table) {
             $table->id('id_es_invitado');
@@ -66,7 +82,7 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             $table->timestamps();
-        });
+      });
 
         Schema::table('participa_plan', function (Blueprint $table) {
             $table->id('id_participa_plan');
@@ -79,7 +95,7 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             $table->timestamps();
-        });
+      });
 
         Schema::table('intervencion_aula', function (Blueprint $table) {
             $table->foreignId('fk_id_aula')
@@ -92,8 +108,8 @@ return new class extends Migration
                   ->onDelete('cascade');
             $table->primary(['fk_id_aula', 'fk_id_intervencion']);  
             $table->timestamps();
-        });
-
+      });
+      
         Schema::table('intervencion_alumno', function (Blueprint $table) {
             $table->foreignId('fk_id_alumno')
                   ->constrained('alumnos', 'id_alumno')
@@ -105,7 +121,7 @@ return new class extends Migration
                   ->onDelete('cascade');
             $table->primary(['fk_id_alumno', 'fk_id_intervencion']);  
             $table->timestamps();
-        });
+      });
     }
 
     public function down(): void
@@ -113,6 +129,7 @@ return new class extends Migration
       Schema::dropIfExists('tiene_familiar');
       Schema::dropIfExists('tiene_asignado');
       Schema::dropIfExists('tiene_aulas');
+      Schema::dropIfExists('acta_profesional');
       Schema::dropIfExists('intervencion_aula');
       Schema::dropIfExists('intervencion_alumno');  
     }
