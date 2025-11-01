@@ -12,7 +12,6 @@ return new class extends Migration
             $table->id('id_acta');
             $table->enum('tipo_acta',['BANDA','REI','REIED']);
             $table->date('fecha_hora');
-            //profesionales involucrados es una relacion N:N
             $table->json('otros_participante')->nullable();
             $table->text('temario')->nullable();
             $table->text('acuerdos')->nullable();

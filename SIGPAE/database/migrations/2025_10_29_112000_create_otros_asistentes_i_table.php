@@ -13,9 +13,8 @@ return new class extends Migration
             $table->string('nombre_completo');
             $table->string('descripcion');
             
-            $table->foreignId('fk_otro_asistente_a')->constrained('otros_asistentes_a', 'id_otro_asistente_a')->onUpdate('cascade'); //no lleva onDelete por que el profesional no se borra nunca
-            $table->foreignId('fk_intervenciones')->constrained('intervenciones', 'id_intervencion')->onUpdate('cascade'); //no lleva onDelete por que el profesional no se borra nunca
-           //no lleva onDelete por que el profesional no se borra nunca
+            $table->foreignId('fk_otro_asistente_a')->constrained('otros_asistentes_a', 'id_otro_asistente_a')->onUpdate('cascade'); 
+            $table->foreignId('fk_intervenciones')->constrained('intervenciones', 'id_intervencion')->onUpdate('cascade'); 
             $table->timestamps();
         });
     }

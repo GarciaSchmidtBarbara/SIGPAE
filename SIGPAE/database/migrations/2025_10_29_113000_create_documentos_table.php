@@ -27,8 +27,6 @@ return new class extends Migration
                   ->constrained('evaluaciones_planes', 'id_evaluacion_plan')
                   ->onUpdate('cascade');
                    
-            //DUDA: no deberia borrarse un plan si tiene intervenciones. Cierto?
-
             $table->foreignId('fk_evaluacion_espontanea')
                   ->nullable()
                   ->constrained('evaluaciones_espontaneas', 'id_evaluacion_espontanea')
@@ -41,12 +39,12 @@ return new class extends Migration
             
             $table->foreignId('fk_plan')
                   ->nullable()
-                  ->constrained('planes', 'id_plan')
+                  ->constrained('planes_de_accion', 'id_plan')
                   ->onUpdate('cascade');
             
             $table->foreignId('fk_intervencion')
                   ->nullable()
-                  ->constrained('inetervenciones', 'id_intervencion')
+                  ->constrained('intervenciones', 'id_intervencion')
                   ->onUpdate('cascade');
 
             $table->timestamps();
