@@ -106,6 +106,44 @@ return new class extends Migration
             $table->primary(['fk_id_alumno', 'fk_id_intervencion']);  
             $table->timestamps();
         });
+      
+         Schema::table('es_hermano', function (Blueprint $table) {
+            $table->foreignId('fk_alumno')
+                  ->constrained('alumnos', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_alumno_hermano')
+                  ->constrained('alumno_hermano', 'id_alumno_hermano')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->timestamps();
+
+            $table->foreignId('fk_alumno')
+                  ->constrained('alumnos', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+
+            $table->foreignId('fk_alumno_hermano')
+                  ->constrained('alumnos', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->timestamps();
+
+            });
+      Schema::table('es_hermano', function (Blueprint $table) {
+            $table->foreignId('fk_alumno')
+                  ->constrained('alumnos', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_alumno_hermano')
+                  ->constrained('alumno_hermano', 'id_alumno_hermano')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->timestamps();
+
+
+        });
+
     }
 
     public function down(): void
