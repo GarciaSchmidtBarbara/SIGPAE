@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Modules\User\Services\Interfaces;
+namespace App\Services\Interfaces;
 
-use App\Modules\User\Models\Profesional;
+use App\Models\Profesional;
 use Illuminate\Database\Eloquent\Collection;
 
 interface ProfesionalServiceInterface
