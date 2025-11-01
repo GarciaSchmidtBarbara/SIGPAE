@@ -15,12 +15,13 @@ return new class extends Migration
             $table->string('criterios');
             $table->string('conclusiones');
             $table->timestamps();
+            $table->foreignId('fk_id_plan')
+                ->constrained('planes_de_accion', 'id_plan')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('evaluaciones_planes');
