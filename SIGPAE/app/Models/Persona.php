@@ -22,6 +22,7 @@ class Persona extends Model
         'fecha_nacimiento',
         'domicilio',
         'nacionalidad',
+        'activo',
     ];
 
     protected $casts = [
