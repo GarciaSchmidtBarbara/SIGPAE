@@ -122,6 +122,18 @@ return new class extends Migration
             $table->primary(['fk_id_alumno', 'fk_id_intervencion']);  
             $table->timestamps();
       });
+      Schema::table('intervencion_planilla', function (Blueprint $table) {
+            $table->foreignId('fk_id_planilla')
+                  ->constrained('planillas', 'id_planilla')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_id_intervencion') 
+                  ->constrained('intervenciones', 'id_intervencion')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->primary(['fk_id_planilla', 'fk_id_intervencion']);  
+            $table->timestamps();
+      });
     }
 
     public function down(): void
@@ -132,6 +144,8 @@ return new class extends Migration
       Schema::dropIfExists('acta_profesional');
       Schema::dropIfExists('intervencion_aula');
       Schema::dropIfExists('intervencion_alumno');  
+      Schema::dropIfExists('intervencion_planilla');  
+
     }
 };
 
