@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Modules\User\Http\Controllers;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\User\Services\Interfaces\ProfesionalServiceInterface;
+use App\Services\Interfaces\ProfesionalServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
