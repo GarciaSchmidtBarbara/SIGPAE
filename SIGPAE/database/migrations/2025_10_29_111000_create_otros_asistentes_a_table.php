@@ -13,7 +13,6 @@ return new class extends Migration
             $table->string('funcion');
             $table->string('nombre');
             $table->foreignId('fk_acta')->constrained('actas', 'id_acta')->onUpdate('cascade'); //no lleva onDelete por que el profesional no se borra nunca
-           //no lleva onDelete por que el profesional no se borra nunca
             $table->timestamps();
         });
     }

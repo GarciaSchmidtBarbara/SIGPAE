@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('acciones')->nullable();
             $table->date('fecha_creacion');
             $table->enum('tipo_plan', ['INSTITUCIONAL', 'INDIVIDUAL', 'GRUPAL'])->default('INSTITUCIONAL');
-            //foreingId crea la columna como unsignedBigInteger automaticamente (no necesito crear antes la columna)
             $table->foreignId('fk_profesional_creador')->constrained('profesionales', 'id_profesional')->onUpdate('cascade'); //no lleva onDelete por que el profesional no se borra nunca
             $table->timestamps();
         });

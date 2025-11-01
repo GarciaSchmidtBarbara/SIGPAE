@@ -6,13 +6,10 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('familiares', function (Blueprint $table) {
-            $table->id();
+            $table->id('id_familiar');
             $table->string('telefono_personal')->nullable();
             $table->string('telefono_laboral')->nullable();
             $table->enum('parentesco', ["PADRE ",  "MADRE", "HERMANO", "TUTOR", "OTRO"]);
@@ -26,10 +23,6 @@ return new class extends Migration
                   ->onDelete('cascade');
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('familiares');
