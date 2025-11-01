@@ -41,6 +41,9 @@ return new class extends Migration
       });
 
       Schema::create('tiene_aulas', function (Blueprint $table) {
+        });
+
+        Schema::create('tiene_aulas', function (Blueprint $table) {
             $table->foreignId('Fk_aulas')
                 ->constrained('aulas', 'id_aula')
                 ->nullOnDelete()
@@ -66,7 +69,7 @@ return new class extends Migration
             $table->timestamps();
       });
 
-      Schema::table('es_invitado_a', function (Blueprint $table) {
+        Schema::table('es_invitado_a', function (Blueprint $table) {
             $table->id('id_es_invitado');
             $table->boolean('confirmacion')->default(false);
             $table->boolean('asistio')->default(false);
@@ -81,7 +84,7 @@ return new class extends Migration
             $table->timestamps();
       });
 
-      Schema::table('participa_plan', function (Blueprint $table) {
+        Schema::table('participa_plan', function (Blueprint $table) {
             $table->id('id_participa_plan');
             $table->foreignId('fk_profesional_participante')
                   ->constrained('profesionales', 'id_profesional')
@@ -94,7 +97,7 @@ return new class extends Migration
             $table->timestamps();
       });
 
-      Schema::table('intervencion_aula', function (Blueprint $table) {
+        Schema::table('intervencion_aula', function (Blueprint $table) {
             $table->foreignId('fk_id_aula')
                   ->constrained('aulas', 'id_aula')
                   ->onUpdate('cascade')
@@ -106,8 +109,8 @@ return new class extends Migration
             $table->primary(['fk_id_aula', 'fk_id_intervencion']);  
             $table->timestamps();
       });
-
-      Schema::table('intervencion_alumno', function (Blueprint $table) {
+      
+        Schema::table('intervencion_alumno', function (Blueprint $table) {
             $table->foreignId('fk_id_alumno')
                   ->constrained('alumnos', 'id_alumno')
                   ->onUpdate('cascade')
