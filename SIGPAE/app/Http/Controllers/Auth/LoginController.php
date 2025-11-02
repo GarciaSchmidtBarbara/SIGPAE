@@ -18,23 +18,22 @@ class LoginController extends Controller
         // 1. Validar las credenciales
         $request->validate([
             'usuario' => 'required|string',
-            'password' => 'required|string',
+            'contrasenia' => 'required|string',
+        ], [
+            'usuario.required' => 'Por favor, ingresá tu usuario.',
+            'contrasenia.required' => 'La contraseña es obligatoria.'
         ]);
         
         // El campo por defecto de Laravel es 'email', pero tu modelo usa 'usuario'
-        $credentials = $request->only('usuario', 'password');
+        $credentials = $request->only('usuario', 'contrasenia');
 
-        // 2. Intentar autenticar usando el guard 'web' (que ahora apunta a 'profesionales' en config/auth.php)
-        // Forzamos el uso de Auth::guard('web')->attempt() para asegurarnos de que usa la configuración correcta.
-        if (Auth::guard('web')->attempt($credentials, $request->boolean('remember'))) {
-            
-            // 3. La autenticación fue exitosa.
-            // Para resolver el error SQLSTATE[42703] que persiste, la solución es la limpieza total,
-            // pero el código de Laravel en sí es correcto.
-            
+        // 2. Buscar al profesional por usuario
+        $prof = \App\Models\Profesional::where('usuario', $request->usuario)->first();
+
+        // 3. Verificar contraseña y loguear manualmente
+        if ($prof && \Hash::check($request->contrasenia, $prof->contrasenia)) {
+            Auth::guard('web')->login($prof);
             $request->session()->regenerate();
-            
-            // Forzar una redirección limpia
             return redirect()->intended('/welcome');
         }
 

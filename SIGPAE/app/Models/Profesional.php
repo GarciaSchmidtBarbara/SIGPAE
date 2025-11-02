@@ -33,7 +33,7 @@ class Profesional extends Authenticatable
         'telefono',
         'usuario',
         'email',
-        'password',
+        'contrasenia',
         'fk_id_persona',
     ];
 
@@ -41,17 +41,17 @@ class Profesional extends Authenticatable
      * Campos que se ocultan al serializar el modelo (por ejemplo, al devolverlo como JSON).
      */
     protected $hidden = [
-        'password',
+        'contrasenia',
         'remember_token',
     ];
 
     /**
      * Casts automáticos: transforma atributos al tipo indicado.
-     * Esto permite que 'fecha_nacimiento' sea un objeto DateTime, y 'password' se hashee automáticamente.
+     * Esto permite que 'fecha_nacimiento' sea un objeto DateTime, y 'contrasenia' se hashee automáticamente.
      */
     protected $casts = [
         'email_verified_at' => 'datetime', 
-        'password' => 'hashed',
+        'contrasenia' => 'hashed',
     ];
 
     public function persona(): BelongsTo
@@ -84,7 +84,7 @@ class Profesional extends Authenticatable
     }
     
     public function getAuthPassword(){
-        return $this->password;
+        return $this->contrasenia;
     }
 
     public function intervencionesCreadas(): HasMany
