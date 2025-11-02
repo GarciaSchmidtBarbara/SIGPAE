@@ -117,4 +117,8 @@ class Alumno extends Model
             $documento->delete();
         }
     }
+
+    public function getEstadoAttribute(): stream_set_blocking{
+        return $this->persona?->activo ? 'Activo' : 'Inactivo';
+    }
 }

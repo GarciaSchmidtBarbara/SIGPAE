@@ -17,7 +17,8 @@
             ['key' => 'persona.nombre', 'label' => 'Nombre'],
             ['key' => 'persona.apellido', 'label' => 'Apellido'],
             ['key' => 'persona.dni', 'label' => 'Documento'],
-            ['key' => 'aula.descripcion', 'label' => 'Aula']
+            ['key' => 'aula.descripcion', 'label' => 'Aula'],
+            ['key' => 'persona.estado', 'label' => 'Activo'],
         ]"
         :filas="$alumnos"
         :acciones="[
