@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Modules\Common\Services\Implementations;
+namespace App\Services\Implementations;
 
-use App\Modules\Common\Models\Persona;
-use App\Modules\Common\Repositories\Interfaces\PersonaRepositoryInterface;
-use App\Modules\Common\Services\Interfaces\PersonaServiceInterface;
+use App\Models\Persona;
+use App\Repositories\Interfaces\PersonaRepositoryInterface;
+use App\Services\Interfaces\PersonaServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Validator;
 use InvalidArgumentException;

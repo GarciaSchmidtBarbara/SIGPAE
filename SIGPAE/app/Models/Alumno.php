@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\relations\BelongsTo;
 use Illuminate\Database\Eloquent\relations\BelongsToMany;
 
+
 class Alumno extends Model
 {
+    use HasFactory;
     protected $primaryKey = 'id_alumno';
 
     protected $fillable = [

@@ -6,6 +6,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth; // Importar Auth
 use App\Models\Profesional; // Importar tu modelo Profesional
+use App\Repositories\Interfaces\AlumnoRepositoryInterface;
+use App\Repositories\Eloquent\AlumnoRepository;
+use App\Services\Interfaces\AlumnoServiceInterface;
+use App\Services\Implementations\AlumnoService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,7 +18,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+       $this->app->bind(AlumnoRepositoryInterface::class, AlumnoRepository::class);
+        $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
     }
 
     /**
