@@ -21,8 +21,8 @@
         <label for="usuario">Usuario:</label>
         <input type="text" name="usuario" required><br><br>
 
-        <label for="password">Contraseña:</label>
-        <input type="password" name="password" required><br><br>
+        <label for="contrasenia">Contraseña:</label>
+        <input type="password" name="contrasenia" required><br><br>
 
         <button type="submit">Ingresar</button>
     </form>
