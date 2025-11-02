@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\User\Repositories\Interfaces;
+namespace App\Repositories\Interfaces;
 
 use App\Modules\User\Models\Evento;
 use Illuminate\Database\Eloquent\Collection;
