@@ -1,15 +1,16 @@
 <?php
     
 namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-
-use App\Models\Profesional; 
+// modelos relacionados
+use App\Models\Profesional;
 use App\Models\Alumno;
 use App\Models\Aula;
 use App\Models\Asiste;
-
 
 class Evento extends Model{
         protected $table = 'eventos';
