@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Modules\Common\Repositories\Eloquent;
+namespace App\Repositories\Eloquent;
 
-use App\Modules\Common\Models\Persona;
-use App\Modules\Common\Repositories\Interfaces\PersonaRepositoryInterface;
+use App\Models\Persona;
+use App\Repositories\Interfaces\PersonaRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 class PersonaRepository implements PersonaRepositoryInterface
 {
-    protected $model;
+    protected Persona $model;
 
     public function __construct(Persona $persona)
     {
@@ -43,7 +43,7 @@ class PersonaRepository implements PersonaRepositoryInterface
         if (!$persona) {
             return false;
         }
-        return $persona->delete();
+        return (bool) $persona->delete();
     }
 
     public function findByDni(string $dni): ?Persona
