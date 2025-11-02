@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Modules\User\Repositories\Implementation;
+namespace App\Repositories\Eloquent;
 
-use App\Modules\User\Models\Profesional;
-use App\Modules\User\Repositories\Interfaces\ProfesionalRepositoryInterface;
+use App\Models\Profesional;
+use App\Repositories\Interfaces\ProfesionalRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 class ProfesionalRepository implements ProfesionalRepositoryInterface
 {
-    protected $model;
+    protected Profesional $model;
 
     public function __construct(Profesional $profesional)
     {
@@ -43,7 +43,7 @@ class ProfesionalRepository implements ProfesionalRepositoryInterface
         if (!$profesional) {
             return false;
         }
-        return $profesional->delete();
+        return (bool) $profesional->delete();
     }
 
     public function findByPersona(int $personaId): ?Profesional
