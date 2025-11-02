@@ -19,7 +19,7 @@ class Alumno extends Model
         'intervenciones_externas',
         'actividades_extraescolares',
         'situacion_escolar',
-        'situacion_salud',
+        'situacion_medica',
         'situacion_familiar',
         'situacion_socioeconomica',
         'fk_persona',
