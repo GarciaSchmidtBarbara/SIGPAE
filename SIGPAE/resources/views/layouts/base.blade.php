@@ -19,9 +19,9 @@
     @stack('scripts')
 </head>
 <body>
-    <div class="layout h-screen w-full flex flex-row">
+    <div class="layout min-h-screen w-full flex flex-row">
         <!-- Menú lateral -->
-        <nav class="sidebar bg-fondo basis-1/5 rounded-r-3xl p-[20px] flex flex-col min-h-screen">
+        <nav class="sidebar bg-fondo basis-1/5 rounded-r-3xl p-[20px] flex flex-col">
             <p class="text-white text-3xl font-bold my-3 text-shadow-lg ">SIGPAE</p>
             <div class="menu flex flex-col justify-between flex-1 text-white">
                 <div class="menu-superior flex flex-col">
@@ -72,12 +72,12 @@
                     ></x-nav-item>
                      <x-nav-item
                         label=" Notificaciones"
-                        icon="icons.icono-Notificacion"
+                        icon="icons.icono-notificacion"
                         exact
                     ></x-nav-item>
                      <x-nav-item
                         label=" Usuarios"
-                        icon="icons.icono-Usuario"
+                        icon="icons.icono-usuario"
                         exact
                     ></x-nav-item>
                   
@@ -91,7 +91,7 @@
         </nav>
 
         <!-- Contenido principal -->
-        <main class="contenido p-[30px] overflow-y-auto w-full">
+        <main class="contenido p-[30px] w-full">
             <div class="titulo-seccion">
                 @yield('encabezado', 'Sección')
             </div>

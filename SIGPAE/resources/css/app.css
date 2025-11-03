@@ -16,7 +16,7 @@
 @layer elements {
 
     .links {
-        @apply text-shadow-lg px-[6px] py-[4px] my-[6px] font-medium text-base rounded-md transition-colors duration-200 ease-in-out
+        @apply text-shadow-lg px-[6px] py-[4px] my-[4px] font-medium text-base rounded-md transition-colors duration-200 ease-in-out
     }
 
     .links:hover {
