@@ -28,14 +28,14 @@
                     <hr>
                     <a href="{{ route('welcome') }}" class="{{ request()->routeIs('welcome') ? 'activo' : '' }} links">Principal</a>
                     <a href="{{ route('alumnos.principal') }}" class="{{ request()->routeIs('alumnos.principal') ? 'activo' : '' }} links">Alumnos</a>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Eventos</a>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Intervenciones</a>
+                    <a target="_blank" class="links">Eventos</a>
+                    <a target="_blank" class="links">Intervenciones</a>
                     <a href="{{ route('planDeAccion.principal') }}" class="{{ request()->routeIs('planDeAccion.principal') ? 'activo' : '' }} links">Planes de Acción</a>
                     <a href="{{ route('planillas.principal') }}" class="{{ request()->routeIs('planillas.principal') ? 'activo' : '' }} links">Planillas</a>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Documentos</a>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Reportes</a>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Notificaciones</a>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Usuarios</a>
+                    <a target="_blank" class="links">Documentos</a>
+                    <a target="_blank" class="links">Reportes</a>
+                    <a target="_blank" class="links">Notificaciones</a>
+                    <a target="_blank" class="links">Usuarios</a>
                 </div>
                 <div class="menu-inferior flex flex-col">
                     <hr>
