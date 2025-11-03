@@ -9,6 +9,7 @@ use App\Models\Aula;
 use App\Models\Alumno;
 use Illuminate\Support\Facades\Hash;
 
+
 class BaseInstitucionalSeeder extends Seeder
 {
     public function run(): void
@@ -34,9 +35,9 @@ class BaseInstitucionalSeeder extends Seeder
         ]);
 
         
-
+        \App\Models\Aula::factory()->count(10)->create();
         $aula = Aula::firstOrCreate(
-            ['curso' => '2°', 'division' => 'B'], 
+            ['curso' => '2', 'division' => 'B'], 
             [] 
         );
 
@@ -51,7 +52,7 @@ class BaseInstitucionalSeeder extends Seeder
             ]
         );
         Alumno::firstOrCreate(
-            ['fk_id_persona' => $persona->id_persona],
+            ['fk_persona' => $persona->id_persona],
             [
                 'cud' => false,
                 'inasistencias' => 5,
@@ -63,9 +64,11 @@ class BaseInstitucionalSeeder extends Seeder
                 'situacion_medica' => 'Sin patologías relevantes',
                 'situacion_familiar' => 'Convive con madre y hermanos',
                 'situacion_socioeconomica' => 'Ingreso familiar bajo, recibe ayuda escolar',
-                'fk_id_aula' => $aula->id_aula,
+                'fk_aula' => $aula->id_aula,
             ]
         );
+
+        \App\Models\Alumno::factory()->count(10)->create();
 
     }
 }

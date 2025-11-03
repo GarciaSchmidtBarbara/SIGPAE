@@ -23,9 +23,6 @@ Route::post('/probar-post', function () {
 });
 
 
-
-
-
 //Rutas Plan de Acción
 Route::get('/planDeAccion', function () {
     return view('planDeAccion.principal');
@@ -38,9 +35,20 @@ Route::get('/planDeAccion/crear', function () {
 //Rutas Planillas
 Route::get('/planillas', function () {
     return view('planillas.principal');
-})->name('planillas.principal');
+})->middleware('auth')->name('planillas.principal');
 
 //Ruta Perfil
 Route::get('/perfil', function(){
     return view('perfil.principal');
-})->name('perfil.principal');
+})->middleware('auth')->name('perfil.principal');
+Route::get('/perfil/editar', function(){
+    return view('perfil.editar');
+})->middleware('auth')->name('perfil.editar');
+
+//Rutas Alumnos
+use App\Http\Controllers\AlumnoController;
+Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
+
+Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear-editar');
+
+Route::delete('/alumnos/{id}', [AlumnoController::class, 'destroy'])->name('alumnos.destroy');

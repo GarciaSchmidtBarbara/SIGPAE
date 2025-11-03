@@ -7,8 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\relations\BelongsTo;
 use Illuminate\Database\Eloquent\relations\BelongsToMany;
 
+
 class Alumno extends Model
 {
+    use HasFactory;
     protected $primaryKey = 'id_alumno';
 
     protected $fillable = [
@@ -114,5 +116,9 @@ class Alumno extends Model
         if ($this->documentos->contains($documento)) {
             $documento->delete();
         }
+    }
+
+    public function getEstadoAttribute(): stream_set_blocking{
+        return $this->persona?->activo ? 'Activo' : 'Inactivo';
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Alumno;
 use App\Models\Profesional;
@@ -11,6 +12,7 @@ use App\Models\Hermano;
 
 class Persona extends Model
 {
+    use HasFactory;
     protected $table = 'personas';
 
     protected $primaryKey = 'id_persona';
