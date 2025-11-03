@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Services\Interfaces\AlumnoServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use App\Models\Alumno;
+use App\Models\Aula;
 
 class AlumnoController extends Controller
 {
@@ -42,14 +44,6 @@ class AlumnoController extends Controller
         }
     }
 
-    public function vista()
-    {
-        $alumnos = $this->alumnoService->listar(); // ya incluye relaciones
-        $cursos = \App\Models\Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
-
-        return view('alumnos.principal', compact('alumnos', 'cursos'));
-    }
-
     public function destroy(int $id): JsonResponse
     {
         $resultado = $this->alumnoService->desactivar($id);
@@ -59,16 +53,22 @@ class AlumnoController extends Controller
         return response()->json(['message' => 'No se pudo desactivar el alumno'], 404);
     }
 
-    public function filtro(Request $request)
+    public function vista(Request $request)
     {
         $query = Alumno::with('persona', 'aula');
 
         if ($request->filled('nombre')) {
-            $query->whereHas('persona', fn($q) => $q->where('nombre', 'like', '%' . $request->nombre . '%'));
+            $nombre = strtolower($this->quitarTildes($request->nombre));
+            $query->whereHas('persona', function ($q) use ($nombre) {
+                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"]);
+            });
         }
 
-        if ($request->filled('apellido')) {
-            $query->whereHas('persona', fn($q) => $q->where('apellido', 'like', '%' . $request->apellido . '%'));
+       if ($request->filled('apellido')) {
+            $apellido = strtolower($this->quitarTildes($request->apellido));
+            $query->whereHas('persona', function ($q) use ($apellido) {
+                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"]);
+            });
         }
 
         if ($request->filled('documento')) {
@@ -85,9 +85,16 @@ class AlumnoController extends Controller
         $alumnos = $query->get();
         $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
         
-        return view('alumnos.index', compact('alumnos', 'cursos'));
+        return view('alumnos.principal', compact('alumnos', 'cursos'));
     }
-
+    private function quitarTildes(string $texto): string
+    {
+        return strtr(
+            iconv('UTF-8', 'ASCII//TRANSLIT', $texto),
+            "´`^~¨",
+            "     "
+        );
+    }
 
 
 }

@@ -4,7 +4,7 @@
 
 @section('contenido')
 <div class="p-6">
-    <form id="form-alumno" class="flex gap-2 mb-6">
+    <form id="form-alumno" method="GET" action="{{ route('alumnos.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('alumnos.crear-editar') }}">Registrar Alumno</a>
         <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
         <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
@@ -19,7 +19,9 @@
         </select>
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
+        <a class="btn-aceptar" href="{{ route('alumnos.principal') }}" >Limpiar</a>
     </form>
+    
 
     <x-tabla-dinamica 
         :columnas="[
@@ -38,6 +40,8 @@
         idCampo="id_alumno"
     />
 
-    <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
+    <div class="fila-botones mt-8">
+        <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
+    </div>
 </div>
 @endsection
