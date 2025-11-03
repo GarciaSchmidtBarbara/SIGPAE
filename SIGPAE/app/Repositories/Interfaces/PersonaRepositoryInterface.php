@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Common\Repositories\Interfaces;
+namespace App\Repositories\Interfaces;
 
 use Illuminate\Database\Eloquent\Collection;
 use App\Modules\Common\Models\Persona;

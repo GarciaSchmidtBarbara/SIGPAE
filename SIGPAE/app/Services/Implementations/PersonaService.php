@@ -11,12 +11,9 @@ use InvalidArgumentException;
 
 class PersonaService implements PersonaServiceInterface
 {
-    protected $personaRepository;
-
-    public function __construct(PersonaRepositoryInterface $personaRepository)
-    {
-        $this->personaRepository = $personaRepository;
-    }
+    public function __construct(
+        private readonly PersonaRepositoryInterface $personaRepository
+    ) {}
 
     public function getAllPersonas(): Collection
     {
@@ -31,12 +28,12 @@ class PersonaService implements PersonaServiceInterface
     public function createPersona(array $data): Persona
     {
         $validator = Validator::make($data, [
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
-            'dni' => 'required|string|unique:personas,dni',
-            'fecha_nacimiento' => 'required|date',
-            'domicilio' => 'nullable|string|max:255',
-            'nacionalidad' => 'nullable|string|max:100'
+            'nombre'            => 'required|string|max:255',
+            'apellido'          => 'required|string|max:255',
+            'dni'               => 'required|string|unique:personas,dni',
+            'fecha_nacimiento'  => 'required|date',
+            'domicilio'         => 'nullable|string|max:255',
+            'nacionalidad'      => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
@@ -49,12 +46,12 @@ class PersonaService implements PersonaServiceInterface
     public function updatePersona(int $id, array $data): Persona
     {
         $validator = Validator::make($data, [
-            'nombre' => 'sometimes|string|max:255',
-            'apellido' => 'sometimes|string|max:255',
-            'dni' => 'sometimes|string|unique:personas,dni,' . $id . ',id_persona',
-            'fecha_nacimiento' => 'sometimes|date',
-            'domicilio' => 'nullable|string|max:255',
-            'nacionalidad' => 'nullable|string|max:100'
+            'nombre'            => 'sometimes|string|max:255',
+            'apellido'          => 'sometimes|string|max:255',
+            'dni'               => 'sometimes|string|unique:personas,dni,' . $id . ',id_persona',
+            'fecha_nacimiento'  => 'sometimes|date',
+            'domicilio'         => 'nullable|string|max:255',
+            'nacionalidad'      => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {

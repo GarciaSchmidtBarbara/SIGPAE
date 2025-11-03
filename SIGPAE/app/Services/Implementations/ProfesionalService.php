@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Modules\User\Services\Implementation;
+namespace App\Services\Implementations;
 
-use App\Modules\Common\Services\Interfaces\PersonaServiceInterface;
-use App\Modules\User\Models\Profesional;
-use App\Modules\User\Repositories\Interfaces\ProfesionalRepositoryInterface;
-use App\Modules\User\Services\Interfaces\ProfesionalServiceInterface;
+use App\Services\Interfaces\PersonaServiceInterface;
+use App\Models\Profesional;
+use App\Repositories\Interfaces\ProfesionalRepositoryInterface;
+use App\Services\Interfaces\ProfesionalServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -48,16 +48,16 @@ class ProfesionalService implements ProfesionalServiceInterface
         try {
             DB::beginTransaction();
 
-                // Si vienen datos de persona, crear la Persona y asociarla.
-                if (!empty($personaFields)) {
-                    $persona = $this->personaService->createPersona($personaFields);
-                    $profesionalFields['fk_id_persona'] = $persona->id_persona;
-                } else {
-                    // Si no vienen datos de persona, esperamos que venga fk_id_persona en payload
-                    if (empty($profesionalFields['fk_id_persona'])) {
-                        throw new InvalidArgumentException('Se requiere fk_id_persona o datos de persona');
-                    }
+            // Si vienen datos de persona, crear la Persona y asociarla.
+            if (!empty($personaFields)) {
+                $persona = $this->personaService->createPersona($personaFields);
+                $profesionalFields['fk_id_persona'] = $persona->id_persona;
+            } else {
+                // Si no vienen datos de persona, esperamos que venga fk_id_persona en payload
+                if (empty($profesionalFields['fk_id_persona'])) {
+                    throw new InvalidArgumentException('Se requiere fk_id_persona o datos de persona');
                 }
+            }
 
             $profesional = $this->profesionalRepository->create($profesionalFields);
 
