@@ -45,8 +45,9 @@ class AlumnoController extends Controller
     public function vista()
     {
         $alumnos = $this->alumnoService->listar(); // ya incluye relaciones
+        $cursos = \App\Models\Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
 
-        return view('alumnos.principal', compact('alumnos'));
+        return view('alumnos.principal', compact('alumnos', 'cursos'));
     }
 
     public function destroy(int $id): JsonResponse
@@ -57,6 +58,36 @@ class AlumnoController extends Controller
         }
         return response()->json(['message' => 'No se pudo desactivar el alumno'], 404);
     }
+
+    public function filtro(Request $request)
+    {
+        $query = Alumno::with('persona', 'aula');
+
+        if ($request->filled('nombre')) {
+            $query->whereHas('persona', fn($q) => $q->where('nombre', 'like', '%' . $request->nombre . '%'));
+        }
+
+        if ($request->filled('apellido')) {
+            $query->whereHas('persona', fn($q) => $q->where('apellido', 'like', '%' . $request->apellido . '%'));
+        }
+
+        if ($request->filled('documento')) {
+            $query->whereHas('persona', fn($q) => $q->where('dni', 'like', '%' . $request->documento . '%'));
+        }
+
+        if ($request->filled('aula') && str_contains($request->aula, '°')) {
+            [$curso, $division] = explode('°', $request->aula);
+            $query->whereHas('aula', fn($q) => $q
+                ->where('curso', $curso)
+                ->where('division', $division));
+        }
+
+        $alumnos = $query->get();
+        $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
+        
+        return view('alumnos.index', compact('alumnos', 'cursos'));
+    }
+
 
 
 }

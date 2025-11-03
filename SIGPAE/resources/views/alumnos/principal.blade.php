@@ -9,7 +9,16 @@
         <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
         <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
         <input name="documento" placeholder="Documento" class="border px-2 py-1 rounded w-1/5">
-        <input name="curso" placeholder="Curso" class="border px-2 py-1 rounded w-1/5">
+        <select name="aula" class="border px-2 py-1 rounded w-1/5">
+            <option value="">Todos los cursos</option>
+            @foreach($cursos as $curso)
+                <option value="{{ $curso }}" {{ request('aula') === $curso ? 'selected' : '' }}>
+                    {{ $curso }}
+                </option>
+            @endforeach
+        </select>
+
+        <button type="submit" class="btn-aceptar">Filtrar</button>
     </form>
 
     <x-tabla-dinamica 
@@ -18,7 +27,8 @@
             ['key' => 'persona.apellido', 'label' => 'Apellido'],
             ['key' => 'persona.dni', 'label' => 'Documento'],
             ['key' => 'aula.descripcion', 'label' => 'Aula'],
-            ['key' => 'persona.estado', 'label' => 'Activo'],
+            ['key' => 'cud', 'label' => 'CUD'],
+            ['key' => 'activo', 'label' => 'Activo'],
         ]"
         :filas="$alumnos"
         :acciones="[
