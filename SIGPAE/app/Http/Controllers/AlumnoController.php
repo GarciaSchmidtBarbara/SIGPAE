@@ -96,5 +96,11 @@ class AlumnoController extends Controller
         );
     }
 
+    public function crearEditar()
+    {
+        return view('alumnos.crear-editar'); 
+    }
+
+
 
 }

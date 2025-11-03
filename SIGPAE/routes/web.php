@@ -48,5 +48,5 @@ Route::get('/perfil/editar', function(){
 //Rutas Alumnos
 use App\Http\Controllers\AlumnoController;
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
-Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear-editar');
+Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('alumnos.crear-editar');
 Route::delete('/alumnos/{id}', [AlumnoController::class, 'destroy'])->name('alumnos.destroy');
