@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('planes_de_accion', function (Blueprint $table) {
-            $table->id('id_plan');
+            $table->id('id_plan_de_accion');
             $table->enum('estado_plan', ['ABIERTO', 'CERRADO'])->default('ABIERTO');
             $table->boolean('activo')->default(true);
             $table->string('objetivos');
@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('acciones')->nullable();
             $table->date('fecha_creacion');
             $table->enum('tipo_plan', ['INSTITUCIONAL', 'INDIVIDUAL', 'GRUPAL'])->default('INSTITUCIONAL');
-            $table->foreignId('fk_profesional_creador')->constrained('profesionales', 'id_profesional')->onUpdate('cascade'); //no lleva onDelete por que el profesional no se borra nunca
+            $table->foreignId('fk_id_profesional_creador')->constrained('profesionales', 'id_profesional')->onUpdate('cascade'); //no lleva onDelete por que el profesional no se borra nunca
             $table->timestamps();
         });
     }

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id('id_evento');
             $table->string('lugar');
             $table->date('fecha_hora');
+            $table->enum('tipo_evento', ['BANDA', 'RG', 'RD', 'CITA_FAMILIAR']);
             $table->string('notas')->nullable();
             $table->foreignId('Fk_profesional_creador')->constrained('profesionales', 'id_profesional')->onUpdate('cascade');
             $table->boolean('es_derivacion_externa')->default(false);

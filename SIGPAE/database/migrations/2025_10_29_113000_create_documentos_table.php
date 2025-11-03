@@ -12,12 +12,12 @@ return new class extends Migration
         Schema::create('documentos', function (Blueprint $table) {
             $table->id('id_documento');
             $table->string('nombre');
-            $table->enum('modalidad', ['PDF', 'WORD', 'TXT']);
+            $table->enum('tipo_formato', ['DOCX', 'DOC', 'JPG', 'PNG', 'PDF', 'XLS', 'XLSX']);
             $table->boolean('disponible_presencial');
             $table->decimal('tamanio_archivo');
             $table->string('ruta_archivo');
             
-            $table->foreignId('fk_alumno')
+            $table->foreignId('fk_id_alumno')
                   ->nullable()
                   ->constrained('alumnos', 'id_alumno')
                   ->onUpdate('cascade');

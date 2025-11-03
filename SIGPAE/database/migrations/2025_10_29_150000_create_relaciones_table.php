@@ -12,31 +12,31 @@ return new class extends Migration
     {
       Schema::create('tiene_familiar', function (Blueprint $table) {
 
-            $table->foreignId('fk_alumno')
+            $table->foreignId('fk_id_alumno')
                   ->constrained('alumnos', 'id_alumno')
                   ->onUpdate('cascade') 
                   ->onDelete('cascade'); //elimina el vinculo si se borra el alumno
             
-            $table->foreignId('fk_familiar')
+            $table->foreignId('fk_id_familiar')
                   ->constrained('familiares', 'id_familiar')
                   ->onUpdate('cascade')
                   ->onDelete('cascade'); //elimina el vinculo si se borra el familiar
-            $table->primary(['fk_alumno', 'fk_familiar']);
+            $table->primary(['fk_id_alumno', 'fk_id_familiar']);
 
                   //Esto no elimina los familiares ni los alumnos, solo elimina los vínculos en tiene_familiar. (eliminar el familiar en el modelo si ya no tiene mas vinculos)
             $table->timestamps();
       });
 
       Schema::create('tiene_asignado', function (Blueprint $table) {
-            $table->foreignId('fk_alumno')
+            $table->foreignId('fk_id_alumno')
                   ->constrained('alumnos', 'id_alumno')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
-            $table->foreignId('fk_plan')
-                  ->constrained('planes_de_accion', 'id_plan')
+            $table->foreignId('fk_id_plan_de_accion')
+                  ->constrained('planes_de_accion', 'id_plan_de_accion')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
-            $table->primary(['fk_alumno', 'fk_plan']);      
+            $table->primary(['fk_id_alumno', 'fk_id_plan']);      
             $table->timestamps();      
       });
 
@@ -131,6 +131,32 @@ return new class extends Migration
             $table->primary(['fk_id_planilla', 'fk_id_intervencion']);  
             $table->timestamps();
       });
+
+      Schema::create('es_hermano_de', function (Blueprint $table) {
+            $table->foreignId('fk_id_alumno')
+                  ->constrained('alumno', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_id_alumno_hermano') 
+                  ->constrained('alumnos', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->primary(['fk_id_alumno', 'fk_id_alumno_hermano']);  
+            $table->timestamps();
+      });
+
+      Schema::create('evento_alumno', function (Blueprint $table) {
+            $table->foreignId('fk_id_alumno')
+                  ->constrained('alumnos', 'id_alumno')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->foreignId('fk_id_evento') 
+                  ->constrained('eventos', 'id_evento')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            $table->primary(['fk_id_alumno', 'fk_id_evento']);  
+            $table->timestamps();
+      });
     }
 
     public function down(): void
@@ -143,6 +169,8 @@ return new class extends Migration
       Schema::dropIfExists('intervencion_alumno');  
       Schema::dropIfExists('intervencion_planilla'); 
       Schema::dropIfExists('es_invitado_a');
-      Schema::dropIfExists('participa_plan'); 
+      Schema::dropIfExists('participa_plan');
+      Schema::dropIfExists('es_hermano_de');
+      Schema::dropIfExists('evento_alumno');
     }
 };
