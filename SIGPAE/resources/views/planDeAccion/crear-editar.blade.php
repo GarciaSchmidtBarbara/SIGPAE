@@ -14,11 +14,7 @@
     </div>
 
     <div class="space-y-8">
-        <div class="px-4 py-2 bg-[#9992FF] rounded-t-lg shadow-md mb-4">
-          <h3 class="text-white text-2xl font-semibold tracking-wider">
-              Tipo
-          </h3>
-        </div>
+        <p class="separador">Tipo</p>
         @php
             $tipoPlan = ['Institucional', 'Individual', 'Grupal'];
         @endphp
@@ -45,11 +41,7 @@
          x-show="tipoPlanSeleccionado === 'Individual'" 
          style="display: none;">
         <div class="space-y-10 mb-6">
-            <div class="px-4 py-2 bg-[#9992FF] rounded-t-lg shadow-md mb-4">
-              <h3 class="text-white text-2xl font-semibold tracking-wider">
-                  Destinatario
-              </h3>
-            </div>
+            <p class="separador">Destinatario</p>
             <div class="fila-botones">
                 <button class="btn-aceptar">Alumno busqueda</button>
                 <button class="btn-aceptar">Documento busqueda</button>
@@ -83,11 +75,7 @@
          x-show="tipoPlanSeleccionado === 'Grupal'" 
          style="display: none;">
         <div class="space-y-10 mb-6">
-            <div class="px-4 py-2 bg-[#9992FF] rounded-t-lg shadow-md mb-4">
-              <h3 class="text-white text-2xl font-semibold tracking-wider">
-                  Destinatarios
-              </h3>
-            </div>
+            <p class="separador">Destinatario</p>
             <div class="fila-botones">
                 <button class="btn-aceptar">Alumno busqueda</button>
                 <button class="btn-aceptar">Documento busqueda</button>
@@ -163,11 +151,7 @@
     <!-- Campo de texto (Común/Always) -->
     {{-- NO necesita display: none. Se muestra siempre. --}}
     <div id="campo-texto" x-show="true">
-        <div class="px-4 py-2 bg-[#9992FF] rounded-t-lg shadow-md mb-4">
-          <h3 class="text-white text-2xl font-semibold tracking-wider">
-              Descripción
-          </h3>
-        </div>
+        <p class="separador">Descripcion</p>
         <div class="space-y-2 mb-6">
             {{-- Contenido del campo-texto --}}
             <label class="block text-sm font-medium text-gray-700">Objetivos <span class="text-red-500">*</span></label>
@@ -213,11 +197,7 @@
          x-show="tipoPlanSeleccionado === 'Individual' || tipoPlanSeleccionado === 'Grupal'"
          style="display: none;">
         <div class="space-y-10 mb-6">
-            <div class="px-4 py-2 bg-[#9992FF] rounded-t-lg shadow-md mb-4">
-          <h3 class="text-white text-2xl font-semibold tracking-wider">
-              Responsables
-          </h3>
-        </div>
+            <p class="separador">Responsables</p>
             <div class="space-y-4">
                 <label class="block text-sm font-medium text-gray-700">Profesionales <span class="text-red-500">*</span></label>
                 <div class="fila-botones">

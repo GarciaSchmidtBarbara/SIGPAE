@@ -118,7 +118,12 @@ class Alumno extends Model
         }
     }
 
-    public function getEstadoAttribute(): stream_set_blocking{
-        return $this->persona?->activo ? 'Activo' : 'Inactivo';
+    public function getActivoTextoAttribute(): string {
+        return $this->persona?->activo ? 'Sí' : 'No';
     }
+
+    public function getCudTextoAttribute(): string {
+        return $this->getAttribute('cud') ? 'Sí' : 'No';
+    }
+
 }
