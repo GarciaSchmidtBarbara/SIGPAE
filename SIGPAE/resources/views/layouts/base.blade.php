@@ -26,16 +26,61 @@
             <div class="menu flex flex-col justify-between flex-1 text-white">
                 <div class="menu-superior flex flex-col">
                     <hr>
-                    <a href="{{ route('welcome') }}" class="{{ request()->routeIs('welcome') ? 'activo' : '' }} links">Principal</a>
-                    <a href="{{ route('alumnos.principal') }}" class="{{ request()->routeIs('alumnos.principal') ? 'activo' : '' }} links">Alumnos</a>
-                    <a target="_blank" class="links">Eventos</a>
-                    <a target="_blank" class="links">Intervenciones</a>
-                    <a href="{{ route('planDeAccion.principal') }}" class="{{ request()->routeIs('planDeAccion.principal') ? 'activo' : '' }} links">Planes de Acción</a>
-                    <a href="{{ route('planillas.principal') }}" class="{{ request()->routeIs('planillas.principal') ? 'activo' : '' }} links">Planillas</a>
-                    <a target="_blank" class="links">Documentos</a>
-                    <a target="_blank" class="links">Reportes</a>
-                    <a target="_blank" class="links">Notificaciones</a>
-                    <a target="_blank" class="links">Usuarios</a>
+                    <x-nav-item
+                        route="welcome"
+                        label=" Principal"
+                        icon="icons.icono-home"
+                        exact
+                    ></x-nav-item>
+                    <x-nav-item
+                        route="alumnos.principal"
+                        label=" Alumnos"
+                        icon="icons.icono-alumno"
+                        exact
+                    ></x-nav-item>
+                    <x-nav-item
+                        label=" Eventos"
+                        icon="icons.icono-evento"
+                        exact
+                    ></x-nav-item>
+                   <x-nav-item
+                        label=" Intervenciones"
+                        icon="icons.icono-intervencion"
+                        exact
+                    ></x-nav-item>
+                   <x-nav-item
+                       route="planDeAccion.principal"
+                       label=" Plan de Acción"
+                       icon="icons.icono-planDeAccion"
+                       exact
+                    ></x-nav-item>
+                    <x-nav-item
+                     route="planillas.principal"
+                     label=" Planillas"
+                     icon="icons.icono-planilla"
+                     exact
+                     ></x-nav-item>
+                    <x-nav-item
+                        label=" Documentos"
+                        icon="icons.icono-documento"
+                        exact
+                    ></x-nav-item>
+                     <x-nav-item
+                        label=" Reportes"
+                        icon="icons.icono-reporte"
+                        exact
+                    ></x-nav-item>
+                     <x-nav-item
+                        label=" Notificaciones"
+                        icon="icons.icono-Notificacion"
+                        exact
+                    ></x-nav-item>
+                     <x-nav-item
+                        label=" Usuarios"
+                        icon="icons.icono-Usuario"
+                        exact
+                    ></x-nav-item>
+                  
                 </div>
                 <div class="menu-inferior flex flex-col">
                     <hr>
