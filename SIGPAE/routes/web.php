@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordController;
 
 
 // Página de inicio → formulario de login
@@ -52,3 +53,8 @@ Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.princi
 Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear-editar');
 
 Route::delete('/alumnos/{id}', [AlumnoController::class, 'destroy'])->name('alumnos.destroy');
+
+//Rutas de cambio de contraseña
+Route::get('/change-password', [PasswordController::class, 'showChangePasswordForm'])->middleware('auth');
+
+Route::post('/change-password', [PasswordController::class, 'changePassword'])->middleware('auth')->name('password.change');
