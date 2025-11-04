@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        //revisado
         Schema::create('aulas', function (Blueprint $table) {
             $table->id('id_aula');
 

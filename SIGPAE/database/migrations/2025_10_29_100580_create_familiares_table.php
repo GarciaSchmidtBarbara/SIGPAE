@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('familiares', function (Blueprint $table) {
+            //revisado
             $table->id('id_familiar');
             $table->string('telefono_personal')->nullable();
             $table->string('telefono_laboral')->nullable();
@@ -16,11 +17,14 @@ return new class extends Migration
             $table->string('lugar_de_trabajo')->nullable();
             $table->string('observaciones')->nullable();
             $table->string('otro_parentesco')->nullable();
-            $table->timestamps();
+            
+            //revisado
             $table->foreignId('fk_id_persona')
                   ->constrained('personas', 'id_persona')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
+
+            $table->timestamps();
         });
     }
     public function down(): void

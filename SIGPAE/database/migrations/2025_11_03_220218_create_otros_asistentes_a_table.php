@@ -6,16 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+
     public function up(): void
     {
         Schema::create('otros_asistentes_a', function (Blueprint $table) {
+            //revisado
             $table->id('id_otro_asistente_a');
-            $table->string('funcion');
             $table->string('nombre');
-            $table->foreignId('fk_acta')->constrained('actas', 'id_acta')->onUpdate('cascade'); //no lleva onDelete por que el profesional no se borra nunca
+            $table->string('apellido');
+            $table->string('funcion');
+
+            //revisado
+            $table->foreignId('fk_id_acta')
+                  ->constrained('actas', 'id_acta')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+            
             $table->timestamps();
         });
     }
+
 
     public function down(): void
     {

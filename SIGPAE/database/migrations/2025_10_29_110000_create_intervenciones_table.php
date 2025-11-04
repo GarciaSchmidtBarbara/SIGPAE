@@ -10,34 +10,38 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('intervenciones', function (Blueprint $table) {
+            //revisado
             $table->id('id_intervencion');
 
-            $table->dateTime('fecha_hora');
+            $table->dateTime('fecha_hora_intervencion'); //fecha y hora de la intervencion, no la fecha de creacion del registro
             $table->string('lugar');
             $table->enum('modalidad', ['PRESENCIAL', 'ONLINE', 'OTRA']);
             $table->string('otra_modalidad')->nullable();
-            $table->string('temas_tratados')->nullable();
-            $table->string('compromisos')->nullable();
-            $table->string('observaciones')->nullable();
+            $table->text('temas_tratados')->nullable();
+            $table->text('compromisos')->nullable();
+            $table->text('observaciones')->nullable();
             $table->boolean('activo')->default(true);
+            $table->timestamps();
             
-            $table->foreignId('fk_profesional_genera')
+            //revisado
+            $table->foreignId('fk_id_profesional_genera')
                   ->constrained('profesionales', 'id_profesional')
-                  ->onUpdate('cascade');
-
-            $table->foreignId('fk_pertenece_plan')
+                  ->onUpdate('cascade')
+                  ->onDelete('set null');
+            
+            //revisado
+            $table->foreignId('fk_id_plan_de_accion')
                   ->nullable()
-                  ->constrained('planes_de_accion', 'id_plan')
+                  ->constrained('planes_de_accion', 'id_plan_de_accion')
                   ->onUpdate('cascade') 
                   ->onDelete('restrict');
 
-            $table->foreignId('fk_evaluacion_espontanea')
+            //revisado
+            $table->foreignId('fk_id_evaluacion_intervencion_espontanea')
                   ->nullable()
-                  ->constrained('evaluaciones_espontaneas', 'id_evaluacion_espontanea')
+                  ->constrained('evaluaciones_intervenciones_espontaneas', 'id_evaluacion_intervencion_espontanea')
                   ->onUpdate('cascade')
                   ->onDelete('set null');
-
-            $table->timestamps();
         });
     }
 
