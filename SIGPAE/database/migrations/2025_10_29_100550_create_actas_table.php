@@ -8,19 +8,23 @@ return new class extends Migration
 {
     public function up(): void
     {
+        //revisado
         Schema::create('actas', function (Blueprint $table) {
             $table->id('id_acta');
+            
             $table->enum('tipo_acta',['BANDA','REI','REIED']);
-            $table->date('fecha_hora');
-            $table->json('otros_participante')->nullable();
+            $table->datetime('fecha_hora');
             $table->text('temario')->nullable();
             $table->text('acuerdos')->nullable();
             $table->text('observaciones')->nullable();
-            $table->date('fecha_proxima_reunion')->nullable();
+            $table->datetime('fecha_proxima_reunion')->nullable();
+            
+            //revisado
             $table->foreignId('fk_id_aula')
-                  ->references('id_aula')
-                  ->on('aulas')
+                  ->constrained('aulas', 'id_aula')
+                  ->onUpdate('cascade')
                   ->onDelete('set null');
+            
             $table->timestamps();
         });
     }

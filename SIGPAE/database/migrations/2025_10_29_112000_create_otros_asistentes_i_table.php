@@ -9,12 +9,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('otros_asistentes_i', function (Blueprint $table) {
+
+            //revisado
             $table->id('id_otro_asistente_i');
-            $table->string('nombre_completo');
+
+            $table->string('nombre');
+            $table->string('apellido');
             $table->string('descripcion');
             
-            $table->foreignId('fk_otro_asistente_a')->constrained('otros_asistentes_a', 'id_otro_asistente_a')->onUpdate('cascade'); 
-            $table->foreignId('fk_intervenciones')->constrained('intervenciones', 'id_intervencion')->onUpdate('cascade'); 
+            //revisado
+            $table->foreignId('fk_id_intervencion')
+                ->constrained('intervenciones', 'id_intervencion')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
+             
             $table->timestamps();
         });
     }

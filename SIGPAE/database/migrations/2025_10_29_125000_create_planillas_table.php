@@ -9,6 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('planillas', function (Blueprint $table) {
+            //revisado
             $table->id('id_planilla');
             $table->string('nombre_planilla');
             $table->enum('tipo_planilla',['MEDIAL','FINAL']);
