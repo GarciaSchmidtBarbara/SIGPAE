@@ -51,7 +51,7 @@ class Documento extends Model
         return $this->belongsTo(EvaluacionDeIntervencionEspontanea::class, 'fk_id_evaluacion_intervencion_espontanea', 'id_evaluacion_intervencion_espontanea');
     }
 
-    // revis
+    // revisado
     public function evaluacionPlanDeAccion(): BelongsTo
     {
         return $this->belongsTo(EvaluacionDePlan::class, 'fk_id_evaluacion_plan_de_accion', 'id_evaluacion_plan_de_accion');

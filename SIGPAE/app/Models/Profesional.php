@@ -87,20 +87,20 @@ class Profesional extends Authenticatable
     }
 
     // revisado
-    public function intervencionesCreadas(): HasMany
+    public function intervencionesGeneradas(): HasMany
     {
-        return $this->hasMany(Intervencion::class, 'fk_id_profesional', 'id_profesional');
+        return $this->hasMany(Intervencion::class, 'fk_id_profesional_genera', 'id_profesional');
     }
     
     // revisado
     public function intervenciones(): BelongsToMany {
-        return $this->belongsToMany(Intervencion::class, 'reune',  'fk_id_profesional','fk_id_intervencion');
+        return $this->belongsToMany(Intervencion::class, 'reune', 'fk_id_profesional', 'fk_id_intervencion');
     }
 
     // revisado
-    public function planesCreados(): HasMany
+    public function planesGenerados(): HasMany
     {
-        return $this->hasMany(PlanDeAccion::class, 'fk_id_profesional_creador', 'id_profesional');
+        return $this->hasMany(PlanDeAccion::class, 'fk_id_profesional_generador', 'id_profesional');
     }
 
     // revisado
@@ -110,7 +110,7 @@ class Profesional extends Authenticatable
     }
 
     // revisado
-    public function estaEnActas(): BelongsToMany
+    public function actas(): BelongsToMany
     {
         return $this->belongsToMany(Acta::class, 'acta_profesional', 'fk_id_profesional', 'fk_id_acta');
     }
