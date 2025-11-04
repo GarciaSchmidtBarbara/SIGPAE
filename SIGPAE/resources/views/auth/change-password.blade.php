@@ -4,6 +4,7 @@
     <title>Change Password</title>
 </head>
 <body>
+    
     <h2>Cambio de contraseña</h2>
 
     <form method="POST" action="{{ route('password.change') }}">

@@ -85,7 +85,15 @@
                 <div class="menu-inferior flex flex-col">
                     <hr>
                     <a href="{{ route('perfil.principal') }}" class="{{ request()->routeIs('perfil.principal') ? 'activo' : '' }} links">Mi perfil</a>
-                    <a href="https://www.untdf.edu.ar" target="_blank" class="links">Cerrar Sesión</a>
+                    <a href="#" 
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();" 
+                        class="links">
+                        Cerrar Sesión
+                    </a>
+
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                        @csrf
+                    </form>
                 </div>
             </div>
         </nav>

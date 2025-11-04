@@ -56,7 +56,7 @@
     }
 
     .separador {
-        @apply bg-estado text-white text-shadow-lg py-1 px-3 mt-1 text-lg
+        @apply bg-estado text-white text-shadow-lg py-1 px-3 my-1 text-lg
     }
 
     .caja {
@@ -84,5 +84,24 @@
 
     .fila-botones {
         @apply flex justify-start gap-4 flex-wrap;
+    }
+
+    .input-form-login {
+        @apply mb-4 border border-gray-300 p-2 rounded-lg w-full
+    }
+
+    .btn-ingresar {
+        @apply bg-estado my-2 w-full py-1 rounded-lg border border-gray-300 text-white
+    }
+
+    .btn-ingresar:hover {
+        @apply bg-fondo
+    }
+
+    .form-input {
+        @apply border border-gray-300 rounded-lg py-1 px-2 text-gray-500
+    }
+    .form-input:hover {
+        @apply border-gray-300 text-black
     }
 }
