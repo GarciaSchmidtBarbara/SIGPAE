@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 
 
 // Página de inicio → formulario de login
@@ -54,7 +55,17 @@ Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.
 
 Route::delete('/alumnos/{id}', [AlumnoController::class, 'destroy'])->name('alumnos.destroy');
 
-//Rutas de cambio de contraseña
+//Rutas de cambio de contraseña con sesión iniciada
 Route::get('/change-password', [PasswordController::class, 'showChangePasswordForm'])->middleware('auth');
-
 Route::post('/change-password', [PasswordController::class, 'changePassword'])->middleware('auth')->name('password.change');
+
+//Ruta para restaurar contraseña
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset.form');
+Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+
+//ruta para token
+Route::get('/enter-token', [ForgotPasswordController::class, 'showEnterTokenForm'])->name('password.enterToken');
+Route::post('/enter-token', [ForgotPasswordController::class, 'verifyToken'])->name('password.verifyToken');
