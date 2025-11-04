@@ -8,7 +8,7 @@ interface AlumnoServiceInterface
 {
     public function listar(): \Illuminate\Support\Collection;
 
-    public function registrar(array $data): Alumno;
+    public function crearAlumno(array $data): Alumno;
 
     public function eliminar(int $id): bool;
 

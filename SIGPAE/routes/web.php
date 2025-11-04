@@ -50,6 +50,7 @@ Route::get('/perfil/editar', function(){
 use App\Http\Controllers\AlumnoController;
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
 Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('alumnos.crear-editar');
+Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::delete('/alumnos/{id}', [AlumnoController::class, 'destroy'])->name('alumnos.destroy');
 
 //Rutas de cambio de contraseña
