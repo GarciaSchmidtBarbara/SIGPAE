@@ -14,45 +14,43 @@ class Acta extends Model
 
     protected $table = 'actas';
 
+    protected $primaryKey = 'id_acta';
+
     protected $fillable = [
         'tipo_acta',
         'fecha_hora',
-        'otros_participantes', // Lista de strings como JSON
         'temario',
         'acuerdos',
         'observaciones',
-        'fecha_proxima_reunion',
-        'fk_aula',
+        'fecha_hora_proxima_reunion',
     ];
 
     protected $casts = [
         'fecha_hora' => 'datetime',
-        'fecha_proxima_reunion' => 'datetime',
-        'otros_participantes' => 'array', 
+        'temario' => 'string', // será tratado como text
+        'acuerdos' => 'string', // será tratado como text
+        'observaciones' => 'string', // será tratado como text
+        'fecha_hora_proxima_reunion' => 'datetime',
         'tipo_acta' => TipoActa::class,
     ];
 
-    // Relaciones
+    // revisado
     public function aula(): BelongsTo
     {
-        return $this->belongsTo(Aula::class, 'fk_aula');
+        return $this->belongsTo(Aula::class, 'fk_id_aula', 'id_aula');
     }
 
-    public function profesionales(): BelongsToMany
+    // revisado
+    public function tieneProfesionales(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Profesional::class,
-            'acta_profesional',
-            'fk_acta',   
-            'fk_profesional'
-        );
+        return $this->belongsToMany(Profesional::class, 'acta_profesional', 'fk_id_acta', 'fk_id_profesional');
     }
 
-    public function otrosAsistentes(): HasMany {
-        return $this->hasMany(OtroAsistenteA::class, 'fk_acta');
+    // revisado
+    public function otrosAsistentesA(): HasMany {
+        return $this->hasMany(OtroAsistenteA::class, 'fk_id_acta', 'id_acta');
     }
     
-
     // Métodos personalizados
     public static function crearActa(array $data): Acta
     {

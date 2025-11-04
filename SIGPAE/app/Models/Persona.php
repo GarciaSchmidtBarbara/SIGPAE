@@ -13,7 +13,6 @@ use App\Models\Hermano;
 class Persona extends Model
 {
     use HasFactory;
-    protected $table = 'personas';
 
     protected $primaryKey = 'id_persona';
 
@@ -29,6 +28,7 @@ class Persona extends Model
 
     protected $casts = [
         'fecha_nacimiento' => 'date',
+        'activo' => 'boolean',
     ];
 
     public function getDescripcionAttribute()
@@ -36,23 +36,21 @@ class Persona extends Model
         return $this->nombre . ' ' . $this->apellido;
     }
 
+    // revisado
      public function alumno(): HasOne
     {   //Como es 0,1 relacion, usamos hasOne y el alumno tendrá la clave foránea
-        return $this->hasOne(Alumno::class, 'fk_id_persona');
+        return $this->hasOne(Alumno::class, 'fk_id_persona', 'id_persona');
     }
 
+    // revisado
     public function profesional(): HasOne
     {
-        return $this->hasOne(Profesional::class, 'fk_id_persona');
+        return $this->hasOne(Profesional::class, 'fk_id_persona', 'id_persona');
     }
 
+    // revisado
     public function familiar(): HasOne
     {
-        return $this->hasOne(Familiar::class, 'fk_id_persona');
-    }
-
-    public function hermano(): HasOne
-    {
-        return $this->hasOne(Hermano::class, 'fk_id_persona');
+        return $this->hasOne(Familiar::class, 'fk_id_persona', 'id_persona');
     }
 }
