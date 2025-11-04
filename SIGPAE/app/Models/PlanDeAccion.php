@@ -4,6 +4,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Enums\TipoPlan;
+use App\Enums\EstadoPlan;
 
 class PlanDeAccion extends Model
 {
@@ -11,46 +13,66 @@ class PlanDeAccion extends Model
 
     protected $primaryKey = 'id_plan_de_accion';
 
+    const CREATED_AT = 'fecha_hora';
+
     protected $fillable = [
-        'estado',
-        'tipo',
-        'fecha_creacion',
-        'fk_id_profesional_creador',
+        'estado_plan',
+        'tipo_plan', 
+        'objetivos',
+        'activo',
+        'fecha_hora',
+        'acciones',
+        'observaciones',
     ];
 
-    public function profesionalCreador(): BelongsTo
+    protected $casts = [
+        'fecha_hora' => 'datetime',
+        'activo' => 'boolean',
+        'objetivos' => 'string', // será tratado como text
+        'observaciones' => 'string', // será tratado como text
+        'acciones' => 'string', // será tratado como text
+        'tipo_plan' => TipoPlan::class,
+        'estado_plan' => EstadoPlan::class,
+    ];
+
+    // revisado
+    public function profesionalGenerador(): BelongsTo
     {
-        return $this->belongsTo(Profesional::class, 'fk_id_profesional_creador');
+        return $this->belongsTo(Profesional::class, 'fk_id_profesional_generador', 'id_profesional');
     }
 
-    public function responsables(): BelongsToMany
+    // revisado
+    public function profesionalesParticipantes(): BelongsToMany
     {
-        return $this->belongsToMany(Profesional::class, 'responsables', 'fk_id_plan', 'fk_id_profesional_responsable');
+        return $this->belongsToMany(Profesional::class, 'participa_plan', 'fk_id_plan_de_accion', 'fk_id_profesional');
     }
 
-    public function intervenciones(): HasMany
+    // revisado
+    public function intervenciones(): hasMany
     {
-        return $this->hasMany(Intervencion::class, 'fk_id_plan');
+        return $this->hasMany(Intervencion::class, 'fk_id_plan_de_accion', 'id_plan_de_accion');
     }
 
-    public function evaluaciones(): HasOne
+    // revisado
+    public function evaluaciones(): hasMany
     {
-        return $this->hasOne(Evaluacion::class, 'fk_id_plan');
+        return $this->hasMany(EvaluacionDePlan::class, 'fk_id_plan_de_accion', 'id_plan_de_accion');
     }
 
-    public function documentaciones(): HasMany
+    // revisado
+    public function aulas():BelongsToMany
     {
-        return $this->hasMany(Documentacion::class, 'fk_id_plan_accion');
+        return $this->belongsToMany(Aula::class, 'incluye', 'fk_id_plan_de_accion', 'fk_id_aula');
     }
 
-    public function aula(): BelongsTo
-    {
-        return $this->belongsTo(Aula::class, 'fk_id_aula', 'id_aula');
-    }
-
+    // revisado
     public function alumnos(): BelongsToMany
     {
-        return $this->belongsToMany(Alumno::class, 'plan_alumno', 'fk_id_plan', 'fk_id_alumno');
+        return $this->belongsToMany(Alumno::class, 'tiene_asignado', 'fk_id_plan_de_accion', 'fk_id_alumno');
     }
-
+    // revisado
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(Documento::class, 'fk_id_plan_accion', 'id_plan_de_accion');
+    }
 }

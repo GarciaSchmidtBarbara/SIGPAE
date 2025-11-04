@@ -24,13 +24,19 @@ class Alumno extends Model
         'situacion_medica',
         'situacion_familiar',
         'situacion_socioeconomica',
-        'fk_persona',
-        'fk_aula',
     ];
 
     protected $casts = [
         'inasistencias' => 'integer',
         'cud' => 'boolean',
+        'observaciones' => 'string',
+        'antecedentes' => 'string',
+        'intervenciones_externas' => 'string',
+        'actividades_extraescolares' => 'string',
+        'situacion_escolar' => 'string',
+        'situacion_medica' => 'string',
+        'situacion_familiar' => 'string',
+        'situacion_socioeconomica' => 'string',
     ];
 
 
@@ -38,36 +44,49 @@ class Alumno extends Model
         return $this->persona ? "{$this->persona->nombre} {$this->persona->apellido}" : 'Sin datos';
     }
 
+    // revisado
      public function persona(): BelongsTo {
-        return $this->belongsTo(Persona::class, 'fk_persona', 'id_persona');
+        return $this->belongsTo(Persona::class, 'fk_id_persona', 'id_persona');
     }
 
+    // revisado
     public function aula(): BelongsTo {
-        return $this->belongsTo(Aula::class, 'fk_aula', 'id_aula');
+        return $this->belongsTo(Aula::class, 'fk_id_aula', 'id_aula');
     }
 
-    public function familiares(): BelongsToMany{        
-        return $this->belongsToMany(Familiar::class, 'tiene_familiar', 'fk_alumno', 'fk_familiar');
+    // revisado
+    public function familiares(): BelongsToMany{
+        return $this->belongsToMany(Familiar::class, 'tiene_familiar', 'fk_id_alumno', 'fk_id_familiar');
     }
 
+    // revisado
     public function hermanos(): BelongsToMany{
-        return $this->belongsToMany(Alumno::class, 'es_hermano_de', 'fk_alumno', 'fk_alumno_hermano');
+        return $this->belongsToMany(Alumno::class, 'es_hermano_de', 'fk_id_alumno', 'fk_id_alumno_hermano');
     }
 
+    // revisado
+    public function esHermanoDe(): BelongsToMany{
+        return $this->belongsToMany(Alumno::class, 'es_hermano_de', 'fk_id_alumno_hermano',  'fk_id_alumno');
+    }
+
+    // revisado
     public function intervenciones(): BelongsToMany{
-        return $this->belongsToMany(Intervencion::class, 'intervencion_alumno', 'fk_alumno', 'fk_intervencion');
+        return $this->belongsToMany(Intervencion::class, 'intervencion_alumno', 'fk_id_alumno', 'fk_id_intervencion');
     }
 
+    // revisado
     public function documentos(){
-        return $this->hasMany(Documento::class, 'fk_alumno', 'id_alumno');
+        return $this->hasMany(Documento::class, 'fk_id_alumno', 'id_alumno');
     }
 
+    // revisado
     public function planesDeAccion(): BelongsToMany{
-        return $this->belongsToMany(PlanDeAccion::class, 'tiene_asignado', 'fk_alumno', 'fk_plan');
+        return $this->belongsToMany(PlanDeAccion::class, 'tiene_asignado', 'fk_id_alumno', 'fk_id_plan_de_accion');
     }
 
+    // revisado
     public function eventos(): BelongsToMany {
-        return $this->belongsToMany(Evento::class, 'evento_alumno', 'fk_alumno', 'fk_evento');
+        return $this->belongsToMany(Evento::class, 'evento_alumno', 'fk_id_alumno', 'fk_id_evento');
     }
 
     // Métodos personalizados
