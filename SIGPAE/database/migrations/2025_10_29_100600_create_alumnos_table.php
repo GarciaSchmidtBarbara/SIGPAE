@@ -9,23 +9,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('alumnos', function (Blueprint $table) {
+            //revisado
             $table->id('id_alumno');
+
             $table->boolean('cud')->default(false);
             $table->integer('inasistencias')->default(0);
-            $table->string('observaciones')->nullable();
-            $table->string('antecedentes')->nullable();
-            $table->string('intervenciones_externas')->nullable();
-            $table->string('situacion_medica')->nullable();
-            $table->string('actividades_extraescolares')->nullable();
-            $table->string('situacion_escolar')->nullable();
-            $table->string('situacion_familiar')->nullable();
-            $table->string('situacion_socioeconomica')->nullable();
+            $table->text('observaciones')->nullable();
+            $table->text('antecedentes')->nullable();
+            $table->text('intervenciones_externas')->nullable();
+            $table->text('actividades_extraescolares')->nullable();
+            $table->text('situacion_escolar')->nullable();
+            $table->text('situacion_medica')->nullable();
+            $table->text('situacion_familiar')->nullable();
+            $table->text('situacion_socioeconomica')->nullable();
             $table->timestamps();
-            $table->foreignId('fk_persona')
+
+            //revisado
+            $table->foreignId('fk_id_persona')
                   ->constrained('personas', 'id_persona')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
-            $table->foreignId('fk_aula')
+
+            //revisado
+            $table->foreignId('fk_id_aula')
                   ->constrained('aulas', 'id_aula')
                   ->onUpdate('cascade')
                   ->onDelete('set null');      

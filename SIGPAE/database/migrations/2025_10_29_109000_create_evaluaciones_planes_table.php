@@ -9,14 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('evaluaciones_planes', function (Blueprint $table) {
-            $table->id('id_evaluacion_plan');
-            $table->date('fecha_evaluacion');
-            $table->string('observaciones')->nullable();
-            $table->string('criterios');
-            $table->string('conclusiones');
+            //revisado
+            $table->id('id_evaluacion_plan_de_accion');
+
+            $table->text('observaciones')->nullable();
+            $table->text('criterios');
+            $table->text('conclusiones');
+            //$table->datetime('fecha_hora');     este atributo lo maneja el $table->timestamps();
             $table->timestamps();
-            $table->foreignId('fk_id_plan')
-                ->constrained('planes_de_accion', 'id_plan')
+
+            //revisado
+            $table->foreignId('fk_id_plan_de_accion')
+                ->constrained('planes_de_accion', 'id_plan_de_accion')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
         });

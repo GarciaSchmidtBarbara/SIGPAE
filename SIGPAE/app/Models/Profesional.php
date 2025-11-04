@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Siglas;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,16 +26,13 @@ class Profesional extends Authenticatable
 
   
     protected $fillable = [
-        // personales (idealmente en Persona)
-        'nombre',
-        'apellido',
-        'dni',
         // campos mínimos de profesional / usuario
         'telefono',
         'usuario',
+        'profesion',
         'email',
+        'siglas',
         'contrasenia',
-        'fk_id_persona',
     ];
 
     /**
@@ -52,24 +50,25 @@ class Profesional extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime', 
         'contrasenia' => 'hashed',
+        'siglas' => Siglas::class,
     ];
 
+    // revisado
     public function persona(): BelongsTo
-    {   //Un profesional es una persona
+    {
         return $this->belongsTo(Persona::class, 'fk_id_persona', 'id_persona');
     }
     
-    public function eventos()
-    {   //Un profesional puede crear muchos eventos
-        return $this->hasMany(Evento::class, 'creador_id', 'id_profesional');
+    // revisado
+    public function eventos():HasMany
+    {
+        return $this->hasMany(Evento::class, 'fk_id_profesional_creador', 'id_profesional');
     }
 
-     public function eventosAsistidos()
-    {   //Un profesional puede asistir a muchos eventos (relación muchos a muchos)
-        return $this->belongsToMany(Evento::class, 'evento_profesional', 'id_profesional', 'id_evento')
-                    ->using(Asiste::class)
-                    ->withPivot('asistio', 'asistencia_confirmada')
-                    ->withTimestamps();
+    // revisado
+    public function esInvitadoA():HasMany
+    {
+        return $this->hasMany(EsInvitadoA::class, 'fk_id_profesional', 'id_profesional');
     }
 
     /**
@@ -87,21 +86,38 @@ class Profesional extends Authenticatable
         return $this->contrasenia;
     }
 
-    public function intervencionesCreadas(): HasMany
+    // revisado
+    public function intervencionesGeneradas(): HasMany
     {
-        return $this->hasMany(Intervencion::class, 'fk_profesional_creador');
-    }
-
-    public function planesCreados(): HasMany
-    {
-        return $this->hasMany(PlanDeAccion::class, 'fk_id_profesional_creador');
+        return $this->hasMany(Intervencion::class, 'fk_id_profesional_genera', 'id_profesional');
     }
     
-    public function planesResponsables(): BelongsToMany
-    {
-        return $this->belongsToMany(PlanDeAccion::class, 'responsables', 'fk_id_profesional_responsable', 'fk_id_plan');
+    // revisado
+    public function intervenciones(): BelongsToMany {
+        return $this->belongsToMany(Intervencion::class, 'reune', 'fk_id_profesional', 'fk_id_intervencion');
     }
 
+    // revisado
+    public function planesGenerados(): HasMany
+    {
+        return $this->hasMany(PlanDeAccion::class, 'fk_id_profesional_generador', 'id_profesional');
+    }
 
+    // revisado
+    public function planesParticipa(): BelongsToMany
+    {
+        return $this->belongsToMany(PlanDeAccion::class, 'participa_plan', 'fk_id_profesional', 'fk_id_plan_de_accion');
+    }
 
+    // revisado
+    public function actas(): BelongsToMany
+    {
+        return $this->belongsToMany(Acta::class, 'acta_profesional', 'fk_id_profesional', 'fk_id_acta');
+    }
+
+    // revisado
+    public function documentosCargados(): HasMany
+    {
+        return $this->hasMany(Documento::class, 'fk_id_profesional', 'id_profesional');
+    }
 }

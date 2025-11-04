@@ -8,6 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
+        //revisado
         Schema::create('aulas', function (Blueprint $table) {
             $table->id('id_aula');
 
@@ -23,6 +24,6 @@ return new class extends Migration
 
     public function down(): void
     {
-      Schema::dropIfExists('aula');
+      Schema::dropIfExists('aulas');
     }
 };

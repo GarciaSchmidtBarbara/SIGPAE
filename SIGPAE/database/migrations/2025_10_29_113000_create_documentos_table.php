@@ -10,42 +10,57 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('documentos', function (Blueprint $table) {
+            //revisado
             $table->id('id_documento');
-            $table->string('nombre');
-            $table->enum('modalidad', ['PDF', 'WORD', 'TXT']);
+
+            $table->string('nombre')->unique();
+            $table->enum('tipo_formato', ['DOCX', 'DOC', 'JPG', 'PNG', 'PDF', 'XLS', 'XLSX']);
             $table->boolean('disponible_presencial');
-            $table->decimal('tamanio_archivo');
+            $table->integer('tamanio_archivo');
             $table->string('ruta_archivo');
             
-            $table->foreignId('fk_alumno')
+
+            //revisado
+            $table->foreignId('fk_id_alumno')
                   ->nullable()
                   ->constrained('alumnos', 'id_alumno')
-                  ->onUpdate('cascade');
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
 
-            $table->foreignId('fk_evaluacion_plan')
+            //revisado
+            $table->foreignId('fk_id_evaluacion_plan_de_accion')
                   ->nullable()
-                  ->constrained('evaluaciones_planes', 'id_evaluacion_plan')
-                  ->onUpdate('cascade');
-                   
-            $table->foreignId('fk_evaluacion_espontanea')
+                  ->constrained('evaluaciones_planes', 'id_evaluacion_plan_de_accion')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
+                  
+            //revisado
+            $table->foreignId('fk_id_evaluacion_intervencion_espontanea')
                   ->nullable()
-                  ->constrained('evaluaciones_espontaneas', 'id_evaluacion_espontanea')
-                  ->onUpdate('cascade');
+                  ->constrained('evaluaciones_intervenciones_espontaneas', 'id_evaluacion_intervencion_espontanea')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
             
-            $table->foreignId('fk_profesional')
+            //revisado
+            $table->foreignId('fk_id_profesional')
                   ->nullable()
                   ->constrained('profesionales', 'id_profesional')
-                  ->onUpdate('cascade');
+                  ->onUpdate('cascade')
+                  ->onDelete('set null');
             
-            $table->foreignId('fk_plan')
+            //revisado
+            $table->foreignId('fk_id_plan_de_accion')
                   ->nullable()
-                  ->constrained('planes_de_accion', 'id_plan')
-                  ->onUpdate('cascade');
+                  ->constrained('planes_de_accion', 'id_plan_de_accion')
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
             
-            $table->foreignId('fk_intervencion')
+            //revisado
+            $table->foreignId('fk_id_intervencion')
                   ->nullable()
                   ->constrained('intervenciones', 'id_intervencion')
-                  ->onUpdate('cascade');
+                  ->onUpdate('cascade')
+                  ->onDelete('cascade');
 
             $table->timestamps();
         });
