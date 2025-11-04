@@ -3,8 +3,34 @@
 @section('encabezado', 'Crear Alumno')
 
 @section('contenido')
+<form method="POST" action="{{ route('alumnos.store') }}">
+
+    @csrf
     <div class="space-y-8">
         <p class="separador">Información Personal del Alumno</p>
+        <div class="fila-botones mt-8" x-show="true">
+            <input name="dni" placeholder="Documento" class="border px-2 py-1 rounded w-1/5">
+            <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
+            <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
+            <input name="fecha_nacimiento" placeholder="Fecha de nacimiento" class="border px-2 py-1 rounded w-1/5">
+        </div>
+        <div class="fila-botones mt-8" x-show="true">
+            <input name="edad" placeholder="Edad" class="border px-2 py-1 rounded w-1/5">
+            <input name="nacionalidad" placeholder="Nacionalidad" class="border px-2 py-1 rounded w-1/5">
+            <select name="aula" class="border px-2 py-1 rounded w-1/5">
+            <option value="">Aula</option>
+                @foreach($cursos as $curso)
+                    <option value="{{ $curso }}">{{ $curso }}</option>
+                @endforeach
+            </select>
+            <div class="w-1/5">
+                <label class="block text-sm font-medium text-gray-700 mb-1">CUD</label>
+                <div class="flex gap-2">
+                    <label><input type="radio" name="cud" value="1"> Sí</label>
+                    <label><input type="radio" name="cud" value="0"> No</label>
+                </div>
+            </div>
+        </div>  
     </div>
 
     <div class="space-y-8">
@@ -78,21 +104,28 @@
     <div class="space-y-8">
         <p class="separador">Situación Integral</p>
         <label class="block text-sm font-medium text-gray-700 mb-1">Situación socioeconómica </label>
-        <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>
+        <textarea name="situacion_socioeconomica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>
+        
         <label class="block text-sm font-medium text-gray-700 mb-1">Situación familiar</label>
-        <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>
+        <textarea name="situacion_familiar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>
+        
         <label class="block text-sm font-medium text-gray-700 mb-1">Situación medica </label>
-        <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>
+        <textarea  name="situacion_medica"class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>
+        
         <label class="block text-sm font-medium text-gray-700 mb-1">Situación escolar </label>
-        <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>
+        <textarea name="situacion_escolar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>
+        
         <label class="block text-sm font-medium text-gray-700 mb-1">Actividades extraescolares </label>
-        <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>
+        <textarea name="actividades_extraescolares" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>
+        
         <label class="block text-sm font-medium text-gray-700 mb-1">Intervenciones externas</label>
-        <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>
+        <textarea name="intervenciones_externas" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>
+        
         <label class="block text-sm font-medium text-gray-700 mb-1">Antecedentes</label>
-        <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>
+        <textarea name="antecedentes" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>
+        
         <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-        <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>      
+        <textarea name="observaciones" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>      
     </div>
 
     <div class="space-y-8">
@@ -124,9 +157,9 @@
         </div>
 
     <div class="fila-botones mt-8" x-show="true">
-        <button class="btn-aceptar">Guardar</button>
+        <button type="submit" class="btn-aceptar">Guardar</button>
         <button class="btn-eliminar" >Desactivar</button>
         <a class="btn-volver" href="{{ route('alumnos.principal') }}" >Volver</a>
     </div>
-
+</form>
 @endsection

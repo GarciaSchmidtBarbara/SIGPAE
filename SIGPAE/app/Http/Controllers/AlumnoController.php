@@ -34,13 +34,12 @@ class AlumnoController extends Controller
     public function store(Request $request): JsonResponse
     {
         try {
-            // Pasamos todo el payload al servicio; el service separará persona/alumno
-            $payload = $request->all();
-
-            $alumno = $this->alumnoService->createAlumno($payload);
+            $alumno = $this->alumnoService->crearAlumno($request->all());
             return response()->json($alumno, 201);
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
+            //return redirect()->route('alumnos.principal')->with('success', 'Alumno creado correctamente');
+
         }
     }
 
@@ -96,9 +95,9 @@ class AlumnoController extends Controller
         );
     }
 
-    public function crearEditar()
-    {
-        return view('alumnos.crear-editar'); 
+   public function crearEditar() {
+        $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
+        return view('alumnos.crear-editar', compact('cursos'));
     }
 
 
