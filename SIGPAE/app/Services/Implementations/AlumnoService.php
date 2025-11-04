@@ -52,11 +52,13 @@ class AlumnoService implements AlumnoServiceInterface
             throw new \Exception('No se encontró el aula con la descripción: ' . $data['aula']);
         }
         
+        $cud = $data['cud'] === 'Sí' ? 1 : 0;
         //Crear el alumno con los datos restantes
         $alumno = new \App\Models\Alumno([
             'fk_persona' => $persona->id_persona,
             'fk_aula' => $aula?->id_aula,
-            'cud' => isset($data['cud']) ? (bool) $data['cud'] : false,
+            'cud' => $cud,
+            'inasistencias' => $data['inasistencias'] ?? null,
             'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
             'situacion_familiar' => $data['situacion_familiar'] ?? null,
             'situacion_medica' => $data['situacion_medica'] ?? null,

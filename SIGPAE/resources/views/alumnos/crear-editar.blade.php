@@ -6,34 +6,61 @@
 <form method="POST" action="{{ route('alumnos.store') }}">
 
     @csrf
-    <div class="space-y-8">
+    <div class="space-y-8 mb-6">
         <p class="separador">Información Personal del Alumno</p>
         <div class="fila-botones mt-8" x-show="true">
-            <input name="dni" placeholder="Documento" class="border px-2 py-1 rounded w-1/5">
-            <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
-            <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
-            <input name="fecha_nacimiento" placeholder="Fecha de nacimiento" class="border px-2 py-1 rounded w-1/5">
+            <div class="flex flex-col w-1/5">
+                <p class="text-sm font-medium text-gray-700 mb-1">Documento</p>
+                <input name="dni" placeholder="Documento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="flex flex-col w-1/5">
+                <p class="text-sm font-medium text-gray-700 mb-1">Nombres</p>
+                <input name="nombre" placeholder="Nombres" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="flex flex-col w-1/5">
+                <p class="text-sm font-medium text-gray-700 mb-1">Apellidos</p>
+                <input name="apellido" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="flex flex-col w-1/5">
+                <p class="text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</p>
+                <input name="fecha_nacimiento" placeholder="Fecha de nacimiento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
         </div>
         <div class="fila-botones mt-8" x-show="true">
-            <input name="edad" placeholder="Edad" class="border px-2 py-1 rounded w-1/5">
-            <input name="nacionalidad" placeholder="Nacionalidad" class="border px-2 py-1 rounded w-1/5">
-            <select name="aula" class="border px-2 py-1 rounded w-1/5">
-            <option value="">Aula</option>
-                @foreach($cursos as $curso)
-                    <option value="{{ $curso }}">{{ $curso }}</option>
-                @endforeach
-            </select>
-            <div class="w-1/5">
-                <label class="block text-sm font-medium text-gray-700 mb-1">CUD</label>
-                <div class="flex gap-2">
-                    <label><input type="radio" name="cud" value="1"> Sí</label>
-                    <label><input type="radio" name="cud" value="0"> No</label>
-                </div>
+            <div class="flex flex-col w-1/5">
+                <p class="text-sm font-medium text-gray-700 mb-1">Edad</p>
+                <input name="edad" placeholder="Edad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="flex flex-col w-1/5">
+                <p class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</p>
+                <input name="nacionalidad" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="flex flex-col w-1/5">
+                <label for="aula" class="text-sm font-medium text-gray-700 mb-1">Aula</label>
+                <select name="aula" id="aula" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Seleccionar aula</option>
+                    @foreach($cursos as $curso)
+                        <option value="{{ $curso }}">{{ $curso }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex flex-col w-1/5">
+                <p class="text-sm font-medium text-gray-700 mb-1">Cantidad inasistencias</p>
+                <input name="inasistencias" placeholder="Inasistencias" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tiene CUD</label>
+                <x-opcion-unica 
+                    :items="['Sí', 'No']"
+                    name="cud"
+                    layout="horizontal"
+                    x-model="cudSeleccionado" 
+                />
             </div>
         </div>  
     </div>
 
-    <div class="space-y-8">
+    <div class="space-y-8 mb-6">
         <p class="separador">Red Familiar</p>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -101,7 +128,7 @@
             <a class="btn-aceptar" href="" >Crear Familiar</a>
     </div>
 
-    <div class="space-y-8">
+    <div class="space-y-8 mb-6">
         <p class="separador">Situación Integral</p>
         <label class="block text-sm font-medium text-gray-700 mb-1">Situación socioeconómica </label>
         <textarea name="situacion_socioeconomica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2"></textarea>
