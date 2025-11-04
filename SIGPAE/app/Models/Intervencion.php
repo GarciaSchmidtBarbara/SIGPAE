@@ -42,7 +42,7 @@ class Intervencion extends Model
     }
 
     // revisado
-    public function profesionalGenera(): BelongsTo {
+    public function profesionalGenerador(): BelongsTo {
         return $this->belongsTo(Profesional::class, 'fk_id_profesional_genera', 'id_profesional');
     }
 

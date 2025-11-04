@@ -23,14 +23,12 @@ class Evento extends Model{
             //'otros_asistentes', no va en filleable porque se maneja como arreglo
             'tipo_evento',
             'notas',
-            'es_derivacion_externa', // boolean
             'profesional_tratante', // preguntar a Lucas
             'periodo_recordatorio', // integer en dias
         ];
 
         protected $casts = [
             'fecha_hora' => 'datetime',
-            'es_derivacion_externa' => 'boolean',
             'periodo_recordatorio' => 'integer',
             'tipo_evento' => TipoEvento::class,
         ];
@@ -43,7 +41,7 @@ class Evento extends Model{
         }
 
         // revisado
-        public function esInvitadoA(): BelongsToMany
+        public function esInvitadoA(): HasMany
         {
             return $this->hasMany(EsInvitadoA::class, 'fk_id_evento', 'id_evento');
         }
@@ -52,6 +50,12 @@ class Evento extends Model{
         public function alumnos(): BelongsToMany
         {
             return $this->belongsToMany(Alumno::class, 'evento_alumno', 'fk_id_evento', 'fk_id_alumno');
+        }
+
+        // revisado
+        public function aulas(): BelongsToMany
+        {
+            return $this->belongsToMany(Aula::class, 'tiene_aulas', 'fk_id_evento', 'fk_id_aula');
         }
 
         public function agregarProfesionales(array $profesionalIds): void
@@ -73,12 +77,6 @@ class Evento extends Model{
             return self::where('creador_id', $profesionalId)->get();
         }
         //Para notificar invesigue que se usa observadores de laravel o eventos del dominio. No van en el modelo
-
-        // revis
-        public function aulas(): BelongsToMany
-        {
-            return $this->belongsToMany(Aula::class, 'tiene_aulas', 'fk_id_evento', 'fk_id_aula');
-        }
 
         public function agregarAulas(array $aulaIds): void
         {  

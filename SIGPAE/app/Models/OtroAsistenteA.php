@@ -17,7 +17,7 @@ class OtroAsistenteA extends Model
     ];
 
     // revisado
-    public function acta()
+    public function acta(): belongsTo
     {
         return $this->belongsTo(Acta::class, 'fk_id_acta', 'id_acta');
     }
