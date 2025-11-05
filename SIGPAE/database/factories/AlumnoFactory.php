@@ -13,8 +13,8 @@ class AlumnoFactory extends Factory
     public function definition(): array
     {
         return [
-            'fk_persona' => \App\Models\Persona::factory(),
-            'fk_aula' => \App\Models\Aula::inRandomOrder()->first()->id_aula,
+            'fk_id_persona' => \App\Models\Persona::factory(),
+            'fk_id_aula' => \App\Models\Aula::inRandomOrder()->first()->id_aula,
             'cud' => $this->faker->boolean(),
             'inasistencias' => $this->faker->numberBetween(0, 60),
             'observaciones' => $this->faker->sentence(),

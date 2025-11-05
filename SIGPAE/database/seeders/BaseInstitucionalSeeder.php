@@ -52,7 +52,7 @@ class BaseInstitucionalSeeder extends Seeder
             ]
         );
         Alumno::firstOrCreate(
-            ['fk_persona' => $persona->id_persona],
+            ['fk_id_persona' => $persona->id_persona],
             [
                 'cud' => false,
                 'inasistencias' => 5,
@@ -64,7 +64,7 @@ class BaseInstitucionalSeeder extends Seeder
                 'situacion_medica' => 'Sin patologías relevantes',
                 'situacion_familiar' => 'Convive con madre y hermanos',
                 'situacion_socioeconomica' => 'Ingreso familiar bajo, recibe ayuda escolar',
-                'fk_aula' => $aula->id_aula,
+                'fk_id_aula' => $aula->id_aula,
             ]
         );
 
