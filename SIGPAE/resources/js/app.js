@@ -1,5 +1,7 @@
 import './bootstrap';
-
+import Alpine from 'alpinejs';
+window.Alpine = Alpine;
+Alpine.start();
 // Función para manejar la selección de radio buttons
 function handleRadioSelection() {
   // Buscar todos los grupos de radio buttons personalizados en el documento
