@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use App\Services\Interfaces\AlumnoServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+
 use App\Models\Alumno;
 use App\Models\Aula;
 
@@ -43,13 +45,17 @@ class AlumnoController extends Controller
         }
     }
 
-    public function destroy(int $id): JsonResponse
+    public function cambiarActivo(int $id): RedirectResponse
     {
-        $resultado = $this->alumnoService->desactivar($id);
+        $resultado = $this->alumnoService->cambiarActivo($id);
         if ($resultado) {
-            return response()->json(['message' => 'Alumno desactivado correctamente']);
+            return redirect()
+                ->route('alumnos.principal')
+                ->with('success', 'El estado del alumno fue actualizado correctamente.');
         }
-        return response()->json(['message' => 'No se pudo desactivar el alumno'], 404);
+        return redirect()
+            ->route('alumnos.principal')
+            ->with('error', 'No pudo realizarse la actualizacion de estado del alumno.');
     }
 
     public function vista(Request $request)

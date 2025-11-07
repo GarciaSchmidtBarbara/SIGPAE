@@ -9,6 +9,6 @@ interface AlumnoRepositoryInterface
     public function crear(array $data): Alumno;
     public function eliminar(int $id): bool;
     public function buscarPorId(int $id): ?Alumno;
-    public function desactivar(int $id): bool;
+    public function cambiarActivo(int $id): bool;
 
 }

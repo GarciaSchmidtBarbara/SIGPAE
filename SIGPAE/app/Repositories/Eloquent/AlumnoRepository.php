@@ -29,11 +29,12 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         return Alumno::with(['persona', 'aula'])->find($id);
     }
 
-    public function desactivar(int $id): bool
+    //metodo para cambiar de activo a inactivo
+    public function cambiarActivo(int $id): bool
     {
         $alumno = Alumno::with('persona')->find($id);
         if ($alumno && $alumno->persona) {
-            $alumno->persona->activo = false;
+            $alumno->persona->activo = !$alumno->persona->activo;
             return $alumno->persona->save();
         }
         return false;

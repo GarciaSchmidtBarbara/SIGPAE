@@ -14,6 +14,6 @@ interface AlumnoServiceInterface
 
     public function obtener(int $id): ?Alumno;
 
-    public function desactivar(int $id): bool;
+    public function cambiarActivo(int $id): bool;
 
 }

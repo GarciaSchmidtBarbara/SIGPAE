@@ -87,9 +87,9 @@ class AlumnoService implements AlumnoServiceInterface
         return $this->repo->buscarPorId($id);
     }
 
-    public function desactivar(int $id): bool
+    public function cambiarActivo(int $id): bool
     {
-        return $this->repo->desactivar($id);
+        return $this->repo->cambiarActivo($id);
     }
 
 

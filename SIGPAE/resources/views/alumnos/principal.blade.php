@@ -23,22 +23,45 @@
     </form>
     
 
-    <x-tabla-dinamica 
-        :columnas="[
-            ['key' => 'persona.nombre', 'label' => 'Nombre'],
-            ['key' => 'persona.apellido', 'label' => 'Apellido'],
-            ['key' => 'persona.dni', 'label' => 'Documento'],
-            ['key' => 'aula.descripcion', 'label' => 'Aula'],
-            ['key' => 'cud', 'label' => 'CUD'],
-            ['key' => 'activo', 'label' => 'Activo'],
-        ]"
-        :filas="$alumnos"
-        :acciones="[
-            'eliminar' => 'alumnos.destroy',
-            'eliminar_label' => 'Desactivar'
-        ]"
-        idCampo="id_alumno"
-    />
+<x-tabla-dinamica 
+    :columnas="[
+        ['key' => 'persona.nombre', 'label' => 'Nombre'],
+        ['key' => 'persona.apellido', 'label' => 'Apellido'],
+        ['key' => 'persona.dni', 'label' => 'Documento'],
+        ['key' => 'aula.descripcion', 'label' => 'Aula'],
+        ['key' => 'cud', 'label' => 'CUD'],
+        ['key' => 'persona.activo', 'label' => 'Activo'],
+    ]"
+    :filas="$alumnos"
+    :acciones="fn($fila) => view('components.boton-estado', [
+        'activo' => data_get($fila, 'persona.activo'),
+        'route' => route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'))
+    ])->render()"
+
+    idCampo="id_alumno"
+>
+    <x-slot:accionesPorFila>
+        @php
+            // definimos la función anónima que recibirá $fila
+        @endphp
+        @once
+            @php
+                $accionesPorFila = function ($fila) {
+                    $activo = data_get($fila, 'persona.activo');
+                    $ruta = route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'));
+                    return view('components.boton-estado', [
+                        'activo' => $activo,
+                        'route' => $ruta
+                    ])->render();
+                };
+            @endphp
+        @endonce
+    </x-slot:accionesPorFila>
+</x-tabla-dinamica>
+
+
+
+
 
     <div class="fila-botones mt-8">
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
