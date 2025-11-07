@@ -1,8 +1,9 @@
 @props([
-    'columnas' => [], // Ej: ['nombre', 'apellido']
-    'filas' => [],    // Array de objetos o arrays
-    'acciones' => [], // Ej: ['ver' => 'ruta.ver', 'eliminar' => 'ruta.eliminar']
-    'idCampo' => 'id', // Campo que identifica la fila
+    'columnas' => [],
+    'filas' => [],
+    'idCampo' => 'id',
+    'acciones' => null, 
+    'formatters' => [], //para pasarle "si, no". Formatos personalizados
 ])
 
 <table class="min-w-full divide-y divide-gray-200">
@@ -13,9 +14,7 @@
                     {{ is_array($col) ? $col['label'] : ucfirst($col) }}
                 </th>
             @endforeach
-            @if(!empty($acciones))
-                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Acciones</th>
-            @endif
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Acciones</th>
         </tr>
     </thead>
     <tbody class="bg-white divide-y divide-gray-200">
@@ -24,32 +23,22 @@
                 @foreach ($columnas as $col)
                     @php
                         $key = is_array($col) ? $col['key'] : $col;
+                        $valor = data_get($fila, $key, '—');
+                        if (isset($formatters[$key]) && is_callable($formatters[$key])) {
+                            $valor = $formatters[$key]($valor, $fila);
+                        }
                     @endphp
                     <td class="px-4 py-2 text-sm text-gray-900">
-                        {{ data_get($fila, $key, '—') }}
+                        {{ $valor }}
                     </td>
                 @endforeach
-                
-                @if(!empty($acciones))
-                    <td class="px-4 py-2 text-sm flex gap-2">
-                        @if(isset($acciones['ver']))
-                            <a href="{{ route($acciones['ver'], $fila[$idCampo]) }}" class="text-blue-600 hover:underline">Ver</a>
-                        @endif
 
-                        @if(isset($acciones['editar']))
-                            <a href="{{ route($acciones['editar'], $fila[$idCampo]) }}" class="text-yellow-600 hover:underline">Editar</a>
-                        @endif
-
-                        @if(isset($acciones['eliminar']))
-                            <form action="{{ route($acciones['eliminar'], $fila[$idCampo]) }}" method="POST">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:underline">
-                                    {{ $acciones['eliminar_label'] ?? 'Eliminar' }}
-                                </button>
-                            </form>
-                        @endif
-                    </td>
-                @endif
+                <td class="px-4 py-2 text-sm flex gap-2">
+                    {{-- Si se pasó una función, se ejecuta --}}
+                    @if (is_callable($acciones))
+                        {!! $acciones($fila) !!}
+                    @endif
+                </td>
             </tr>
         @empty
             <tr>

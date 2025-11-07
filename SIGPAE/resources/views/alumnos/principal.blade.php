@@ -21,6 +21,21 @@
         <button type="submit" class="btn-aceptar">Filtrar</button>
         <a class="btn-aceptar" href="{{ route('alumnos.principal') }}" >Limpiar</a>
     </form>
+
+    @php
+        $formatters = [
+            'cud' => fn($valor) => $valor ? 'Tiene' : 'No tiene',
+        ];
+
+        $accionesPorFila = function ($fila) {
+            $activo = data_get($fila, 'persona.activo');
+            $ruta = route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'));
+            return view('components.boton-estado', [
+                'activo' => $activo,
+                'route' => $ruta
+            ])->render();
+        };
+    @endphp
     
 
     <x-tabla-dinamica 
@@ -30,15 +45,34 @@
             ['key' => 'persona.dni', 'label' => 'Documento'],
             ['key' => 'aula.descripcion', 'label' => 'Aula'],
             ['key' => 'cud', 'label' => 'CUD'],
-            ['key' => 'activo', 'label' => 'Activo'],
         ]"
         :filas="$alumnos"
-        :acciones="[
-            'eliminar' => 'alumnos.destroy',
-            'eliminar_label' => 'Desactivar'
-        ]"
+        :formatters="$formatters"
+        :acciones="fn($fila) => view('components.boton-estado', [
+            'activo' => data_get($fila, 'persona.activo'),
+            'route' => route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'))
+        ])->render()"
+
         idCampo="id_alumno"
-    />
+    >
+        <x-slot:accionesPorFila>
+            @php
+                // función anónima que recibirá $fila
+            @endphp
+            @once
+                @php
+                    $accionesPorFila = function ($fila) {
+                        $activo = data_get($fila, 'persona.activo');
+                        $ruta = route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'));
+                        return view('components.boton-estado', [
+                            'activo' => $activo,
+                            'route' => $ruta
+                        ])->render();
+                    };
+                @endphp
+            @endonce
+        </x-slot:accionesPorFila>
+    </x-tabla-dinamica>
 
     <div class="fila-botones mt-8">
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
