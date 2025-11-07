@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-
+use Illuminate\Support\Facades\DB;
 
 
 return new class extends Migration
@@ -181,6 +181,8 @@ return new class extends Migration
             $table->timestamps();
       });
 
+      // Crea la extensión unaccent si no existe
+      DB::statement('CREATE EXTENSION IF NOT EXISTS unaccent;');
     }
 
     public function down(): void
@@ -197,5 +199,7 @@ return new class extends Migration
       Schema::dropIfExists('intervencion_aula');
       Schema::dropIfExists('intervencion_alumno');
       Schema::dropIfExists('reune');
+
+      DB::statement('DROP EXTENSION IF EXISTS unaccent;');
     }
 };
