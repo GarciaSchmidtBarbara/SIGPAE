@@ -6,6 +6,9 @@ use App\Models\Aula;
 use App\Services\Interfaces\AlumnoServiceInterface;
 use App\Repositories\Interfaces\AlumnoRepositoryInterface;
 
+//Define qué se hace (ej: listar, activar, eliminar, filtrar…)
+//Pero no cómo se accede a la base de datos.
+// Delegará el acceso de datos al Repository.
 class AlumnoService implements AlumnoServiceInterface
 {
     protected AlumnoRepositoryInterface $repo;

@@ -9,6 +9,13 @@ use Illuminate\Http\RedirectResponse;
 use App\Models\Alumno;
 use App\Models\Aula;
 
+//capa de presentación (interactúa con la vista).
+//Su única responsabilidad es:
+    //Recibir la solicitud HTTP (GET, POST…)
+    //Pasar los parámetros al servicio
+    //Retornar una vista o un redirect
+//NO debe contener lógica de negocio ni consultas.
+
 class AlumnoController extends Controller
 {
     protected $alumnoService;

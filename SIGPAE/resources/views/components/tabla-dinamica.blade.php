@@ -2,7 +2,8 @@
     'columnas' => [],
     'filas' => [],
     'idCampo' => 'id',
-    'acciones' => null, {{-- <-- se agrega esta prop --}}
+    'acciones' => null, 
+    'formatters' => [], //para pasarle "si, no". Formatos personalizados
 ])
 
 <table class="min-w-full divide-y divide-gray-200">
@@ -22,9 +23,13 @@
                 @foreach ($columnas as $col)
                     @php
                         $key = is_array($col) ? $col['key'] : $col;
+                        $valor = data_get($fila, $key, '—');
+                        if (isset($formatters[$key]) && is_callable($formatters[$key])) {
+                            $valor = $formatters[$key]($valor, $fila);
+                        }
                     @endphp
                     <td class="px-4 py-2 text-sm text-gray-900">
-                        {{ data_get($fila, $key, '—') }}
+                        {{ $valor }}
                     </td>
                 @endforeach
 
