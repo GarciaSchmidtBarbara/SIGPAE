@@ -136,11 +136,11 @@ class AlumnoService implements AlumnoServiceInterface
                 return $activoA > $activoB ? -1 : 1;
             }
 
-            // Si mismo estado, ordenar por apellido (alfabético asc)
-            $apellidoA = mb_strtolower(data_get($a, 'persona.apellido', ''));
-            $apellidoB = mb_strtolower(data_get($b, 'persona.apellido', ''));
+            // Si mismo estado, ordenar por nombre (alfabético asc)
+            $nombreA = mb_strtolower(data_get($a, 'persona.nombre', ''));
+            $nombreB = mb_strtolower(data_get($b, 'persona.nombre', ''));
 
-            return $apellidoA <=> $apellidoB;
+            return $nombreA <=> $nombreB;
         })->values();
 
         return $alumnos;
