@@ -53,6 +53,8 @@ Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.princi
 Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('alumnos.crear-editar');
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos.store');
+
 
 //Rutas de cambio de contraseña con sesión iniciada
 Route::get('/change-password', [PasswordController::class, 'showChangePasswordForm'])->middleware('auth');

@@ -26,48 +26,53 @@ class AlumnoService implements AlumnoServiceInterface
 
     public function crearAlumno(array $data): Alumno
     {
-        $fecha = \DateTime::createFromFormat('d/m/Y', $data['fecha_nacimiento']);
-        $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
+        try{
+            $fecha = \DateTime::createFromFormat('d/m/Y', $data['fecha_nacimiento']);
+            $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
 
-        $persona = Persona::create([
-            'dni' => $data['dni'],
-            'nombre' => $data['nombre'],
-            'apellido' => $data['apellido'],
-            'fecha_nacimiento' => $data['fecha_nacimiento'],
-            'nacionalidad' => $data['nacionalidad'],
-            'activo' => true,
-        ]);
+            $persona = Persona::create([
+                'dni' => $data['dni'],
+                'nombre' => $data['nombre'],
+                'apellido' => $data['apellido'],
+                'fecha_nacimiento' => $data['fecha_nacimiento'],
+                'nacionalidad' => $data['nacionalidad'],
+                'activo' => true,
+            ]);
 
-        if (!$persona) {
-            throw new \Exception('Error al crear la persona asociada');
+            if (!$persona) {
+                throw new \Exception('Error al crear la persona asociada');
+            }
+
+            if (!str_contains($data['aula'], '°')) {
+                throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
+            }
+
+            [$curso, $division] = explode('°', $data['aula']);
+            $aula = Aula::where('curso', $curso)->where('division', $division)->first();
+            if (!$aula) {
+                throw new \Exception("No se encontró el aula {$data['aula']}");
+            }
+
+            $cud = $data['cud'] === 'Sí' ? 1 : 0;
+
+            return $this->repo->crear([
+                'fk_persona' => $persona->id_persona,
+                'fk_aula' => $aula->id_aula,
+                'cud' => $cud,
+                'inasistencias' => $data['inasistencias'] ?? null,
+                'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
+                'situacion_familiar' => $data['situacion_familiar'] ?? null,
+                'situacion_medica' => $data['situacion_medica'] ?? null,
+                'situacion_escolar' => $data['situacion_escolar'] ?? null,
+                'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
+                'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
+                'antecedentes' => $data['antecedentes'] ?? null,
+                'observaciones' => $data['observaciones'] ?? null,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Error al crear alumno: '.$e->getMessage(), ['data' => $data]);
+            throw new \Exception('Ocurrió un error al crear el alumno. '.$e->getMessage());
         }
-
-        if (!str_contains($data['aula'], '°')) {
-            throw new \Exception('Formato de aula inválido');
-        }
-
-        [$curso, $division] = explode('°', $data['aula']);
-        $aula = Aula::where('curso', $curso)->where('division', $division)->first();
-        if (!$aula) {
-            throw new \Exception("No se encontró el aula {$data['aula']}");
-        }
-
-        $cud = $data['cud'] === 'Sí' ? 1 : 0;
-
-        return $this->repo->crear([
-            'fk_persona' => $persona->id_persona,
-            'fk_aula' => $aula->id_aula,
-            'cud' => $cud,
-            'inasistencias' => $data['inasistencias'] ?? null,
-            'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
-            'situacion_familiar' => $data['situacion_familiar'] ?? null,
-            'situacion_medica' => $data['situacion_medica'] ?? null,
-            'situacion_escolar' => $data['situacion_escolar'] ?? null,
-            'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
-            'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
-            'antecedentes' => $data['antecedentes'] ?? null,
-            'observaciones' => $data['observaciones'] ?? null,
-        ]);
     }
 
     public function eliminar(int $id): bool
@@ -131,12 +136,12 @@ class AlumnoService implements AlumnoServiceInterface
             $activoA = data_get($a, 'persona.activo') ? 1 : 0;
             $activoB = data_get($b, 'persona.activo') ? 1 : 0;
 
-            // Queremos activos arriba -> si A activo y B no, A debe ir antes (retornar -1)
+            // Queremos activos arriba 
             if ($activoA !== $activoB) {
                 return $activoA > $activoB ? -1 : 1;
             }
 
-            // Si mismo estado, ordenar por nombre (alfabético asc)
+            //orden alfabético
             $nombreA = mb_strtolower(data_get($a, 'persona.nombre', ''));
             $nombreB = mb_strtolower(data_get($b, 'persona.nombre', ''));
 

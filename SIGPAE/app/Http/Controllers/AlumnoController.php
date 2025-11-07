@@ -38,16 +38,6 @@ class AlumnoController extends Controller
         return response()->json($alumno);
     }
 
-    public function store(Request $request): JsonResponse
-    {
-        try {
-            $alumno = $this->alumnoService->crearAlumno($request->all());
-            return response()->json($alumno, 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-        }
-    }
-
     public function cambiarActivo(int $id): RedirectResponse
     {
         $resultado = $this->alumnoService->cambiarActivo($id);
@@ -60,7 +50,6 @@ class AlumnoController extends Controller
 
     public function vista(Request $request)
     {
-        // 🔹 Ahora delegamos la búsqueda y filtrado al servicio
         $alumnos = $this->alumnoService->filtrar($request);
         $cursos = $this->alumnoService->obtenerCursos();
 
@@ -72,4 +61,38 @@ class AlumnoController extends Controller
         $cursos = $this->alumnoService->obtenerCursos();
         return view('alumnos.crear-editar', compact('cursos'));
     }
+
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'dni' => 'required|numeric|unique:personas,dni',
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
+                'fecha_nacimiento' => 'required|date_format:d/m/Y',
+                'nacionalidad' => 'required|string|max:255',
+                'aula' => 'required|string',
+                'cud' => 'required|string|in:Sí,No',
+            ]);
+
+            $this->alumnoService->crearAlumno($validated);
+
+            return redirect()
+                ->route('alumnos.principal')
+                ->with('success', 'El alumno fue creado correctamente.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()
+                ->back()
+                ->withErrors($e->errors())
+                ->withInput();
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
+
 }
