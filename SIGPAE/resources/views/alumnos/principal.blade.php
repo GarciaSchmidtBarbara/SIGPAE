@@ -17,6 +17,11 @@
                 </option>
             @endforeach
         </select>
+        <select name="estado" class="border px-2 py-1 rounded w-1/5">
+            <option value="" {{ request('estado', 'activos')  === '' ? 'selected' : '' }}>Todos</option>
+            <option value="activos" {{ request('estado', 'activos') === 'activos' ? 'selected' : '' }}>Activos</option>
+            <option value="inactivos" {{ request('estado', 'activos')  === 'inactivos' ? 'selected' : '' }}>Inactivos</option>
+        </select>
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
         <a class="btn-aceptar" href="{{ route('alumnos.principal') }}" >Limpiar</a>

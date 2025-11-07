@@ -5,6 +5,7 @@ use App\Models\Alumno;
 use App\Models\Aula;
 use App\Services\Interfaces\AlumnoServiceInterface;
 use App\Repositories\Interfaces\AlumnoRepositoryInterface;
+use Illuminate\Http\Request;
 
 //Define qué se hace (ej: listar, activar, eliminar, filtrar…)
 //Pero no cómo se accede a la base de datos.
@@ -25,12 +26,10 @@ class AlumnoService implements AlumnoServiceInterface
 
     public function crearAlumno(array $data): Alumno
     {
-        //validaciones
         $fecha = \DateTime::createFromFormat('d/m/Y', $data['fecha_nacimiento']);
         $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
-    
-        //Crear la persona asociada
-        $persona = \App\Models\Persona::create([
+
+        $persona = Persona::create([
             'dni' => $data['dni'],
             'nombre' => $data['nombre'],
             'apellido' => $data['apellido'],
@@ -38,28 +37,26 @@ class AlumnoService implements AlumnoServiceInterface
             'nacionalidad' => $data['nacionalidad'],
             'activo' => true,
         ]);
-        if (!$persona || !$persona->id_persona) {
-            throw new \Exception('La persona no se creó correctamente');
+
+        if (!$persona) {
+            throw new \Exception('Error al crear la persona asociada');
         }
 
-        // Buscar el aula
-        if (str_contains($data['aula'], '°')) {
-            [$curso, $division] = explode('°', $data['aula']);
-            $aula = Aula::where('curso', $curso)
-                        ->where('division', $division)
-                        ->first();
-        } else {
+        if (!str_contains($data['aula'], '°')) {
             throw new \Exception('Formato de aula inválido');
         }
+
+        [$curso, $division] = explode('°', $data['aula']);
+        $aula = Aula::where('curso', $curso)->where('division', $division)->first();
         if (!$aula) {
-            throw new \Exception('No se encontró el aula con la descripción: ' . $data['aula']);
+            throw new \Exception("No se encontró el aula {$data['aula']}");
         }
-        
+
         $cud = $data['cud'] === 'Sí' ? 1 : 0;
-        //Crear el alumno con los datos restantes
-        $alumno = new \App\Models\Alumno([
+
+        return $this->repo->crear([
             'fk_persona' => $persona->id_persona,
-            'fk_aula' => $aula?->id_aula,
+            'fk_aula' => $aula->id_aula,
             'cud' => $cud,
             'inasistencias' => $data['inasistencias'] ?? null,
             'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
@@ -71,13 +68,6 @@ class AlumnoService implements AlumnoServiceInterface
             'antecedentes' => $data['antecedentes'] ?? null,
             'observaciones' => $data['observaciones'] ?? null,
         ]);
-
-        $alumno->save();
-        if (!$alumno->exists) {
-            throw new \Exception('El alumno no se guardó correctamente');
-        }
-
-        return $alumno;
     }
 
     public function eliminar(int $id): bool
@@ -95,5 +85,74 @@ class AlumnoService implements AlumnoServiceInterface
         return $this->repo->cambiarActivo($id);
     }
 
+    // Nueva función: lógica de búsqueda y filtrado
+    public function filtrar(Request $request): \Illuminate\Support\Collection
+    {
+        $query = Alumno::with('persona', 'aula');
 
+        if ($request->filled('nombre')) {
+            $nombre = $this->normalizarTexto($request->nombre);
+            $query->whereHas('persona', fn($q) =>
+                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
+            );
+        }
+
+        if ($request->filled('apellido')) {
+            $apellido = $this->normalizarTexto($request->apellido);
+            $query->whereHas('persona', fn($q) =>
+                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"])
+            );
+        }
+
+        if ($request->filled('documento')) {
+            $query->whereHas('persona', fn($q) =>
+                $q->where('dni', 'like', '%' . $request->documento . '%')
+            );
+        }
+
+        if ($request->filled('aula') && str_contains($request->aula, '°')) {
+            [$curso, $division] = explode('°', $request->aula);
+            $query->whereHas('aula', fn($q) =>
+                $q->where('curso', $curso)->where('division', $division)
+            );
+        }
+        
+        $estado = $request->get('estado', 'activos');
+        if ($estado === 'activos') {
+            $query->whereHas('persona', fn($q) => $q->where('activo', true));
+        } elseif ($estado === 'inactivos') {
+            $query->whereHas('persona', fn($q) => $q->where('activo', false));
+        }
+
+        $alumnos = $query->get();
+
+        // Ordenamiento compuesto: primero activos (desc), luego apellido asc dentro de cada grupo.
+        $alumnos = $alumnos->sort(function ($a, $b) {
+            $activoA = data_get($a, 'persona.activo') ? 1 : 0;
+            $activoB = data_get($b, 'persona.activo') ? 1 : 0;
+
+            // Queremos activos arriba -> si A activo y B no, A debe ir antes (retornar -1)
+            if ($activoA !== $activoB) {
+                return $activoA > $activoB ? -1 : 1;
+            }
+
+            // Si mismo estado, ordenar por apellido (alfabético asc)
+            $apellidoA = mb_strtolower(data_get($a, 'persona.apellido', ''));
+            $apellidoB = mb_strtolower(data_get($b, 'persona.apellido', ''));
+
+            return $apellidoA <=> $apellidoB;
+        })->values();
+
+        return $alumnos;
+    }
+
+    public function obtenerCursos(): \Illuminate\Support\Collection
+    {
+        return Aula::all()->map(fn($a) => $a->descripcion)->unique();
+    }
+
+    private function normalizarTexto(string $texto): string
+    {
+        return strtolower(strtr(iconv('UTF-8', 'ASCII//TRANSLIT', $texto), "´`^~¨", "     "));
+    }
 }
