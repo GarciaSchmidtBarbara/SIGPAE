@@ -41,17 +41,34 @@ class AlumnoController extends Controller
         return response()->json($alumno);
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         try {
             $familiaresTemp = Session::get('familiares_temp', []);
             $alumno = $this->alumnoService->crearAlumnoConFamiliares($request->all(), $familiaresTemp);
+            
+            // Limpiar las sesiones temporales
             Session::forget('familiares_temp');
-            return response()->json($alumno, 201);
+            Session::forget('alumno_temp');
+            
+            //Si es una petición AJAX, retornar JSON
+            if ($request->expectsJson()) {
+                return response()->json($alumno, 201);
+            }
+            
+            //Si es una petición normal del formulario, redirigir
+            return redirect()->route('alumnos.principal')->with('success', 'Alumno creado correctamente');
+            
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-            //return redirect()->route('alumnos.principal')->with('success', 'Alumno creado correctamente');
-
+            //Si es una petición AJAX, retornar JSON error
+            if ($request->expectsJson()) {
+                return response()->json(['message' => $e->getMessage()], 400);
+            }
+            
+            //Si es una petición normal, redirigir con error
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al crear el alumno: ' . $e->getMessage());
         }
     }
 

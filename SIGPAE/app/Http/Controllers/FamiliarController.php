@@ -98,7 +98,21 @@ class FamiliarController extends Controller
         
         $familiares_temp = Session::get('familiares_temp', []);
         $familiares_temp[] = $tempFamiliar;
-        Session::flash('familiares_temp', $familiares_temp);
+        Session::put('familiares_temp', $familiares_temp);
+        
         return redirect()->route('alumnos.crear-editar')->with('success', 'Familiar agregado a la lista temporal.');
+    }
+
+    public function removeTempFamiliar(int $index): JsonResponse
+    {
+        $familiares_temp = Session::get('familiares_temp', []);
+        
+        if (isset($familiares_temp[$index])) {
+            array_splice($familiares_temp, $index, 1);
+            Session::put('familiares_temp', $familiares_temp);
+            return response()->json(['success' => true]);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Familiar no encontrado'], 404);
     }
 }
