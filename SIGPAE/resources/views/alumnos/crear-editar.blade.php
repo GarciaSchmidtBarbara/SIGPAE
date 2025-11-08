@@ -3,12 +3,29 @@
 @section('encabezado', 'Crear Alumno')
 
 @section('contenido')
-<div x-data="{ 
-    familyMembers: @json(session('familiares_temp', [])),
+<div x-data="{
+    familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
     
-    removeFamiliar(index) {
+    async removeFamiliar(index) {
         if (confirm('¿Estás seguro de eliminar este familiar?')) {
-            this.familyMembers.splice(index, 1);
+            try {
+                const response = await fetch(`/familiares/temp/${index}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    this.familyMembers.splice(index, 1);
+                } else {
+                    alert('Error al eliminar el familiar');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al eliminar el familiar');
+            }
         }
     }
 }">
@@ -48,16 +65,14 @@
                     <label for="aula" class="text-sm font-medium text-gray-700 mb-1">Aula</label>
                     <select name="aula" id="aula" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">Seleccionar aula</option>
-                        {{-- Simulación de $cursos. ACA FALTA METER PARA QUE BUSQUE LOS CURSOS CARGADO. --}}
-                        @php $cursos = ['1°A', '2°B', '3°A']; @endphp 
                         @foreach($cursos as $curso)
-                            <option value="{{ $curso }}" @selected(old('aula') == $curso)>{{ $curso }}</option>
+                            <option value="{{ $curso }}" @selected(($alumnoData['aula'] ?? old('aula')) == $curso)>{{ $curso }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="flex flex-col w-1/5">
                     <p class="text-sm font-medium text-gray-700 mb-1">Cantidad inasistencias</p>
-                    <input name="inasistencias" value="{{ old('inasistencias') }}" placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="inasistencias" value="{{ $alumnoData['inasistencias'] ?? old('inasistencias') }}" placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="space-y-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tiene CUD</label>
@@ -65,7 +80,7 @@
                         :items="['Sí', 'No']"
                         name="cud"
                         layout="horizontal"
-                        :valor-seleccionado="old('cud', 'No')" 
+                        :valor-seleccionado="$alumnoData['cud'] ?? old('cud', 'No')" 
                     />
                 </div>
             </div>  
@@ -73,6 +88,7 @@
 
         <div class="space-y-8 mb-6">
             <p class="separador">Red Familiar</p>
+            
             <div class="overflow-x-auto border border-gray-200 rounded-lg">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
@@ -91,9 +107,9 @@
                             <tr>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.apellido"></td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.documento"></td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.relacion"></td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.telefono"></td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.dni"></td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco"></td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.telefono_personal"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                     <button @click.prevent="removeFamiliar(index)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -111,36 +127,40 @@
                 para que el controller guarde la data del alumno en la sesión
                 y luego redirija a route('familiares.create') FALTA IMPLEMENTAR LA  LOGICA DE GUARDADO EN SESSION
             --}}
-            <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST">Crear Familiar</button>
+                        <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST">Crear Familiar</button>
         </div>
 
         <div class="space-y-8 mb-6">
             <p class="separador">Situación Integral</p>
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación socioeconómica </label>
-            <textarea name="situacion_socioeconomica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ old('situacion_socioeconomica') }}</textarea>
+            <textarea name="situacion_socioeconomica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_socioeconomica'] ?? old('situacion_socioeconomica') }}</textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación familiar</label>
-            <textarea name="situacion_familiar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ old('situacion_familiar') }}</textarea>
+            <textarea name="situacion_familiar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_familiar'] ?? old('situacion_familiar') }}</textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación medica </label>
-            <textarea  name="situacion_medica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ old('situacion_medica') }}</textarea>
+            <textarea  name="situacion_medica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_medica'] ?? old('situacion_medica') }}</textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación escolar </label>
-            <textarea name="situacion_escolar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ old('situacion_escolar') }}</textarea>
+            <textarea name="situacion_escolar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_escolar'] ?? old('situacion_escolar') }}</textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Actividades extraescolares </label>
-            <textarea name="actividades_extraescolares" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ old('actividades_extraescolares') }}</textarea>
+            <textarea name="actividades_extraescolares" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['actividades_extraescolares'] ?? old('actividades_extraescolares') }}</textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Intervenciones externas</label>
-            <textarea name="intervenciones_externas" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ old('intervenciones_externas') }}</textarea>
+            <textarea name="intervenciones_externas" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['intervenciones_externas'] ?? old('intervenciones_externas') }}</textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Antecedentes</label>
-            <textarea name="antecedentes" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ old('antecedentes') }}</textarea>
+            <textarea name="antecedentes" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['antecedentes'] ?? old('antecedentes') }}</textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-            <textarea name="observaciones" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ old('observaciones') }}</textarea>      
+            <textarea name="observaciones" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['observaciones'] ?? old('observaciones') }}</textarea>      
         </div>
 
+        <div class="space-y-8">
+        </div>
+
+       
         <div class="space-y-8">
             <p class="separador">Documentación</p>
                 <div class="flex items-center justify-between">

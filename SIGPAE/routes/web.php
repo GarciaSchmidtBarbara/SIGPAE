@@ -61,6 +61,7 @@ Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos
 use App\Http\Controllers\FamiliarController;
 Route::get('/familiares/crear', [FamiliarController::class, 'create'])->name('familiares.create');
 Route::post('/familiares/store-and-return', [FamiliarController::class, 'storeAndReturn'])->name('familiares.storeAndReturn');
+Route::delete('/familiares/temp/{index}', [FamiliarController::class, 'removeTempFamiliar'])->name('familiares.removeTemp');
 
 // Búsqueda de alumnos (para seleccionar hermano)
 Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
