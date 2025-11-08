@@ -105,37 +105,4 @@ class AlumnoController extends Controller
         return redirect()->route('familiares.create');
     }
 
-    public function store(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'dni' => 'required|numeric|unique:personas,dni',
-                'nombre' => 'required|string|max:255',
-                'apellido' => 'required|string|max:255',
-                'fecha_nacimiento' => 'required|date_format:d/m/Y',
-                'nacionalidad' => 'required|string|max:255',
-                'aula' => 'required|string',
-                'cud' => 'required|string|in:Sí,No',
-            ]);
-
-            $this->alumnoService->crearAlumno($validated);
-
-            return redirect()
-                ->route('alumnos.principal')
-                ->with('success', 'El alumno fue creado correctamente.');
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()
-                ->back()
-                ->withErrors($e->errors())
-                ->withInput();
-
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with('error', $e->getMessage())
-                ->withInput();
-        }
-    }
-
 }

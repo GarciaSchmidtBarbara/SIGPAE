@@ -3,6 +3,7 @@ namespace App\Services\Implementations;
 
 use App\Models\Alumno;
 use App\Models\Aula;
+use App\Models\Persona;
 use App\Services\Interfaces\AlumnoServiceInterface;
 use App\Repositories\Interfaces\AlumnoRepositoryInterface;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class AlumnoService implements AlumnoServiceInterface
 
     public function crearAlumno(array $data): Alumno
     {
-        try{
+        try {
             $fecha = \DateTime::createFromFormat('d/m/Y', $data['fecha_nacimiento']);
             $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
 
@@ -51,38 +52,16 @@ class AlumnoService implements AlumnoServiceInterface
             $aula = Aula::where('curso', $curso)
                         ->where('division', $division)
                         ->first();
-        } else {
-            throw new \Exception('Formato de aula inválido');
-        }
-        if (!$aula) {
-            throw new \Exception('No se encontró el aula con la descripción: ' . $data['aula']);
-        }
-        
-        $cud = $data['cud'] === 'Sí' ? 1 : 0;
-        //Crear el alumno con los datos restantes
-        $alumno = new \App\Models\Alumno([
-            'fk_id_persona' => $persona->id_persona,
-            'fk_id_aula' => $aula?->id_aula,
-            'cud' => $cud,
-            'inasistencias' => $data['inasistencias'] ?? null,
-            'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
-            'situacion_familiar' => $data['situacion_familiar'] ?? null,
-            'situacion_medica' => $data['situacion_medica'] ?? null,
-            'situacion_escolar' => $data['situacion_escolar'] ?? null,
-            'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
-            'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
-            'antecedentes' => $data['antecedentes'] ?? null,
-            'observaciones' => $data['observaciones'] ?? null,
-        ]);
 
-        $alumno->save();
-        if (!$alumno->exists) {
-            throw new \Exception('El alumno no se guardó correctamente');
-        }
-
-            return $this->repo->crear([
-                'fk_persona' => $persona->id_persona,
-                'fk_aula' => $aula->id_aula,
+            if (!$aula) {
+                throw new \Exception('No se encontró el aula con la descripción: ' . $data['aula']);
+            }
+            
+            $cud = $data['cud'] === 'Sí' ? 1 : 0;
+            
+            $alumno = new Alumno([
+                'fk_id_persona' => $persona->id_persona,
+                'fk_id_aula' => $aula->id_aula,
                 'cud' => $cud,
                 'inasistencias' => $data['inasistencias'] ?? null,
                 'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
@@ -94,6 +73,14 @@ class AlumnoService implements AlumnoServiceInterface
                 'antecedentes' => $data['antecedentes'] ?? null,
                 'observaciones' => $data['observaciones'] ?? null,
             ]);
+
+            $alumno->save();
+            
+            if (!$alumno->exists) {
+                throw new \Exception('El alumno no se guardó correctamente');
+            }
+
+            return $alumno;
         } catch (\Throwable $e) {
             \Log::error('Error al crear alumno: '.$e->getMessage(), ['data' => $data]);
             throw new \Exception('Ocurrió un error al crear el alumno. '.$e->getMessage());
