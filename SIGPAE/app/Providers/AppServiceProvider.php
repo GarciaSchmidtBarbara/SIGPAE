@@ -2,24 +2,29 @@
 
 namespace App\Providers;
 
+use App\Repositories\Interfaces\ProfesionalRepositoryInterface;
+use App\Repositories\Interfaces\AlumnoRepositoryInterface;
+use App\Services\Interfaces\ProfesionalServiceInterface;
+use App\Services\Implementations\ProfesionalService;
+use App\Services\Interfaces\AlumnoServiceInterface;
+use App\Repositories\Eloquent\ProfesionalRepository;
+use App\Repositories\Eloquent\AlumnoRepository;
+use App\Services\Implementations\AlumnoService;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Auth; // Importar Auth
-use App\Models\Profesional; // Importar tu modelo Profesional
-use App\Repositories\Interfaces\AlumnoRepositoryInterface;
-use App\Repositories\Eloquent\AlumnoRepository;
-use App\Services\Interfaces\AlumnoServiceInterface;
-use App\Services\Implementations\AlumnoService;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Profesional;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
      */
-    public function register(): void
-    {
-       $this->app->bind(AlumnoRepositoryInterface::class, AlumnoRepository::class);
+    public function register(): void {
+        $this->app->bind(AlumnoRepositoryInterface::class, AlumnoRepository::class);
         $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
+        $this->app->bind(ProfesionalServiceInterface::class, ProfesionalService::class);
+        $this->app->bind(ProfesionalRepositoryInterface::class, ProfesionalRepository::class);
     }
 
     /**

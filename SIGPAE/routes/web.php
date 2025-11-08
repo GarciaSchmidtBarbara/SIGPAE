@@ -54,6 +54,10 @@ Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('al
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
+// Rutas de los usuarios (profesionales)
+use App\Http\Controllers\ProfesionalController;
+Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
+
 //Rutas de cambio de contraseña con sesión iniciada
 Route::get('/change-password', [PasswordController::class, 'showChangePasswordForm'])->middleware('auth');
 Route::post('/change-password', [PasswordController::class, 'changePassword'])->middleware('auth')->name('password.change');
