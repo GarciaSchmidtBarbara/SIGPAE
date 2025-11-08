@@ -21,8 +21,6 @@ use App\Models\Aula;
 
 class AlumnoController extends Controller
 {
-    protected $alumnoService;
-
     public function __construct(AlumnoServiceInterface $alumnoService)
     {
         $this->alumnoService = $alumnoService;
@@ -30,13 +28,13 @@ class AlumnoController extends Controller
 
     public function index(): JsonResponse
     {
-        $alumnos = $this->alumnoService->getAllAlumnosWithPersona();
+        $alumnos = $this->alumnoService->listar();
         return response()->json($alumnos);
     }
 
     public function show(int $id): JsonResponse
     {
-        $alumno = $this->alumnoService->getAlumnoWithPersona($id);
+        $alumno = $this->alumnoService->obtener($id);
         if (!$alumno) {
             return response()->json(['message' => 'Alumno no encontrado'], 404);
         }
@@ -60,48 +58,18 @@ class AlumnoController extends Controller
     public function cambiarActivo(int $id): RedirectResponse
     {
         $resultado = $this->alumnoService->cambiarActivo($id);
-        if ($resultado) {
-            return redirect()
-                ->route('alumnos.principal')
-                ->with('success', 'El estado del alumno fue actualizado correctamente.');
-        }
-        return redirect()
-            ->route('alumnos.principal')
-            ->with('error', 'No pudo realizarse la actualizacion de estado del alumno.');
+        $mensaje = $resultado
+            ? ['success' => 'El estado del alumno fue actualizado correctamente.']
+            : ['error' => 'No pudo realizarse la actualización de estado del alumno.'];
+
+        return redirect()->route('alumnos.principal')->with($mensaje);
     }
 
     public function vista(Request $request)
     {
-        $query = Alumno::with('persona', 'aula');
+        $alumnos = $this->alumnoService->filtrar($request);
+        $cursos = $this->alumnoService->obtenerCursos();
 
-        if ($request->filled('nombre')) {
-            $nombre = strtolower($this->quitarTildes($request->nombre));
-            $query->whereHas('persona', function ($q) use ($nombre) {
-                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"]);
-            });
-        }
-
-       if ($request->filled('apellido')) {
-            $apellido = strtolower($this->quitarTildes($request->apellido));
-            $query->whereHas('persona', function ($q) use ($apellido) {
-                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"]);
-            });
-        }
-
-        if ($request->filled('documento')) {
-            $query->whereHas('persona', fn($q) => $q->where('dni', 'like', '%' . $request->documento . '%'));
-        }
-
-        if ($request->filled('aula') && str_contains($request->aula, '°')) {
-            [$curso, $division] = explode('°', $request->aula);
-            $query->whereHas('aula', fn($q) => $q
-                ->where('curso', $curso)
-                ->where('division', $division));
-        }
-
-        $alumnos = $query->get();
-        $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
-        
         return view('alumnos.principal', compact('alumnos', 'cursos'));
     }
 
@@ -137,6 +105,37 @@ class AlumnoController extends Controller
         return redirect()->route('familiares.create');
     }
 
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'dni' => 'required|numeric|unique:personas,dni',
+                'nombre' => 'required|string|max:255',
+                'apellido' => 'required|string|max:255',
+                'fecha_nacimiento' => 'required|date_format:d/m/Y',
+                'nacionalidad' => 'required|string|max:255',
+                'aula' => 'required|string',
+                'cud' => 'required|string|in:Sí,No',
+            ]);
 
+            $this->alumnoService->crearAlumno($validated);
+
+            return redirect()
+                ->route('alumnos.principal')
+                ->with('success', 'El alumno fue creado correctamente.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()
+                ->back()
+                ->withErrors($e->errors())
+                ->withInput();
+
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
+    }
 
 }

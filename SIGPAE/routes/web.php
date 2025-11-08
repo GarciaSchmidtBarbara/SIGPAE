@@ -54,6 +54,8 @@ Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('al
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::post('/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
 Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos.store');
+
 
 //Rutas familiares
 use App\Http\Controllers\FamiliarController;
