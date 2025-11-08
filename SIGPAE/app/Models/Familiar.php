@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\Enums\Parentesco;
 use Illuminate\Database\Eloquent\Model;
-use App\Database\Eloquent\relations\BelongsTo;
-use Illuminate\Database\Eloquent\relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Familiar extends Model
 {
@@ -32,13 +32,11 @@ class Familiar extends Model
         return $this->persona->nombre . ' ' . $this->persona->apellido . ' (' . $this->parentesco . ')';
     }
 
-    // revisado
     public function persona(): BelongsTo
     {
         return $this->belongsTo(Persona::class, 'fk_id_persona', 'id_persona');
     }
 
-    // revisado
     public function alumnos(): BelongsToMany
     {
         return $this->belongsToMany(Alumno::class, 'tiene_familiar', 'fk_id_familiar', 'fk_id_alumno');
