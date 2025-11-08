@@ -2,26 +2,22 @@
 
 namespace App\Services\Implementations;
 
-use App\Services\Interfaces\PersonaServiceInterface;
-use App\Models\Profesional;
 use App\Repositories\Interfaces\ProfesionalRepositoryInterface;
 use App\Services\Interfaces\ProfesionalServiceInterface;
+use App\Services\Interfaces\PersonaServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use App\Models\Profesional;
+use App\Models\Persona;
 
 class ProfesionalService implements ProfesionalServiceInterface
 {
-    protected $profesionalRepository;
-    protected $personaService;
+    protected ProfesionalRepositoryInterface $profesionalRepository;
 
-    public function __construct(
-        ProfesionalRepositoryInterface $profesionalRepository,
-        PersonaServiceInterface $personaService
-    ) {
+    public function __construct(ProfesionalRepositoryInterface $profesionalRepository) {
         $this->profesionalRepository = $profesionalRepository;
-        $this->personaService = $personaService;
     }
 
     public function getAllProfesionales(): Collection

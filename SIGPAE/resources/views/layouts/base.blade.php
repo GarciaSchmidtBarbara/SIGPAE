@@ -76,6 +76,8 @@
                         exact
                     ></x-nav-item>
                      <x-nav-item
+                        route="usuarios.principal"
+
                         label=" Usuarios"
                         icon="icons.icono-usuario"
                         exact

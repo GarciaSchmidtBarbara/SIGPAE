@@ -66,6 +66,10 @@ Route::delete('/familiares/temp/{index}', [FamiliarController::class, 'removeTem
 // Búsqueda de alumnos (para seleccionar hermano)
 Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
 
+// Rutas de los usuarios (profesionales)
+use App\Http\Controllers\ProfesionalController;
+Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
+
 //Rutas de cambio de contraseña con sesión iniciada
 Route::get('/change-password', [PasswordController::class, 'showChangePasswordForm'])->middleware('auth');
 Route::post('/change-password', [PasswordController::class, 'changePassword'])->middleware('auth')->name('password.change');
