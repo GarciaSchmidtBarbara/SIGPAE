@@ -1,19 +1,33 @@
 <?php
 
 namespace App\Providers;
-
+// IMPORTS
+//Persona
+use App\Repositories\Interfaces\PersonaRepositoryInterface;
+use App\Services\Interfaces\PersonaServiceInterface;
+use App\Services\Implementations\PersonaService;
+use App\Repositories\Eloquent\PersonaRepository;
+// Profesional
 use App\Repositories\Interfaces\ProfesionalRepositoryInterface;
-use App\Repositories\Interfaces\AlumnoRepositoryInterface;
 use App\Services\Interfaces\ProfesionalServiceInterface;
 use App\Services\Implementations\ProfesionalService;
-use App\Services\Interfaces\AlumnoServiceInterface;
 use App\Repositories\Eloquent\ProfesionalRepository;
-use App\Repositories\Eloquent\AlumnoRepository;
+// Alumno
+use App\Repositories\Interfaces\AlumnoRepositoryInterface;
+use App\Services\Interfaces\AlumnoServiceInterface;
 use App\Services\Implementations\AlumnoService;
+use App\Repositories\Eloquent\AlumnoRepository;
+// Familiar
+use App\Repositories\Interfaces\FamiliarRepositoryInterface;
+use App\Services\Interfaces\FamiliarServiceInterface;
+use App\Services\Implementations\FamiliarService;
+use App\Repositories\Eloquent\FamiliarRepository;
+// Support
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Profesional;
+// Models
+use App\Models\Profesional; 
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,10 +35,17 @@ class AppServiceProvider extends ServiceProvider
      * Register any application services.
      */
     public function register(): void {
+        // Repositories
         $this->app->bind(AlumnoRepositoryInterface::class, AlumnoRepository::class);
-        $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
-        $this->app->bind(ProfesionalServiceInterface::class, ProfesionalService::class);
+        $this->app->bind(FamiliarRepositoryInterface::class, FamiliarRepository::class);
+        $this->app->bind(PersonaRepositoryInterface::class, PersonaRepository::class);
         $this->app->bind(ProfesionalRepositoryInterface::class, ProfesionalRepository::class);
+
+        // Services
+        $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
+        $this->app->bind(FamiliarServiceInterface::class, FamiliarService::class);
+        $this->app->bind(PersonaServiceInterface::class, PersonaService::class);
+        $this->app->bind(ProfesionalServiceInterface::class, ProfesionalService::class);
     }
 
     /**
@@ -32,17 +53,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // 1. Corregir el tamaño por defecto de strings para bases de datos antiguas (opcional para PostgreSQL)
         Schema::defaultStringLength(191);
         
-        // 2. FORZAR EL MODELO DE USUARIO PREDETERMINADO
+        
         // Esto le dice a Laravel que 'Auth::user()' y la mayoría de las referencias a 'User' 
         // deben usar nuestro modelo Profesional.
         Auth::extend('web', function ($app, $name, array $config) {
             return new \Illuminate\Auth\SessionGuard($name, Profesional::class, $app['session.store']);
         });
         
-        // Opción más simple y recomendada si no se usa Auth::extend:
-        // Asegúrate de que tu modelo Profesional implementa Authenticatable.
     }
 }

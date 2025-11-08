@@ -3,7 +3,7 @@
 namespace App\Services\Interfaces;
 
 use Illuminate\Database\Eloquent\Collection;
-use App\Modules\Common\Models\Persona;
+use App\Models\Persona;
 
 interface PersonaServiceInterface
 {

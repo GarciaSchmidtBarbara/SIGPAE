@@ -10,10 +10,14 @@ interface AlumnoServiceInterface
 
     public function crearAlumno(array $data): Alumno;
 
+    public function crearAlumnoConFamiliares(array $alumnoData, array $familiaresTemp): Alumno;
+
     public function eliminar(int $id): bool;
 
     public function obtener(int $id): ?Alumno;
 
     public function cambiarActivo(int $id): bool;
+
+    public function buscar(string $q): \Illuminate\Support\Collection;
 
 }
