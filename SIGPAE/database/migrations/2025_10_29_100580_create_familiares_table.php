@@ -13,7 +13,7 @@ return new class extends Migration
             $table->id('id_familiar');
             $table->string('telefono_personal')->nullable();
             $table->string('telefono_laboral')->nullable();
-            $table->enum('parentesco', ["PADRE ",  "MADRE", "HERMANO", "TUTOR", "OTRO"]);
+            $table->enum('parentesco', ["PADRE",  "MADRE", "HERMANO", "TUTOR", "OTRO"]);
             $table->string('lugar_de_trabajo')->nullable();
             $table->string('observaciones')->nullable();
             $table->string('otro_parentesco')->nullable();

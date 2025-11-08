@@ -14,11 +14,11 @@ class Familiar extends Model
     protected $primaryKey = 'id_familiar';
 
     protected $fillable = [
+        'fk_id_persona',
         'lugar_de_trabajo',
         'observaciones',
         'telefono_personal',
         'telefono_laboral',
-        'lugar_de_trabajo',
         'otro_parentesco',
         'parentesco',
     ];

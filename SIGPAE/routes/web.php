@@ -52,7 +52,16 @@ use App\Http\Controllers\AlumnoController;
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
 Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('alumnos.crear-editar');
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
+Route::post('/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
 Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+
+//Rutas familiares
+use App\Http\Controllers\FamiliarController;
+Route::get('/familiares/crear', [FamiliarController::class, 'create'])->name('familiares.create');
+Route::post('/familiares/store-and-return', [FamiliarController::class, 'storeAndReturn'])->name('familiares.storeAndReturn');
+
+// Búsqueda de alumnos (para seleccionar hermano)
+Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
 
 //Rutas de cambio de contraseña con sesión iniciada
 Route::get('/change-password', [PasswordController::class, 'showChangePasswordForm'])->middleware('auth');

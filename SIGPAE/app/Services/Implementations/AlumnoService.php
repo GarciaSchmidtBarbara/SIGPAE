@@ -58,8 +58,8 @@ class AlumnoService implements AlumnoServiceInterface
         $cud = $data['cud'] === 'Sí' ? 1 : 0;
         //Crear el alumno con los datos restantes
         $alumno = new \App\Models\Alumno([
-            'fk_persona' => $persona->id_persona,
-            'fk_aula' => $aula?->id_aula,
+            'fk_id_persona' => $persona->id_persona,
+            'fk_id_aula' => $aula?->id_aula,
             'cud' => $cud,
             'inasistencias' => $data['inasistencias'] ?? null,
             'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
@@ -78,6 +78,75 @@ class AlumnoService implements AlumnoServiceInterface
         }
 
         return $alumno;
+    }
+    
+    //Cuando se crea el alumno junto con sus familiares
+    public function crearAlumnoConFamiliares(array $alumnoData, array $familiaresTemp): Alumno
+    {
+        \DB::beginTransaction();
+        try {
+            $alumno = $this->crearAlumno($alumnoData); //Para crear la persona+alumno
+
+            if (!empty($familiaresTemp)) {
+                $famSrv = app(\App\Services\Interfaces\FamiliarServiceInterface::class);
+                $personaSrv = app(\App\Services\Interfaces\PersonaServiceInterface::class);
+
+                foreach ($familiaresTemp as $f) {
+                    $parentesco = strtoupper((string)($f['parentesco'] ?? ''));
+                    $map = [ 'padre'=>'PADRE','madre'=>'MADRE','hermano'=>'HERMANO','tutor'=>'TUTOR','otro'=>'OTRO' ];
+                    if (!in_array($parentesco, ['PADRE','MADRE','HERMANO','TUTOR','OTRO'])) {
+                        $parentesco = $map[strtolower($parentesco)] ?? 'OTRO';
+                    }
+
+                    $payloadFamiliar = [
+                        'parentesco'        => $parentesco,
+                        'otro_parentesco'   => $f['otro_parentesco'] ?? null,
+                        'telefono_personal' => $f['telefono_personal'] ?? null,
+                        'telefono_laboral'  => $f['telefono_laboral'] ?? null,
+                        'lugar_de_trabajo'  => $f['lugar_de_trabajo'] ?? null,
+                        'observaciones'     => $f['observaciones'] ?? null,
+                    ];
+
+                    if (!empty($f['fk_id_persona'])) {
+                        $payloadFamiliar['fk_id_persona'] = (int)$f['fk_id_persona'];
+                    } else {
+                        $personaPayload = [
+                            'nombre'           => $f['nombre'] ?? null,
+                            'apellido'         => $f['apellido'] ?? null,
+                            'dni'              => $f['dni'] ?? null,
+                            'fecha_nacimiento' => $f['fecha_nacimiento'] ?? null,
+                            'domicilio'        => $f['domicilio'] ?? null,
+                            'nacionalidad'     => $f['nacionalidad'] ?? null,
+                        ];
+                        $persona = $personaSrv->createPersona($personaPayload);
+                        $payloadFamiliar['fk_id_persona'] = $persona->id_persona;
+                    }
+
+                    $familiar = $famSrv->createFamiliar($payloadFamiliar);
+                    $alumno->familiares()->attach($familiar->id_familiar);
+                }
+            }
+
+            \DB::commit();
+            return $alumno->load(['persona','aula','familiares.persona']);
+        } catch (\Throwable $t) {
+            \DB::rollBack();
+            throw $t;
+        }
+    }
+
+    public function buscar(string $q): \Illuminate\Support\Collection
+    {
+        if (trim($q) === '') return collect();
+        $like = '%' . str_replace('%','', $q) . '%';
+        return Alumno::with(['persona','aula'])
+            ->whereHas('persona', function($sub) use ($like){
+                $sub->where('dni','like',$like)
+                    ->orWhere('nombre','ilike',$like)
+                    ->orWhere('apellido','ilike',$like);
+            })
+            ->limit(10)
+            ->get();
     }
 
     public function eliminar(int $id): bool

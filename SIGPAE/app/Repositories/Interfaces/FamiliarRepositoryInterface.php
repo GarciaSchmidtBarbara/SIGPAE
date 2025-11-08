@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Interfaces;
 
-use App\Modules\User\Models\Familiar;
+use App\Models\Familiar;
 use Illuminate\Database\Eloquent\Collection;
 
 interface FamiliarRepositoryInterface
