@@ -39,6 +39,25 @@ Route::get('/planillas', function () {
     return view('planillas.principal');
 })->middleware('auth')->name('planillas.principal');
 
+// Subrutas de creación de planillas (usadas por planillas.principal)
+Route::prefix('planillas')->middleware('auth')->group(function () {
+    Route::get('/acta-equipo-indisciplinario/crear', function () {
+        return view('planillas.acta-equipo-indisciplinario');
+    })->name('planillas.acta-equipo-indisciplinario.create');
+
+    Route::get('/acta-reunion-trabajo/crear', function () {
+        return view('planillas.acta-reunion-trabajo');
+    })->name('planillas.acta-reunion-trabajo.create');
+
+    Route::get('/acta-reuniones-banda/crear', function () {
+        return view('planillas.acta-reuniones-banda');
+    })->name('planillas.acta-reuniones-banda.create');
+
+    Route::get('/planilla-medial/crear', function () {
+        return view('planillas.planilla-medial');
+    })->name('planillas.planilla-medial.create');
+});
+
 //Ruta Perfil
 Route::get('/perfil', function(){
     return view('perfil.principal');

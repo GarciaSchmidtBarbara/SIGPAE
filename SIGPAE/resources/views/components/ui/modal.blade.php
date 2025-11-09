@@ -15,6 +15,7 @@
 @endphp
 
 <div
+   {{ $attributes }}
     x-cloak
     x-show="open"
     x-transition.opacity

@@ -1,3 +1,6 @@
+
+[x-cloak] { display: none !important; } /* Evita parpadeos de Alpine al cargar */
+
 body {
   margin: 0;
   font-family: 'Inter', sans-serif;
