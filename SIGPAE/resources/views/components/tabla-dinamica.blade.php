@@ -4,6 +4,7 @@
     'idCampo' => 'id',
     'acciones' => null, 
     'formatters' => [], //para pasarle "si, no". Formatos personalizados
+    'filaEnlace' => null,
 ])
 
 <table class="min-w-full divide-y divide-gray-200">
@@ -19,7 +20,11 @@
     </thead>
     <tbody class="bg-white divide-y divide-gray-200">
         @forelse ($filas as $fila)
-            <tr>
+            <tr
+                @if($filaEnlace)
+                    onclick="window.location='{{ $filaEnlace($fila) }}'"
+                    class="cursor-pointer hover:bg-gray-100 transition"
+                @endif>
                 @foreach ($columnas as $col)
                     @php
                         $key = is_array($col) ? $col['key'] : $col;

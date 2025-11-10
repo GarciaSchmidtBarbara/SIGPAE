@@ -73,6 +73,7 @@
         ])->render()"
 
         idCampo="id_alumno"
+        :filaEnlace="fn($fila) => route('alumnos.editar', data_get($fila, 'id_alumno'))"
     >
         <x-slot:accionesPorFila>
             @php

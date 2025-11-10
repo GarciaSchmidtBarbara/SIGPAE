@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('encabezado', 'Crear Alumno')
+@section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Alumno' : 'Crear Alumno')
 
 @section('contenido')
 <div x-data="{
@@ -30,8 +30,13 @@
     }
 }">
 
-    <form method="POST" action="{{ route('alumnos.store') }}">
+    <form method="POST" action="{{ isset($modo) && $modo === 'editar' 
+            ? route('alumnos.actualizar', $alumno->id_alumno)
+            : route('alumnos.store') }}">
         @csrf
+        @if(isset($modo) && $modo === 'editar')
+            @method('PUT')
+        @endif
         <div class="space-y-8 mb-6">
             <p class="separador">Información Personal del Alumno</p>
             <div class="fila-botones mt-8">
