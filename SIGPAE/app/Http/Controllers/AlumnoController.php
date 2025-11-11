@@ -104,6 +104,17 @@ class AlumnoController extends Controller
         );
     }
 
+    public function iniciarCreacion(): RedirectResponse
+    {
+        Session::forget('alumno_temp');
+        Session::forget('familiares_temp');
+
+        Session::forget('editando_alumno_id'); 
+
+
+        return redirect()->route('alumnos.crear-editar');
+    }
+
    public function crearEditar() {
         $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
         $familiares_temp = Session::get('familiares_temp', []);
