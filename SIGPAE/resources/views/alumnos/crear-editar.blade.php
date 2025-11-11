@@ -60,7 +60,7 @@
                         'fecha_nacimiento',
                         isset($alumno) && isset($alumno->persona->fecha_nacimiento)
                             ? \Illuminate\Support\Carbon::parse($alumno->persona->fecha_nacimiento)->format('Y-m-d')
-                            : ''
+                            : ($alumnoData['fecha_nacimiento'] ?? '')
                     )"
                     edad-name="edad"
                     :edad-value="old('edad', $alumnoData['edad'] ?? '')"
@@ -134,12 +134,7 @@
                     </tbody>
                 </table>
             </div>
-            {{--
-                ACCIÓN CLAVE: Aquí se debe enviar la data del formulario actual al controller (GET o POST)
-                para que el controller guarde la data del alumno en la sesión
-                y luego redirija a route('familiares.create') FALTA IMPLEMENTAR LA  LOGICA DE GUARDADO EN SESSION
-            --}}
-                        <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
+            <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
         </div>
 
         <div class="space-y-8 mb-6">
