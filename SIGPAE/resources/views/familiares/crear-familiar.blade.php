@@ -53,7 +53,7 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Fec.Nacimiento</label>
-                    <input name="fecha_nacimiento" x-model="formData.fecha_nacimiento" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="fecha_nacimiento" x-model="formData.fecha_nacimiento" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="parentesco!=='hermano'" @input="calcularEdad()">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Teléfono laboral</label>
@@ -108,7 +108,7 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
-                    <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="!isFilled" @input="calcularEdad()">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
@@ -146,16 +146,16 @@
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex items-center gap-2 col-span-2">
-                    <input id="asiste" name="asiste_a_institucion" type="checkbox" :checked="isFilled" :disabled="isFilled" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <input id="asiste" name="asiste_a_institucion" type="checkbox" :checked="isFilled" :class="isFilled ? 'pointer-events-none' : ''" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                     <label for="asiste" class="text-sm font-medium text-gray-700">Asiste a esta institución</label>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Curso</label>
-                    <input name="curso" :value="selected?.aula?.curso || ''" disabled placeholder="curso" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="curso" :value="selected?.aula?.curso || ''" disabled placeholder="curso" class="border px-2 py-1 rounded bg-gray-100 text-gray-700">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">División</label>
-                    <input name="division" :value="selected?.aula?.division || ''" disabled placeholder="división" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="division" :value="selected?.aula?.division || ''" disabled placeholder="división" class="border px-2 py-1 rounded focus:outline-none bg-gray-100 text-gray-700">
                 </div>
             </div>
         </div>
@@ -216,10 +216,34 @@
                 this.formData.nombre = al.persona?.nombre || '';
                 this.formData.apellido = al.persona?.apellido || '';
                 this.formData.documento = al.persona?.dni || '';
-                this.formData.fecha_nacimiento = al.persona?.fecha_nacimiento || '';
+                this.formData.fecha_nacimiento = al.persona?.fecha_nacimiento ? new Date(al.persona.fecha_nacimiento).toISOString().split('T')[0] : '';
                 this.formData.edad = al.persona?.edad || '';
                 this.formData.domicilio = al.persona?.domicilio || '';
                 this.formData.nacionalidad = al.persona?.nacionalidad || '';
+                this.calcularEdad();
+            },
+            // no puedo utilizar el componente de edad porque no es compatible con alpine anidados de componentes blade
+            // asi que hago la logica aca
+            calcularEdad() {
+                if (!this.formData.fecha_nacimiento) {
+                    this.formData.edad = '';
+                    return;
+                }
+                const fechaNac = new Date(this.formData.fecha_nacimiento);
+                
+                if (isNaN(fechaNac.getTime())) {
+                    this.formData.edad = '';
+                    return;
+                }
+
+                const hoy = new Date();
+                let edadCalc = hoy.getFullYear() - fechaNac.getFullYear();
+                const mes = hoy.getMonth() - fechaNac.getMonth();
+                
+                if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+                    edadCalc--;
+                }
+                this.formData.edad = edadCalc;
             }
         }
     }
