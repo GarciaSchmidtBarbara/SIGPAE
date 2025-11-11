@@ -41,33 +41,36 @@
             <p class="separador">Información Personal del Alumno</p>
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Documento</p>
+                    <x-campo-requerido text="Documento" required />
                     <input name="dni" value="{{ $alumnoData['dni'] ?? old('dni') }}" placeholder="Documento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Nombres</p>
+                    <x-campo-requerido text="Nombres" required />
                     <input name="nombre" value="{{ $alumnoData['nombre'] ?? old('nombre') }}" placeholder="Nombres" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Apellidos</p>
+                    <x-campo-requerido text="Apellidos" required />
                     <input name="apellido" value="{{ $alumnoData['apellido'] ?? old('apellido') }}" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <div class="flex flex-col w-1/5">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento</p>
-                    <input name="fecha_nacimiento" value="{{ $alumnoData['fecha_nacimiento'] ?? old('fecha_nacimiento') }}" type="date" placeholder="Fecha de nacimiento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
+                <x-campo-fecha
+                    label="Fecha de nacimiento"
+                    name="fecha_nacimiento"
+                    :value="old('fecha_nacimiento', optional($alumno->persona)->fecha_nacimiento ? \Illuminate\Support\Carbon::parse(optional($alumno->persona)->fecha_nacimiento)->format('Y-m-d') : '')"
+                    required
+                />
             </div>
+
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
                     <p class="text-sm font-medium text-gray-700 mb-1">Edad</p>
                     <input name="edad" value="{{ $alumnoData['edad'] ?? old('edad') }}" placeholder="Edad" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</p>
+                    <x-campo-requerido text="Nacionalidad" required />
                     <input name="nacionalidad" value="{{ $alumnoData['nacionalidad'] ?? old('nacionalidad') }}" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <label for="aula" class="text-sm font-medium text-gray-700 mb-1">Aula</label>
+                    <x-campo-requerido text="Aula" required />
                     <select name="aula" id="aula" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">Seleccionar aula</option>
                         @foreach($cursos as $curso)
@@ -80,12 +83,12 @@
                     <input name="inasistencias" value="{{ $alumnoData['inasistencias'] ?? old('inasistencias') }}" placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tiene CUD</label>
+                    <x-campo-requerido text="Tiene CUD" required />
                     <x-opcion-unica 
                         :items="['Sí', 'No']"
                         name="cud"
                         layout="horizontal"
-                        :valor-seleccionado="$alumnoData['cud'] ?? old('cud', 'No')" 
+                         :seleccion="$alumnoData['cud'] ?? old('cud', 'No')" 
                     />
                 </div>
             </div>  
