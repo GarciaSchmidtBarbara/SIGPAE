@@ -70,7 +70,7 @@
 
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
-                    <x-campo-requerido text="Nacionalidad" required />
+                    <p class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</p>
                     <input name="nacionalidad" value="{{ $alumnoData['nacionalidad'] ?? old('nacionalidad') }}" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
@@ -83,7 +83,7 @@
                     </select>
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Cantidad inasistencias</p>
+                    <x-campo-requerido text="Cantidad inasistencias" required />
                     <input name="inasistencias" value="{{ $alumnoData['inasistencias'] ?? old('inasistencias') }}" placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="space-y-2">
