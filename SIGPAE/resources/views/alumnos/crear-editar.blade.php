@@ -37,6 +37,9 @@
         @if(isset($modo) && $modo === 'editar')
             @method('PUT')
         @endif
+
+        <input type="hidden" name="edit_familiar_index" value="">
+
         <div class="space-y-8 mb-6">
             <p class="separador">Información Personal del Alumno</p>
             <div class="fila-botones mt-8">
@@ -117,7 +120,17 @@
                         {{-- Bucle para mostrar familiares temporales cargados --}}
                         <template x-for="(familiar, index) in familyMembers" :key="index">
                             <tr>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm">
+                                    <button 
+                                        type="submit" 
+                                        class="text-indigo-600 hover:text-indigo-900 hover:underline font-medium"
+                                        formaction="{{ route('alumnos.prepare-familiar-edit') }}" 
+                                        formmethod="POST"
+                                        @click="$event.target.form.querySelector('input[name=edit_familiar_index]').value = index">
+                                        
+                                        <span x-text="familiar.nombre"></span>
+                                    </button>
+                                </td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.apellido"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.dni"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco"></td>
