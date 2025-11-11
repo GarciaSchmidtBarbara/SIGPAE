@@ -52,19 +52,23 @@
                     <x-campo-requerido text="Apellidos" required />
                     <input name="apellido" value="{{ $alumnoData['apellido'] ?? old('apellido') }}" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
-                <x-campo-fecha
+
+                <x-campo-fecha-edad
                     label="Fecha de nacimiento"
                     name="fecha_nacimiento"
-                    :value="old('fecha_nacimiento', optional($alumno->persona)->fecha_nacimiento ? \Illuminate\Support\Carbon::parse(optional($alumno->persona)->fecha_nacimiento)->format('Y-m-d') : '')"
+                    :value="old(
+                        'fecha_nacimiento',
+                        isset($alumno) && isset($alumno->persona->fecha_nacimiento)
+                            ? \Illuminate\Support\Carbon::parse($alumno->persona->fecha_nacimiento)->format('Y-m-d')
+                            : ''
+                    )"
+                    edad-name="edad"
+                    :edad-value="old('edad', $alumnoData['edad'] ?? '')"
                     required
                 />
             </div>
 
             <div class="fila-botones mt-8">
-                <div class="flex flex-col w-1/5">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Edad</p>
-                    <input name="edad" value="{{ $alumnoData['edad'] ?? old('edad') }}" placeholder="Edad" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Nacionalidad" required />
                     <input name="nacionalidad" value="{{ $alumnoData['nacionalidad'] ?? old('nacionalidad') }}" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -135,7 +139,7 @@
                 para que el controller guarde la data del alumno en la sesión
                 y luego redirija a route('familiares.create') FALTA IMPLEMENTAR LA  LOGICA DE GUARDADO EN SESSION
             --}}
-                        <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST">Crear Familiar</button>
+                        <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
         </div>
 
         <div class="space-y-8 mb-6">
