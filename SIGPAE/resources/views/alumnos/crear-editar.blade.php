@@ -3,6 +3,10 @@
 @section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Alumno' : 'Crear Alumno')
 
 @section('contenido')
+<div class="flex justify-end mb-4">
+    <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
+</div>
+    
 <div x-data="{
     familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
     
