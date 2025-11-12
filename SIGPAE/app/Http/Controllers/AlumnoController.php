@@ -129,6 +129,7 @@ class AlumnoController extends Controller
         // Store all form data except token in session
         $alumnoData = $request->except(['_token']);
         Session::put('alumno_temp', $alumnoData);
+        Session::put('edit_familiar_index', $request->input('edit_familiar_index'));
 
         return redirect()->route('familiares.create');
     }
