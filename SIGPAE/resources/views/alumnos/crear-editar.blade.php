@@ -3,6 +3,10 @@
 @section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Alumno' : 'Crear Alumno')
 
 @section('contenido')
+<div class="flex justify-end mb-4">
+    <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
+</div>
+    
 
 {{-- Mensajes de estado --}}
     @if (session('success'))
