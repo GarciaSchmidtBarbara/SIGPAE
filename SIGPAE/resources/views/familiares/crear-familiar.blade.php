@@ -1,10 +1,11 @@
 @extends('layouts.base')
 
-@section('encabezado', 'Crear Familiar')
-<!-- FALTA ACOMODAR BIEN EL GRID-->
+@section('encabezado', 'Crear Familiar')}
+
 @section('contenido')
 <div x-data="familiarForm()">
-    <form method="POST" action="{{ route('familiares.storeAndReturn') }}" @submit="beforeSubmit">
+    <form method="POST" action="{{ route('familiares.storeAndReturn') }}" @submit.prevent="validarYGuardar" novalidate x-ref="form"
+>
         @csrf
 
         <input type="hidden" name="edit_familiar_index" :value="editIndex">
@@ -28,15 +29,27 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">DNI</label>
-                    <input name="documento" x-model="formData.documento" placeholder="dni familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="parentesco!=='hermano'">
+                    
+                    <input name="documento" 
+                        x-model="formData.documento"
+                        
+                        @input.debounce.500ms="checkDni()"
+                        :class="{ 'border-red-500 text-red-700': dniError }"
+                        placeholder="dni familiar" 
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="limpiarError('documento')">
+                    
+                    <div x-show="dniError" x-text="dniError" class="text-xs text-red-600 mt-1"></div>
+                    <div x-show="errors.documento" x-text="errors.documento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                    <input name="nombre" x-model="formData.nombre" placeholder="nombre_familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="parentesco!=='hermano'">
+                    <input name="nombre" x-model="formData.nombre" placeholder="nombre_familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="limpiarError('nombre')">
+                    <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Apellido</label>
-                    <input name="apellido" x-model="formData.apellido" placeholder="apellido_familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="parentesco!=='hermano'">
+                    <input name="apellido" x-model="formData.apellido" placeholder="apellido_familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="limpiarError('apellido')">
+                    <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Teléfono personal</label>
@@ -54,8 +67,9 @@
                     <input name="lugar_de_trabajo" x-model="formData.lugar_de_trabajo" placeholder="nombre_trabajo" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Fec.Nacimiento</label>
-                    <input name="fecha_nacimiento" x-model="formData.fecha_nacimiento" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="parentesco!=='hermano'" @input="calcularEdad()">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
+                    <input name="fecha_nacimiento" x-model="formData.fecha_nacimiento" type="date" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="errors.fecha_nacimiento = ''; calcularEdad()">
+                    <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Teléfono laboral</label>
@@ -102,15 +116,15 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                    <input x-model="formData.nombre" :disabled="isFilled" placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="!isFilled">
+                    <input x-model="formData.nombre" :disabled="isFilled" placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Apellido</label>
-                    <input x-model="formData.apellido" :disabled="isFilled" placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="!isFilled">
+                    <input x-model="formData.apellido" :disabled="isFilled" placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
-                    <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="!isFilled" @input="calcularEdad()">
+                    <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="calcularEdad()">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
@@ -125,7 +139,7 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">DNI</label>
-                    <input x-model="formData.documento" :disabled="isFilled" placeholder="dni" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="!isFilled">
+                    <input x-model="formData.documento" :disabled="isFilled" placeholder="dni" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
@@ -148,8 +162,18 @@
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex items-center gap-2 col-span-2">
-                    <input id="asiste" name="asiste_a_institucion" type="checkbox" :checked="isFilled" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 pointer-events-none">
-                    <label for="asiste" class="text-sm font-medium text-gray-700">Asiste a esta institución</label>
+                    <input 
+                        id="asiste"
+                        name="asiste_a_institucion"
+                        type="checkbox"
+                        :checked="isFilled"
+                        :readonly="true"
+                        @click.prevent
+                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-not-allowed"
+                    >
+                    <label for="asiste" class="text-sm font-medium text-gray-700 select-none">
+                        Asiste a esta institución
+                    </label>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Curso</label>
@@ -168,7 +192,7 @@
         </div>
 
         <div class="fila-botones mt-8">
-            <button type="submit" class="btn-aceptar">Guardar y Volver</button>
+            <button **type="button"** class="btn-aceptar" @click.prevent="validarYGuardar($el)">Guardar y Volver</button>
             <a href="{{ route('alumnos.crear-editar') }}" class="btn-volver">Volver</a>
         </div>
     </form>
@@ -197,6 +221,126 @@
             },
 
             editIndex: '{{ $familiarData['edit_familiar_index'] ?? '' }}',
+
+            errors: {
+                nombre: '',
+                apellido: '',
+                documento: '',
+                fecha_nacimiento: ''
+            },
+
+            async validarYGuardar($el) {
+                this.errors = {}; // limpia errores
+                this.dniError = '';
+
+                let errorEncontrado = false;
+
+                if (this.dniError) {
+                    return; 
+                }
+
+                // Validación local
+                let camposRequeridos = [];
+                if (this.parentesco !== 'hermano' || (this.parentesco === 'hermano' && !this.isFilled)) {
+                    camposRequeridos = ['nombre', 'apellido', 'documento', 'fecha_nacimiento'];
+                }
+
+                for (const campo of camposRequeridos) {
+                    if (!this.formData[campo] || this.formData[campo].trim() === '') {
+                        this.errors[campo] = `El campo ${campo.replace('_', ' ')} es requerido.`;
+                        errorEncontrado = true;
+                    }
+                }
+
+                if (errorEncontrado || this.dniError) {
+                    return; // detenemos aquí
+                }
+
+                const dni = this.formData.documento?.trim();
+                if (dni) {
+                    const resp = await fetch('{{ route('personas.check-dni') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            dni: dni,
+                            edit_index: this.editIndex,
+                            context: 'familiar'
+                        })
+                    });
+
+                    const disponible = await resp.json();
+
+                    if (!disponible) {
+                        this.dniError = 'El DNI ya está registrado o en uso.';
+                        return; // detenemos el guardado
+                    }
+                }
+
+                $el.closest('form').submit();
+            },
+            
+            //Esto es temporal, hasta definir bien la logica de como mostrar el mensaje de error
+            dniError: '',
+
+            async checkDni() {
+            // Si el parentesco es "hermano", no se valida
+            if (this.parentesco === 'hermano') {
+                this.dniError = '';
+                this.dniDisponible = true;
+                return;
+            }
+
+            const dni = this.formData.documento.trim();
+
+            // Si el campo está vacío, limpiamos error y salimos
+            if (!dni) {
+                this.dniError = '';
+                this.dniDisponible = true;
+                return;
+            }
+
+            // Limpiamos el error antes de la nueva llamada
+            this.dniError = '';
+
+            try {
+                const response = await fetch('{{ route('personas.check-dni') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        dni: dni,
+                        edit_index: this.editIndex,
+                        context: 'familiar'
+                    })
+                });
+
+                const disponible = await response.json();
+
+                if (!disponible) {
+                    this.dniError = 'El DNI ya está registrado o en uso.';
+                } else {
+                    this.dniError = '';
+                }
+
+            } catch (e) {
+                console.error('Error en fetch:', e);
+                this.dniError = 'No se pudo conectar con el servidor para validar.';
+                this.dniDisponible = false;
+            }
+        },
+
+            limpiarError(campo) {
+                if (this.errors[campo]) {
+                    this.errors[campo] = '';
+                }
+            },
 
             get isFilled(){ return this.selected !== null; },
             field(key) {
