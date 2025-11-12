@@ -42,19 +42,22 @@ class FamiliarService implements FamiliarServiceInterface
         ]));
 
         $familiarFields = array_intersect_key($data, array_flip([
-            'lugar_de_trabajo', 'observaciones', 'telefono_personal', 'telefono_laboral', 'lugar_de_trabajo', 'otro_parentesco', 'parentesco'
+            'fk_id_persona', 'lugar_de_trabajo', 'observaciones', 'telefono_personal', 'telefono_laboral', 'lugar_de_trabajo', 'otro_parentesco', 'parentesco'
         ]));
 
         try {
             DB::beginTransaction();
 
-            if (!empty($personaFields)) {
+            if (!empty($data['fk_id_persona'])) {
+                $familiarFields['fk_id_persona'] = $data['fk_id_persona'];
+            }
+            else if (!empty($personaFields)) {
                 $persona = $this->personaService->createPersona($personaFields);
                 $familiarFields['fk_id_persona'] = $persona->id_persona;
-            } else {
-                if (empty($familiarFields['fk_id_persona'])) {
-                    throw new InvalidArgumentException('Se requiere fk_id_persona o datos de persona');
-                }
+
+            } 
+            else {
+                throw new InvalidArgumentException('Se requiere fk_id_persona o datos de persona');
             }
 
             $familiar = $this->familiarRepository->create($familiarFields);
