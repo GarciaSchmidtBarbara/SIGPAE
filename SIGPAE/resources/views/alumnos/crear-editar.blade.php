@@ -3,10 +3,6 @@
 @section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Alumno' : 'Crear Alumno')
 
 @section('contenido')
-<div class="flex justify-end mb-4">
-    <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
-</div>
-    
 
 {{-- Mensajes de estado --}}
     @if (session('success'))
@@ -26,30 +22,25 @@
     $inactivo = $esEdicion ? ($alumno->persona->activo === false) : false;
 @endphp
 
-@if($esEdicion)
-    <div class="mt-4 my-4 flex justify-between items-center">
-        <div class="text-sm text-red-600 min-h-[1.5rem]">
-            @if($inactivo)
-                <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
-            @endif
-        </div>
-
-        <div class="flex space-x-4">
+<div class="mt-4 my-4 flex justify-between items-center">
+    <div class="text-sm text-red-600 min-h-[1.5rem]">
+        @if($esEdicion && $inactivo)
+            <p>Este alumno está inactivo. No se permiten modificaciones.</p>
+        @endif
+    </div>
+    <div class="flex justify-end space-x-4">
+        @if($esEdicion)
             <x-boton-estado 
                 :activo="$alumno->persona->activo" 
                 :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
             />
-            <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
-        </div>
+        @endif
+        <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
     </div>
-@endif
-
-=======
-<div class="flex justify-end mb-4">
-    <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
 </div>
-    
->>>>>>> 513be0387215aae3ad68474de95a255a318cad4f
+
+
+
 <div x-data="{
     familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
     
