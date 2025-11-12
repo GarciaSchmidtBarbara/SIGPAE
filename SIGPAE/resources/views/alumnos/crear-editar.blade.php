@@ -228,21 +228,21 @@
     </form>
    
     @if($esEdicion)
-        <div class="mt-4 my-4 flex justify-between items-center">
-            <div class="text-sm text-red-600 min-h-[1.5rem]">
-                @if($inactivo)
-                    <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
-                @endif
-            </div>
-
-            <div class="flex space-x-4">
-                <x-boton-estado 
-                    :activo="$alumno->persona->activo" 
-                    :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
-                />
-                <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
-            </div>
+    <div class="mt-4 my-4 flex justify-between items-center">
+        <div class="text-sm text-red-600 min-h-[1.5rem]">
+            @if($inactivo)
+                <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
+            @endif
         </div>
-    @endif
+
+        <div class="flex space-x-4">
+            <x-boton-estado 
+                :activo="$alumno->persona->activo" 
+                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
+            />
+            <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
+        </div>
+    </div>
+@endif
 </div>
 @endsection

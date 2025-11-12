@@ -31,7 +31,8 @@ class AlumnoService implements AlumnoServiceInterface
     public function crearAlumno(array $data): Alumno
     {
         try {
-            $fecha = \DateTime::createFromFormat('d/m/Y', $data['fecha_nacimiento']);
+            $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
+            $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
             $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
 
             $persona = Persona::create([
