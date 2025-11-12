@@ -38,7 +38,7 @@
             @method('PUT')
         @endif
 
-        <input type="hidden" name="edit_familiar_index" value="">
+        <input type="hidden" name="edit_familiar_index">
 
         <div class="space-y-8 mb-6">
             <p class="separador">Información Personal del Alumno</p>
@@ -119,18 +119,14 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {{-- Bucle para mostrar familiares temporales cargados --}}
                         <template x-for="(familiar, index) in familyMembers" :key="index">
-                            <tr>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm">
-                                    <button 
-                                        type="submit" 
-                                        class="text-indigo-600 hover:text-indigo-900 hover:underline font-medium"
-                                        formaction="{{ route('alumnos.prepare-familiar-edit') }}" 
-                                        formmethod="POST"
-                                        @click="$event.target.form.querySelector('input[name=edit_familiar_index]').value = index">
-                                        
-                                        <span x-text="familiar.nombre"></span>
-                                    </button>
-                                </td>
+                            <tr @click="
+                                let form = $event.target.closest('form') ;
+                                form.querySelector('input[name=edit_familiar_index]').value = index ;
+                                form.action = '{{ route('alumnos.prepare-familiar') }}' ;
+                                form.noValidate = true;
+                                form.submit();
+                            " class="cursor-pointer hover:bg-gray-50">
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.apellido"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.dni"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco"></td>
@@ -147,7 +143,7 @@
                     </tbody>
                 </table>
             </div>
-            <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
+            <button type="submit" id="btn-prepare-familiar" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
         </div>
 
         <div class="space-y-8 mb-6">
