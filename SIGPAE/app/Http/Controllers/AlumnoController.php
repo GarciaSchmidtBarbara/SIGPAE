@@ -43,6 +43,18 @@ class AlumnoController extends Controller
 
     public function store(Request $request)
     {
+        request->validate([
+            'dni' => 'required|numeric',
+            'nombre' => 'required|string|max:191',
+            'apellido' => 'required|string|max:191',
+            'fecha_nacimiento' => 'required|date',
+            'nacionalidad' => 'required|string|max:191',
+            'aula' => 'required|string',
+        ], [
+            'required' => 'Este campo es obligatorio.',
+            'date' => 'Debe ingresar una fecha válida.',
+            'numeric' => 'Debe ingresar un número válido.',
+        ]);
         try {
             $familiaresTemp = Session::get('familiares_temp', []);
             $alumno = $this->alumnoService->crearAlumnoConFamiliares($request->all(), $familiaresTemp);
