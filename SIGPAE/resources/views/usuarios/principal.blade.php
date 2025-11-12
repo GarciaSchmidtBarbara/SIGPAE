@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('encabezado', 'Alumnos')
+@section('encabezado', 'Usuarios')
 
 @section('contenido')
 <div class="p-6">
@@ -9,12 +9,13 @@
         <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
         <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
         <input name="documento" placeholder="Documento" class="border px-2 py-1 rounded w-1/5">
-        <select name="aula" class="border px-2 py-1 rounded w-1/5">
-            <option value="">Todos los cursos</option>
-            @foreach($cursos as $curso)
-                <option value="{{ $curso }}" {{ request('aula') === $curso ? 'selected' : '' }}>
-                    {{ $curso }}
-                </option>
+        <select name="profesion" class="border px-2 py-1 rounded w-1/5">
+            <option value="">Todas las profesiones</option>
+
+            @foreach($siglas as $sigla)
+            <option value="{{ $sigla }}" {{ request('profesion') === $sigla ? 'selected' : '' }}>
+                {{ $sigla }}
+            </option>
             @endforeach
         </select>
 
@@ -43,17 +44,11 @@
             ['key' => 'persona.nombre', 'label' => 'Nombre'],
             ['key' => 'persona.apellido', 'label' => 'Apellido'],
             ['key' => 'persona.dni', 'label' => 'Documento'],
-            ['key' => 'aula.descripcion', 'label' => 'Aula'],
-            ['key' => 'cud', 'label' => 'CUD'],
+            ['key' => 'sigla.value', 'label' => 'Profesión'],
         ]"
-        :filas="$alumnos"
+        :filas="$usuarios"
         :formatters="$formatters"
-        :acciones="fn($fila) => view('components.boton-estado', [
-            'activo' => data_get($fila, 'persona.activo'),
-            'route' => route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'))
-        ])->render()"
-
-        idCampo="id_alumno"
+        idCampo="id_usuario"
     >
         <x-slot:accionesPorFila>
             @php

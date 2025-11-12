@@ -2,8 +2,9 @@
 
 namespace App\Services\Interfaces;
 
-use App\Models\Profesional;
+use Illuminate\Support\Collection as ISupportCollection;
 use Illuminate\Database\Eloquent\Collection;
+use App\Models\Profesional;
 
 interface ProfesionalServiceInterface
 {
@@ -24,4 +25,5 @@ interface ProfesionalServiceInterface
     public function getProfesionalByMatricula(string $matricula): ?Profesional;
     public function getProfesionalWithPersona(int $id): ?Profesional;
     public function getAllProfesionalesWithPersona(): Collection;
+    public function obtenerTodasLasSiglas(): ISupportCollection;
 }

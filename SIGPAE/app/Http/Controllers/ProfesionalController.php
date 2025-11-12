@@ -16,34 +16,10 @@ class ProfesionalController extends Controller {
     }
 
     public function vista(Request $request) {
-        $query = Profesional::with('persona');
-
-        if ($request->filled('nombre')) {
-            $nombre = strtolower($this->quitarTildes($request->nombre));
-            $query->whereHas('persona', function ($q) use ($nombre) {
-                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"]);
-            });
-        }
-
-       if ($request->filled('apellido')) {
-            $apellido = strtolower($this->quitarTildes($request->apellido));
-            $query->whereHas('persona', function ($q) use ($apellido) {
-                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"]);
-            });
-        }
-
-        if ($request->filled('documento')) {
-            $query->whereHas('persona', fn($q) => $q->where('dni', 'like', '%' . $request->documento . '%'));
-        }
-
-        if ($request->filled('profesion')) {
-            $profesion_siglas = $request->profesion;
-            $query->where('siglas', $profesion_siglas);
-        }
-
-        $usuarios = $query->get();
+        $usuarios = $this->profesionalService->filtrar($request);
+        $siglas = $this->profesionalService->obtenerTodasLasSiglas();
         
-        return view('usuarios.principal', compact('usuarios'));
+        return view('usuarios.principal', compact('usuarios', 'siglas'));
     }
 
     public function index(): JsonResponse {
