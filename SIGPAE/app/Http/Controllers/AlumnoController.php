@@ -163,7 +163,7 @@ class AlumnoController extends Controller
         } catch (\Throwable $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Error al actualizar el alumno: ' . $e->getMessage());
+                ->with('error', $e->getMessage());
         }
     }
 

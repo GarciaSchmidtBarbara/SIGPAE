@@ -3,6 +3,19 @@
 @section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Alumno' : 'Crear Alumno')
 
 @section('contenido')
+
+@php $inactivo = isset($alumno) && ($alumno->persona->activo === false); @endphp
+
+@if($inactivo)
+    <div class="mt-2 text-red-600 text-sm">
+        Este alumno está inactivo. No se permiten modificaciones.
+    </div>
+    <x-boton-estado 
+        :activo="$alumno->persona->activo" 
+        :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
+    />
+@endif
+
 <div x-data="{
     familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
     
@@ -29,7 +42,7 @@
         }
     }
 }">
-
+    
     <form method="POST" action="{{ isset($modo) && $modo === 'editar' 
             ? route('alumnos.actualizar', $alumno->id_alumno)
             : route('alumnos.store') }}">
@@ -37,6 +50,7 @@
         @if(isset($modo) && $modo === 'editar')
             @method('PUT')
         @endif
+        <fieldset {{ $inactivo ? 'disabled' : '' }}>
         <div class="space-y-8 mb-6">
             <p class="separador">Información Personal del Alumno</p>
             <div class="fila-botones mt-8">
@@ -168,10 +182,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
             <textarea name="observaciones" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['observaciones'] ?? old('observaciones') }}</textarea>      
         </div>
-
-        <div class="space-y-8">
-        </div>
-
+        </fieldset>
        
         <div class="space-y-8">
             <p class="separador">Documentación</p>
@@ -199,10 +210,17 @@
         </div>
 
         <div class="fila-botones mt-8">
-            <button type="submit" class="btn-aceptar">Guardar</button>
-            <button type="button" class="btn-eliminar" >Desactivar</button>
-            <a class="btn-volver" href="{{ route('alumnos.principal') }}" >Volver</a>
+            @if(!$inactivo)
+                <button type="submit" class="btn-aceptar">Guardar</button>
+            @endif   
         </div>
     </form>
+    <div class="fila-botones mt-4">
+        <x-boton-estado 
+                    :activo="$alumno->persona->activo" 
+                    :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
+                />
+        <a class="btn-volver" href="{{ route('alumnos.principal') }}" >Volver</a>
+    </div>
 </div>
 @endsection

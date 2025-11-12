@@ -251,7 +251,10 @@ class AlumnoService implements AlumnoServiceInterface
         if (!$alumno) {
             throw new \Exception('Alumno no encontrado.');
         }
-
+        // Bloquear edición si la persona está inactiva
+        if (($alumno->persona->activo ?? false) === false) {
+            throw new \Exception('No se puede modificar un alumno inactivo.');
+        }
         $persona = $alumno->persona;
         $persona->update([
             'dni' => $data['dni'] ?? $persona->dni,
