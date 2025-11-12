@@ -44,6 +44,12 @@
     </div>
 @endif
 
+=======
+<div class="flex justify-end mb-4">
+    <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
+</div>
+    
+>>>>>>> 513be0387215aae3ad68474de95a255a318cad4f
 <div x-data="{
     familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
     
