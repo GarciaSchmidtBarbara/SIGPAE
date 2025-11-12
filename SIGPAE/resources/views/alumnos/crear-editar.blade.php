@@ -4,16 +4,27 @@
 
 @section('contenido')
 
-@php $inactivo = isset($alumno) && ($alumno->persona->activo === false); @endphp
+@php
+    $esEdicion = isset($modo) && $modo === 'editar' && isset($alumno);
+    $inactivo = $esEdicion ? ($alumno->persona->activo === false) : false;
+@endphp
 
-@if($inactivo)
-    <div class="mt-2 text-red-600 text-sm">
-        Este alumno está inactivo. No se permiten modificaciones.
+@if($esEdicion)
+    <div class="mt-4 my-4 flex justify-between items-center">
+        <div class="text-sm text-red-600 min-h-[1.5rem]">
+            @if($inactivo)
+                <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
+            @endif
+        </div>
+
+        <div class="flex space-x-4">
+            <x-boton-estado 
+                :activo="$alumno->persona->activo" 
+                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
+            />
+            <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
+        </div>
     </div>
-    <x-boton-estado 
-        :activo="$alumno->persona->activo" 
-        :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
-    />
 @endif
 
 <div x-data="{
@@ -47,7 +58,7 @@
             ? route('alumnos.actualizar', $alumno->id_alumno)
             : route('alumnos.store') }}">
         @csrf
-        @if(isset($modo) && $modo === 'editar')
+        @if($esEdicion)
             @method('PUT')
         @endif
         <fieldset {{ $inactivo ? 'disabled' : '' }}>
@@ -215,12 +226,23 @@
             @endif   
         </div>
     </form>
-    <div class="fila-botones mt-4">
-        <x-boton-estado 
+   
+    @if($esEdicion)
+        <div class="mt-4 my-4 flex justify-between items-center">
+            <div class="text-sm text-red-600 min-h-[1.5rem]">
+                @if($inactivo)
+                    <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
+                @endif
+            </div>
+
+            <div class="flex space-x-4">
+                <x-boton-estado 
                     :activo="$alumno->persona->activo" 
                     :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
                 />
-        <a class="btn-volver" href="{{ route('alumnos.principal') }}" >Volver</a>
-    </div>
+                <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
+            </div>
+        </div>
+    @endif
 </div>
 @endsection
