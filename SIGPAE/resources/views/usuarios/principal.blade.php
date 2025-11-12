@@ -24,10 +24,6 @@
     </form>
 
     @php
-        $formatters = [
-            'cud' => fn($valor) => $valor ? 'Tiene' : 'No tiene',
-        ];
-
         $accionesPorFila = function ($fila) {
             $activo = data_get($fila, 'persona.activo');
             $ruta = route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'));
@@ -37,17 +33,15 @@
             ])->render();
         };
     @endphp
-    
 
     <x-tabla-dinamica 
         :columnas="[
             ['key' => 'persona.nombre', 'label' => 'Nombre'],
             ['key' => 'persona.apellido', 'label' => 'Apellido'],
             ['key' => 'persona.dni', 'label' => 'Documento'],
-            ['key' => 'sigla.value', 'label' => 'Profesión'],
+            ['key' => 'siglas', 'label' => 'Profesión'],
         ]"
         :filas="$usuarios"
-        :formatters="$formatters"
         idCampo="id_usuario"
     >
         <x-slot:accionesPorFila>
