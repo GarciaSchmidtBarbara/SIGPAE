@@ -13,7 +13,9 @@ class AlumnoFactory extends Factory
     public function definition(): array
     {
         return [
-            'fk_id_persona' => \App\Models\Persona::factory(),
+            'fk_id_persona' => Persona::factory()->state([
+                'fecha_nacimiento' => $this->faker->dateTimeBetween('-11 years', '-6 years')->format('Y-m-d'),
+            ]),
             'fk_id_aula' => \App\Models\Aula::inRandomOrder()->first()->id_aula,
             'cud' => $this->faker->boolean(),
             'inasistencias' => $this->faker->numberBetween(0, 60),
