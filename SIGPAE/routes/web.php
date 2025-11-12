@@ -91,6 +91,7 @@ Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('al
 // Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;
 Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
+Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->name('usuarios.crear-editar');
 
 //Rutas de cambio de contraseña con sesión iniciada
 Route::get('/change-password', [PasswordController::class, 'showChangePasswordForm'])->middleware('auth');
