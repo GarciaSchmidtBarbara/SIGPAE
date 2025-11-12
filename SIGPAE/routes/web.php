@@ -66,6 +66,10 @@ Route::get('/perfil/editar', function(){
     return view('perfil.editar');
 })->middleware('auth')->name('perfil.editar');
 
+//Rutas Personas
+use App\Http\Controllers\PersonaController;
+Route::post('/personas/check-dni', [PersonaController::class, 'checkDni'])->name('personas.check-dni');
+
 //Rutas Alumnos
 use App\Http\Controllers\AlumnoController;
 Route::get('/alumnos/iniciar-creacion', [AlumnoController::class, 'iniciarCreacion'])->name('alumnos.iniciar-creacion');
