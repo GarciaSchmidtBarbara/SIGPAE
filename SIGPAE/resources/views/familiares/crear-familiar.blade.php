@@ -32,12 +32,11 @@
                     
                     <input name="documento" 
                         x-model="formData.documento"
-                        
-                        @input.debounce.500ms="checkDni()"
-                        :class="{ 'border-red-500 text-red-700': dniError }"
                         placeholder="dni familiar" 
-                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="limpiarError('documento')">
-                    
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"                       
+                        @input.debounce.500ms="checkDni()"
+                        @input="limpiarError('documento')"
+                        :class="{ 'border-red-500 text-red-700': dniError }">                    
                     <div x-show="dniError" x-text="dniError" class="text-xs text-red-600 mt-1"></div>
                     <div x-show="errors.documento" x-text="errors.documento" class="text-xs text-red-600 mt-1"></div>
                 </div>
@@ -117,14 +116,17 @@
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Nombre</label>
                     <input x-model="formData.nombre" :disabled="isFilled" placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Apellido</label>
                     <input x-model="formData.apellido" :disabled="isFilled" placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
                     <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="calcularEdad()">
+                    <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
@@ -139,7 +141,17 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">DNI</label>
-                    <input x-model="formData.documento" :disabled="isFilled" placeholder="dni" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input 
+                        x-model="formData.documento"
+                        :disabled="isFilled"
+                        placeholder="dni"
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        @input.debounce.500ms="checkDni()"
+                        @input="limpiarError('documento')"
+                        :class="{ 'border-red-500 text-red-700': dniError }"
+                    >
+                    <div x-show="dniError" x-text="dniError" class="text-xs text-red-600 mt-1"></div>
+                    <div x-show="errors.documento" x-text="errors.documento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
@@ -233,6 +245,11 @@
                 this.errors = {}; // limpia errores
                 this.dniError = '';
 
+                if (this.parentesco === 'hermano' && this.isFilled) {
+                    $el.closest('form').submit();
+                    return;
+                }
+
                 let errorEncontrado = false;
 
                 if (this.dniError) {
@@ -282,15 +299,14 @@
 
                 $el.closest('form').submit();
             },
+
             
-            //Esto es temporal, hasta definir bien la logica de como mostrar el mensaje de error
             dniError: '',
 
             async checkDni() {
-            // Si el parentesco es "hermano", no se valida
-            if (this.parentesco === 'hermano') {
+            if (this.parentesco === 'hermano' && this.isFilled) {
+                // Es hermano ya cargado como alumno → no validar
                 this.dniError = '';
-                this.dniDisponible = true;
                 return;
             }
 
