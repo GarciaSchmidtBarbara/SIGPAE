@@ -110,7 +110,7 @@ class AlumnoService implements AlumnoServiceInterface
                         $parentesco = $map[strtolower($parentesco)] ?? 'OTRO';
                     }
                     
-                    if ($parentesco === 'HERMANO') {
+                    if ($parentesco === 'HERMANO' && !empty($f['fk_id_persona'])) {
                         if (empty($f['fk_id_persona'])) {
                             throw new \Exception('Se seleccionó "Hermano" pero no se proporcionó un ID de persona (fk_id_persona).');
                         }
