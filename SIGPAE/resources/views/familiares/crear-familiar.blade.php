@@ -7,6 +7,8 @@
     <form method="POST" action="{{ route('familiares.storeAndReturn') }}" @submit="beforeSubmit">
         @csrf
 
+        <input type="hidden" name="edit_familiar_index" :value="editIndex">
+
         <p class="separador">Relación</p>
         <div class="flex flex-wrap items-center gap-4 mt-2">
             @php($parentescos = ['padre'=>'Padre','madre'=>'Madre','tutor'=>'Tutor','hermano'=>'Hermano','otro'=>'Otro'])
@@ -100,11 +102,11 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                    <input x-model="formData.nombre" :disabled="isFilled" placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input x-model="formData.nombre" :disabled="isFilled" placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="!isFilled">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Apellido</label>
-                    <input x-model="formData.apellido" :disabled="isFilled" placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input x-model="formData.apellido" :disabled="isFilled" placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="!isFilled">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
@@ -123,7 +125,7 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">DNI</label>
-                    <input x-model="formData.documento" :disabled="isFilled" placeholder="dni" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input x-model="formData.documento" :disabled="isFilled" placeholder="dni" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" :required="!isFilled">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
@@ -146,7 +148,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex items-center gap-2 col-span-2">
-                    <input id="asiste" name="asiste_a_institucion" type="checkbox" :checked="isFilled" :class="isFilled ? 'pointer-events-none' : ''" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                    <input id="asiste" name="asiste_a_institucion" type="checkbox" :checked="isFilled" class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 pointer-events-none">
                     <label for="asiste" class="text-sm font-medium text-gray-700">Asiste a esta institución</label>
                 </div>
                 <div class="flex flex-col">
@@ -175,22 +177,27 @@
 <script>
     function familiarForm() {
         return {
-            parentesco: '{{ old('parentesco','padre') }}',
+            parentesco: '{{ old('parentesco', $familiarData['parentesco'] ?? 'padre') }}',
+            
             searchQuery: '',
             results: [],
             selected: null,
+
             formData: {
-                nombre: '{{ old('nombre') }}',
-                apellido: '{{ old('apellido') }}',
-                documento: '{{ old('documento') }}',
-                fecha_nacimiento: '{{ old('fecha_nacimiento') }}',
-                edad: '{{ old('edad') }}',
-                domicilio: '{{ old('domicilio') }}',
-                nacionalidad: '{{ old('nacionalidad') }}',
-                telefono_personal: '{{ old('telefono_personal') }}',
-                telefono_laboral: '{{ old('telefono_laboral') }}',
-                lugar_de_trabajo: '{{ old('lugar_de_trabajo') }}'
+                nombre: '{{ old('nombre', $familiarData['nombre'] ?? '') }}',
+                apellido: '{{ old('apellido', $familiarData['apellido'] ?? '') }}',
+                documento: '{{ old('documento', $familiarData['dni'] ?? '') }}', 
+                fecha_nacimiento: '{{ old('fecha_nacimiento', $familiarData['fecha_nacimiento'] ?? '') }}',
+                edad: '{{ old('edad', $familiarData['edad'] ?? '') }}',
+                domicilio: '{{ old('domicilio', $familiarData['domicilio'] ?? '') }}',
+                nacionalidad: '{{ old('nacionalidad', $familiarData['nacionalidad'] ?? '') }}',
+                telefono_personal: '{{ old('telefono_personal', $familiarData['telefono_personal'] ?? '') }}',
+                telefono_laboral: '{{ old('telefono_laboral', $familiarData['telefono_laboral'] ?? '') }}',
+                lugar_de_trabajo: '{{ old('lugar_de_trabajo', $familiarData['lugar_de_trabajo'] ?? '') }}'
             },
+
+            editIndex: '{{ $familiarData['edit_familiar_index'] ?? '' }}',
+
             get isFilled(){ return this.selected !== null; },
             field(key) {
                 if (this.selected) {
