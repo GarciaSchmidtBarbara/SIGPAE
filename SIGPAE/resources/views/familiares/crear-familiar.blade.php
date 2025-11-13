@@ -23,8 +23,8 @@
                     name="otro_parentesco"
                     x-model="formData.otro_parentesco"
                     value="{{ old('otro_parentesco') }}"
-                    @input="limpiarError('otro_parentesco')"
-                    @input="formData.otro_parentesco = formData.otro_parentesco.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                    :disabled="parentesco !== 'otro'"
+                    @input="limpiarError('otro_parentesco'); formData.otro_parentesco = formData.otro_parentesco.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                     placeholder="Especificar"
                     class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 <span class="text-red-500">*</span>
