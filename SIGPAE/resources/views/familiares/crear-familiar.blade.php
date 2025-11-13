@@ -1,11 +1,10 @@
 @extends('layouts.base')
 
-@section('encabezado', 'Crear Familiar')}
+@section('encabezado', 'Crear Familiar')
 
 @section('contenido')
-<div x-data="familiarForm()">
-    <form method="POST" action="{{ route('familiares.storeAndReturn') }}" @submit.prevent="validarYGuardar" novalidate x-ref="form"
->
+<div x-data="familiarForm()" x-cloak> <!--lo envuelvo con xcloak porque el form depende de alpine-->
+    <form method="POST" action="{{ route('familiares.storeAndReturn') }}" @submit.prevent="validarYGuardar" novalidate x-ref="form" x-init="init()">
         @csrf
 
         <input type="hidden" name="edit_familiar_index" :value="editIndex">
@@ -67,7 +66,8 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
-                    <input name="fecha_nacimiento" x-model="formData.fecha_nacimiento" type="date" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="errors.fecha_nacimiento = ''; calcularEdad()">
+                    <input name="fecha_nacimiento" x-model="formData.fecha_nacimiento" type="date"  :max="new Date().toISOString().split('T')[0]"
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="errors.fecha_nacimiento = ''; calcularEdad()">
                     <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
@@ -125,7 +125,8 @@
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
-                    <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" placeholder="dd/mm/aaaa" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="calcularEdad()">
+                    <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" :max="new Date().toISOString().split('T')[0]" placeholder="dd/mm/aaaa"
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="calcularEdad()">
                     <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
@@ -200,7 +201,8 @@
 
         <div class="mt-4">
             <label class="text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-            <textarea name="observaciones" rows="3" class="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">{{ old('observaciones') }}</textarea>
+            <textarea name="observaciones" x-model="formData.observaciones" rows="3"
+                class="w-full border px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">{{ old('observaciones') }}</textarea>
         </div>
 
         <div class="fila-botones mt-8">
@@ -229,7 +231,8 @@
                 nacionalidad: '{{ old('nacionalidad', $familiarData['nacionalidad'] ?? '') }}',
                 telefono_personal: '{{ old('telefono_personal', $familiarData['telefono_personal'] ?? '') }}',
                 telefono_laboral: '{{ old('telefono_laboral', $familiarData['telefono_laboral'] ?? '') }}',
-                lugar_de_trabajo: '{{ old('lugar_de_trabajo', $familiarData['lugar_de_trabajo'] ?? '') }}'
+                lugar_de_trabajo: '{{ old('lugar_de_trabajo', $familiarData['lugar_de_trabajo'] ?? '') }}',
+                observaciones: '{{ old('observaciones', $familiarData['observaciones'] ?? '') }}',
             },
 
             editIndex: '{{ $familiarData['edit_familiar_index'] ?? '' }}',
@@ -300,7 +303,7 @@
                 $el.closest('form').submit();
             },
 
-            
+
             dniError: '',
 
             async checkDni() {
@@ -404,6 +407,12 @@
                 }
 
                 const hoy = new Date();
+
+                if (fechaNac > hoy) {
+                    this.formData.edad = 0;
+                    this.formData.fecha_nacimiento = hoy.toISOString().split('T')[0];
+                    return;
+                }
                 let edadCalc = hoy.getFullYear() - fechaNac.getFullYear();
                 const mes = hoy.getMonth() - fechaNac.getMonth();
                 
@@ -411,8 +420,14 @@
                     edadCalc--;
                 }
                 this.formData.edad = edadCalc;
+            },
+
+            init() {
+                if (this.formData.fecha_nacimiento) {
+                    this.calcularEdad();
+                }
             }
-        }
+                    }
     }
 </script>
 @endsection
