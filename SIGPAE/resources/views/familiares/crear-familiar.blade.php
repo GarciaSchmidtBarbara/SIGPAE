@@ -27,12 +27,12 @@
         <div x-show="parentesco!=='hermano'" x-cloak class="space-y-4 mt-3">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">DNI</label>
-                    
+                    <x-campo-requerido text="DNI" required />
                     <input name="documento" 
                         x-model="formData.documento"
                         placeholder="dni familiar" 
-                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"                       
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        @input="formData.documento = formData.documento.replace(/[^0-9]/g, '')"                      
                         @input.debounce.500ms="checkDni()"
                         @input="limpiarError('documento')"
                         :class="{ 'border-red-500 text-red-700': dniError }">                    
@@ -40,50 +40,58 @@
                     <div x-show="errors.documento" x-text="errors.documento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                    <input name="nombre" x-model="formData.nombre" placeholder="nombre_familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="limpiarError('nombre')">
+                    <x-campo-requerido text="Nombre" required />
+                    <input name="nombre" x-model="formData.nombre" @input="formData.nombre = formData.nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+
+                        placeholder="nombre_familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="limpiarError('nombre')">
                     <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Apellido</label>
-                    <input name="apellido" x-model="formData.apellido" placeholder="apellido_familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="limpiarError('apellido')">
+                    <x-campo-requerido text="Apellido" required />
+                    <input name="apellido" x-model="formData.apellido" @input="formData.apellido = formData.apellido.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        placeholder="apellido_familiar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="limpiarError('apellido')">
                     <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Teléfono personal</label>
-                    <input name="telefono_personal" x-model="formData.telefono_personal" placeholder="221-123456" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
+                    <input name="nacionalidad" x-model="formData.nacionalidad" @input="formData.nacionalidad = formData.nacionalidad.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        placeholder="Argentina" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Domicilio</label>
-                    <input name="domicilio" x-model="formData.domicilio" placeholder="domicilio" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="domicilio" x-model="formData.domicilio" placeholder="domicilio" @input="formData.domicilio = formData.domicilio.replace(/[^a-zA-Z0-9\s]/g, '')"
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Lugar de trabajo</label>
-                    <input name="lugar_de_trabajo" x-model="formData.lugar_de_trabajo" placeholder="nombre_trabajo" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="lugar_de_trabajo" x-model="formData.lugar_de_trabajo" @input="formData.lugar_de_trabajo = formData.lugar_de_trabajo.replace(/[^a-zA-Z0-9\s]/g, '')"
+                        placeholder="nombre_trabajo" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
+                    <x-campo-requerido text="Fec. Nacimiento" required />
                     <input name="fecha_nacimiento" x-model="formData.fecha_nacimiento" type="date"  :max="new Date().toISOString().split('T')[0]"
                         class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="errors.fecha_nacimiento = ''; calcularEdad()">
                     <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Teléfono laboral</label>
-                    <input name="telefono_laboral" x-model="formData.telefono_laboral" placeholder="221-123456" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
+                    <input name="edad" x-model="formData.edad" placeholder="edad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-100 text-gray-700">
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
-                    <input name="edad" x-model="formData.edad" placeholder="edad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Teléfono personal</label>
+                    <input name="telefono_personal" x-model="formData.telefono_personal" @input="formData.telefono_personal = formData.telefono_personal.replace(/[^0-9+\-\s]/g, '')"
+                        placeholder="221-123456" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
-                    <input name="nacionalidad" x-model="formData.nacionalidad" placeholder="Argentina" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Teléfono laboral</label>
+                    <input name="telefono_laboral" x-model="formData.telefono_laboral" @input="formData.telefono_laboral = formData.telefono_laboral.replace(/[^0-9+\-\s]/g, '')"
+                        placeholder="221-123456" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>
         </div>
@@ -114,39 +122,13 @@
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                    <input x-model="formData.nombre" :disabled="isFilled" placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Apellido</label>
-                    <input x-model="formData.apellido" :disabled="isFilled" placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Fec. Nacimiento</label>
-                    <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" :max="new Date().toISOString().split('T')[0]" placeholder="dd/mm/aaaa"
-                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="calcularEdad()">
-                    <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
-                    <input x-model="formData.edad" :disabled="isFilled" placeholder="edad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">Domicilio</label>
-                    <input x-model="formData.domicilio" :disabled="isFilled" placeholder="domicilio" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-sm font-medium text-gray-700 mb-1">DNI</label>
+                    <x-campo-requerido text="DNI" required />
                     <input 
                         x-model="formData.documento"
                         :disabled="isFilled"
                         placeholder="dni"
                         class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        @input="formData.documento = formData.documento.replace(/[^0-9]/g, '')"     
                         @input.debounce.500ms="checkDni()"
                         @input="limpiarError('documento')"
                         :class="{ 'border-red-500 text-red-700': dniError }"
@@ -155,8 +137,39 @@
                     <div x-show="errors.documento" x-text="errors.documento" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col">
+                    <x-campo-requerido text="Nombre" required />
+                    <input x-model="formData.nombre" :disabled="isFilled" @input="formData.nombre = formData.nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
+                </div>
+                <div class="flex flex-col">
+                    <x-campo-requerido text="Apellido" required />
+                    <input x-model="formData.apellido" :disabled="isFilled" @input="formData.apellido = formData.apellido.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
+                </div>
+                <div class="flex flex-col">
                     <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
-                    <input x-model="formData.nacionalidad" :disabled="isFilled" placeholder="nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input x-model="formData.nacionalidad" :disabled="isFilled"  @input="formData.nacionalidad = formData.nacionalidad.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        placeholder="nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Domicilio</label>
+                    <input x-model="formData.domicilio" :disabled="isFilled" placeholder="domicilio" @input="formData.domicilio = formData.domicilio.replace(/[^a-zA-Z0-9\s]/g, '')"
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex flex-col">
+                    <x-campo-requerido text="Fec. Nacimiento" required />
+                    <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" :max="new Date().toISOString().split('T')[0]" placeholder="dd/mm/aaaa"
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="calcularEdad()">
+                    <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
+                    <input x-model="formData.edad" :disabled="isFilled" placeholder="edad"  class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-100 text-gray-700">
                 </div>
             </div>
 
