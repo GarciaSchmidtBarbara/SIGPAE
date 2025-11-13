@@ -3,35 +3,35 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 
-class PasswordController extends Controller {
-    public function showChangePasswordForm() {
-    return view('auth.change-password');
-}
+class PasswordController extends Controller
+{
+    public function update(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'current_password' => ['required'],
+            'password' => ['required', 'confirmed', 'min:8'],
+        ], [
+            'current_password.required' => 'Debe ingresar su contraseña actual.',
+            'password.required' => 'Debe ingresar una nueva contraseña.',
+            'password.confirmed' => 'La confirmación no coincide con la nueva contraseña.',
+            'password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
+        ]);
 
-public function changePassword(Request $request) {
-    $request->validate([
-        'current_password' => 'required|string',
-        'new_password' => 'required|string|confirmed|min:8',
-    ],[
-        'current_password' => 'Debes ingresar tu contraseña actual.',
-        'new_password.required' => 'Debes ingresar la nueva contraseña.',
-        'new_password.confirmed' => 'La confirmación de la nueva contraseña no coincide.',
-        'new_password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
-    ]);
+        $prof = Auth::user();
 
-    $user = Auth::user();
+        if (!Hash::check($request->current_password, $prof->contrasenia)) {
+            return back()->with('error', 'La contraseña actual no es correcta.')->withInput();
+        }
 
-    if(!Hash::check($request->current_password, $user->contrasenia)) {
-        return back()->withErrors(['current_password' => 'la contraseña actual es incorrecta.']);
+        $prof->contrasenia = Hash::make($request->password);
+        $prof->save();
+
+        return back()->with('success', 'Tu contraseña fue cambiada correctamente.');
     }
-
-    $user->contrasenia = Hash::make($request->new_password);
-    $user->save();
-
-    return back()->with('status', 'Contraseña actualizada con exito.');
-}
 }

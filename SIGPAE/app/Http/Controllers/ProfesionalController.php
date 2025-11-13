@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Services\Interfaces\ProfesionalServiceInterface;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
+
 use Illuminate\Http\Request;
 use App\Models\Profesional;
+
 
 class ProfesionalController extends Controller {
     protected $profesionalService;
@@ -89,4 +92,56 @@ class ProfesionalController extends Controller {
         }
         return response()->json(['message' => 'Profesional no encontrado'], 404);
     }
+
+    public function perfil()
+    {
+        // Obtener el profesional logueado con su relación 'persona'
+        $prof = auth()->user();
+        return view('perfil.principal', compact('prof'));
+    }
+
+    public function actualizarPerfil(Request $request)
+    {
+        $prof = auth()->user()->load('persona');
+
+        $validator = Validator::make($request->all(), [
+            'nombre'    => 'required|string|max:255',
+            'apellido'  => 'required|string|max:255',
+            'profesion' => 'required|string|max:255',
+            'siglas'    => 'required|string|max:10',
+            'usuario'   => 'required|string|max:50|unique:profesionales,usuario,' . $prof->id_profesional . ',id_profesional',
+            'email'     => 'required|email|max:255|unique:profesionales,email,' . $prof->id_profesional . ',id_profesional',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->back()
+            ->with('errors', 'error al actualizar datos.')
+            ->withErros($validator)
+            ->withInputs();
+        }
+
+        try {
+            // Actualizar persona
+            $prof->persona->update([
+                'nombre'   => $validated['nombre'],
+                'apellido' => $validated['apellido'],
+            ]);
+            // Actualizar profesional
+            $prof->update([
+                'profesion' => $validated['profesion'],
+                'siglas'    => $validated['siglas'],
+                'usuario'   => $validated['usuario'],
+                'email'     => $validated['email'],
+            ]);
+            // Si querés que responda con JSON (por ejemplo, si usás fetch/Axios)
+            // return response()->json(['message' => 'Perfil actualizado correctamente.']);
+
+            // O si lo usás con un form tradicional:
+            return redirect()->back()->with('success', 'Perfil actualizado correctamente.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return redirect()->back()->with('error', 'Error al actualizar el perfil.');
+        }
+    }
+
 }

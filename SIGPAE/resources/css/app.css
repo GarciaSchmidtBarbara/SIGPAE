@@ -99,7 +99,7 @@
     }
 
     .form-input {
-        @apply border border-gray-300 rounded-lg py-1 px-2 text-gray-500
+        @apply border border-gray-300 rounded-lg py-1 px-2 text-gray-500 w-full mb-2
     }
     .form-input:hover {
         @apply border-gray-300 text-black
