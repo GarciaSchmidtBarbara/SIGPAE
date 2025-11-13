@@ -1,46 +1,8 @@
 @extends('layouts.base')
 
-@section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Alumno' : 'Crear Alumno')
+@section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Usuario' : 'Crear Usuario')
 
 @section('contenido')
-
-{{-- Mensajes de estado --}}
-    @if (session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {{ session('error') }}
-        </div>
-    @endif
-
-@php
-    $esEdicion = isset($modo) && $modo === 'editar' && isset($alumno);
-    $inactivo = $esEdicion ? ($alumno->persona->activo === false) : false;
-@endphp
-
-<div class="mt-4 my-4 flex justify-between items-center">
-    <div class="text-sm text-red-600 min-h-[1.5rem]">
-        @if($esEdicion && $inactivo)
-            <p>Este alumno está inactivo. No se permiten modificaciones.</p>
-        @endif
-    </div>
-    <div class="flex justify-end space-x-4">
-        @if($esEdicion)
-            <x-boton-estado 
-                :activo="$alumno->persona->activo" 
-                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
-            />
-        @endif
-        <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
-    </div>
-</div>
-
-
-
 <div x-data="{
     familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
     
@@ -67,32 +29,54 @@
         }
     }
 }">
-    
+
     <form method="POST" action="{{ isset($modo) && $modo === 'editar' 
             ? route('alumnos.actualizar', $alumno->id_alumno)
             : route('alumnos.store') }}">
         @csrf
-        @if($esEdicion)
+        @if(isset($modo) && $modo === 'editar')
             @method('PUT')
         @endif
-        <fieldset {{ $inactivo ? 'disabled' : '' }}>
         <div class="space-y-8 mb-6">
-            <p class="separador">Información Personal del Alumno</p>
+            <p class="separador">Información Personal del Usuario</p>
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Documento" required />
-                    <input name="dni" value="{{ $alumnoData['dni'] ?? old('dni') }}" placeholder="Documento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="dni" value="{{ $usuarioData['dni'] ?? old('dni') }}" placeholder="Documento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Nombres" required />
-                    <input name="nombre" value="{{ $alumnoData['nombre'] ?? old('nombre') }}" placeholder="Nombres" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="nombre" value="{{ $usuarioData['nombre'] ?? old('nombre') }}" placeholder="Nombres" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Apellidos" required />
-                    <input name="apellido" value="{{ $alumnoData['apellido'] ?? old('apellido') }}" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="apellido" value="{{ $usuarioData['apellido'] ?? old('apellido') }}" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
-
-                <x-campo-fecha-edad
+                <div class="flex flex-col w-1/5">
+                    <x-campo-requerido text="Nombre de Usuario" required />
+                    <input name="nombre-usuario" value="{{ $usuarioData['nombre-usuario'] ?? old('nombre-usuario') }}" placeholder="nombre_de_usuario" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex flex-col w-1/5">
+                    <x-campo-requerido text="Profesión" required />
+                    <input name="profesion" value="{{ $usuarioData['profesion'] ?? old('profesion') }}" placeholder="Profesión" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex flex-col w-1/5">
+                    <x-campo-requerido text="Siglas de Profesión" required />
+                    <input name="siglas-profesion" value="{{ $usuarioData['siglas-profesion'] ?? old('siglas-profesion') }}" placeholder="PS" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex flex-col w-1/5">
+                    <x-campo-requerido text="Email" required />
+                    <input name="email" value="{{ $usuarioData['email'] ?? old('email') }}" placeholder="email@.com" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex flex-col w-1/5">
+                    <x-campo-requerido text="Contraseña" required />
+                    <input name="contrasenia" value="{{ $usuarioData['contrasenia'] ?? old('contrasenia') }}" placeholder="Contr4S3ñ4_S3gur4" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex flex-col w-1/5">
+                    <x-campo-requerido text="Confirmar Contraseña" required />
+                    <input name="confirmar-contrasenia" value="{{ $usuarioData['confirmar-contrasenia'] ?? old('confirmar-contrasenia') }}" placeholder="Contr4S3ñ4_S3gur4" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                {{-- <x-campo-fecha-edad
                     label="Fecha de nacimiento"
                     name="fecha_nacimiento"
                     :value="old(
@@ -104,10 +88,10 @@
                     edad-name="edad"
                     :edad-value="old('edad', $alumnoData['edad'] ?? '')"
                     required
-                />
+                /> --}}
             </div>
 
-            <div class="fila-botones mt-8">
+            {{-- <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Nacionalidad" required />
                     <input name="nacionalidad" value="{{ $alumnoData['nacionalidad'] ?? old('nacionalidad') }}" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -134,10 +118,10 @@
                          :seleccion="$alumnoData['cud'] ?? old('cud', 'No')" 
                     />
                 </div>
-            </div>  
+            </div> --}}
         </div>
 
-        <div class="space-y-8 mb-6">
+        {{-- <div class="space-y-8 mb-6">
             <p class="separador">Red Familiar</p>
             
             <div class="overflow-x-auto border border-gray-200 rounded-lg">
@@ -153,7 +137,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        {{-- Bucle para mostrar familiares temporales cargados --}}
+                        Bucle para mostrar familiares temporales cargados
                         <template x-for="(familiar, index) in familyMembers" :key="index">
                             <tr>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
@@ -173,15 +157,15 @@
                     </tbody>
                 </table>
             </div>
-            {{--
+            
                 ACCIÓN CLAVE: Aquí se debe enviar la data del formulario actual al controller (GET o POST)
                 para que el controller guarde la data del alumno en la sesión
                 y luego redirija a route('familiares.create') FALTA IMPLEMENTAR LA  LOGICA DE GUARDADO EN SESSION
-            --}}
+            
                         <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
-        </div>
+        </div> --}}
 
-        <div class="space-y-8 mb-6">
+        {{-- <div class="space-y-8 mb-6">
             <p class="separador">Situación Integral</p>
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación socioeconómica </label>
             <textarea name="situacion_socioeconomica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_socioeconomica'] ?? old('situacion_socioeconomica') }}</textarea>
@@ -206,8 +190,11 @@
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
             <textarea name="observaciones" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['observaciones'] ?? old('observaciones') }}</textarea>      
+        </div> --}}
+
+        <div class="space-y-8">
         </div>
-        </fieldset>
+
        
         <div class="space-y-8">
             <p class="separador">Documentación</p>
@@ -235,28 +222,10 @@
         </div>
 
         <div class="fila-botones mt-8">
-            @if(!$inactivo)
-                <button type="submit" class="btn-aceptar">Guardar</button>
-            @endif   
+            <button type="submit" class="btn-aceptar">Guardar</button>
+            <button type="button" class="btn-eliminar" >Desactivar</button>
+            <a class="btn-volver" href="{{ route('alumnos.principal') }}" >Volver</a>
         </div>
     </form>
-   
-    @if($esEdicion)
-    <div class="mt-4 my-4 flex justify-between items-center">
-        <div class="text-sm text-red-600 min-h-[1.5rem]">
-            @if($inactivo)
-                <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
-            @endif
-        </div>
-
-        <div class="flex space-x-4">
-            <x-boton-estado 
-                :activo="$alumno->persona->activo" 
-                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
-            />
-            <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
-        </div>
-    </div>
-@endif
 </div>
 @endsection

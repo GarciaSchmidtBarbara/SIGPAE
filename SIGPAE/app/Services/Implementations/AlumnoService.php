@@ -31,7 +31,8 @@ class AlumnoService implements AlumnoServiceInterface
     public function crearAlumno(array $data): Alumno
     {
         try {
-            $fecha = \DateTime::createFromFormat('d/m/Y', $data['fecha_nacimiento']);
+            $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
+            $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
             $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
 
             $persona = Persona::create([
@@ -244,4 +245,51 @@ class AlumnoService implements AlumnoServiceInterface
     {
         return strtolower(strtr(iconv('UTF-8', 'ASCII//TRANSLIT', $texto), "´`^~¨", "     "));
     }
+
+    public function actualizar(int $id, array $data): bool
+    {
+        $alumno = $this->repo->buscarPorId($id);
+        if (!$alumno) {
+            throw new \Exception('Alumno no encontrado.');
+        }
+        // Bloquear edición si la persona está inactiva
+        if (($alumno->persona->activo ?? false) === false) {
+            throw new \Exception('No se puede modificar un alumno inactivo.');
+        }
+        $persona = $alumno->persona;
+        $persona->update([
+            'dni' => $data['dni'] ?? $persona->dni,
+            'nombre' => $data['nombre'] ?? $persona->nombre,
+            'apellido' => $data['apellido'] ?? $persona->apellido,
+            'fecha_nacimiento' => $data['fecha_nacimiento'] ?? $persona->fecha_nacimiento,
+            'nacionalidad' => $data['nacionalidad'] ?? $persona->nacionalidad,
+        ]);
+
+        // actualizar aula
+        if (!empty($data['aula']) && str_contains($data['aula'], '°')) {
+            [$curso, $division] = explode('°', $data['aula']);
+            $aula = \App\Models\Aula::where('curso', $curso)
+                ->where('division', $division)
+                ->first();
+            if ($aula) {
+                $alumno->fk_id_aula = $aula->id_aula;
+            }
+        }
+
+        $alumno->fill([
+            'inasistencias' => $data['inasistencias'] ?? $alumno->inasistencias,
+            'cud' => ($data['cud'] ?? 'No') === 'Sí' ? 1 : 0,
+            'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
+            'situacion_familiar' => $data['situacion_familiar'] ?? null,
+            'situacion_medica' => $data['situacion_medica'] ?? null,
+            'situacion_escolar' => $data['situacion_escolar'] ?? null,
+            'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
+            'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
+            'antecedentes' => $data['antecedentes'] ?? null,
+            'observaciones' => $data['observaciones'] ?? null,
+        ]);
+
+        return $alumno->save();
+    }
+
 }

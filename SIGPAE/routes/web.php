@@ -3,18 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-//use App\Http\Controllers\Auth\LoginController;
-//use App\Http\Controllers\Auth\PasswordController;
-//use App\Http\Controllers\Auth\ForgotPasswordController;
-
 
 require __DIR__.'/auth.php';
-// Página de inicio → formulario de login
-//Route::get('/', [LoginController::class, 'showLoginForm'])->name('login.form');
-
-// Rutas de autenticación
-//Route::post('/login', [LoginController::class, 'login']);
-//Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Ruta protegida
 Route::get('/welcome', function () {
@@ -40,6 +30,24 @@ Route::get('/planillas', function () {
     return view('planillas.principal');
 })->middleware('auth')->name('planillas.principal');
 
+// Subrutas de creación de planillas (usadas por planillas.principal)
+Route::prefix('planillas')->middleware('auth')->group(function () {
+    Route::get('/acta-equipo-indisciplinario/crear', function () {
+        return view('planillas.acta-equipo-indisciplinario');
+    })->name('planillas.acta-equipo-indisciplinario.create');
+
+    Route::get('/acta-reunion-trabajo/crear', function () {
+        return view('planillas.acta-reunion-trabajo');
+    })->name('planillas.acta-reunion-trabajo.create');
+
+    Route::get('/acta-reuniones-banda/crear', function () {
+        return view('planillas.acta-reuniones-banda');
+    })->name('planillas.acta-reuniones-banda.create');
+
+    Route::get('/planilla-medial/crear', function () {
+        return view('planillas.planilla-medial');
+    })->name('planillas.planilla-medial.create');
+});
 
 //Rutas Alumnos
 use App\Http\Controllers\AlumnoController;
@@ -49,6 +57,9 @@ Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store
 Route::post('/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
 Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos.store');
+Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
+Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
+
 
 
 //Rutas familiares
@@ -63,6 +74,7 @@ Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('al
 // Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;
 Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
+Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->name('usuarios.crear-editar');
 
 
 //Ruta Perfil

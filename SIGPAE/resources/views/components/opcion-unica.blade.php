@@ -1,7 +1,8 @@
 @props([
     'layout' => 'vertical',
     'items' => [],
-    'name' => ''
+    'name' => '',
+    'seleccion' => null,
 ])
 
 <div class="custom-radio-group {{ $layout === 'horizontal' ? 'flex gap-4 flex-wrap items-center' : 'space-y-2' }}">
@@ -11,7 +12,7 @@
                    class="custom-radio"
                    name="{{ $name }}"
                    value="{{ $item }}"
-                   {{ old($name) === $item ? 'checked' : '' }}
+                   {{ old($name, $seleccion) == $item ? 'checked' : '' }}
                    
                    {{ $attributes->whereStartsWith('x-model') }} 
                    >

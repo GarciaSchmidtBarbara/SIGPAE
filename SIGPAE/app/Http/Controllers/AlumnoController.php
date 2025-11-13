@@ -43,6 +43,18 @@ class AlumnoController extends Controller
 
     public function store(Request $request)
     {
+        request->validate([
+            'dni' => 'required|numeric',
+            'nombre' => 'required|string|max:191',
+            'apellido' => 'required|string|max:191',
+            'fecha_nacimiento' => 'required|date',
+            'nacionalidad' => 'required|string|max:191',
+            'aula' => 'required|string',
+        ], [
+            'required' => 'Este campo es obligatorio.',
+            'date' => 'Debe ingresar una fecha válida.',
+            'numeric' => 'Debe ingresar un número válido.',
+        ]);
         try {
             $familiaresTemp = Session::get('familiares_temp', []);
             $alumno = $this->alumnoService->crearAlumnoConFamiliares($request->all(), $familiaresTemp);
@@ -121,5 +133,51 @@ class AlumnoController extends Controller
 
         return redirect()->route('familiares.create');
     }
+
+    public function editar(int $id)
+    {
+        $alumno = $this->alumnoService->obtener($id);
+        if (!$alumno) {
+            return redirect()->route('alumnos.principal')->with('error', 'Alumno no encontrado.');
+        }
+
+        $cursos = $this->alumnoService->obtenerCursos();
+
+        // Convertir datos del modelo en un array simple para la vista
+        $alumnoData = [
+            'dni' => $alumno->persona->dni,
+            'nombre' => $alumno->persona->nombre,
+            'apellido' => $alumno->persona->apellido,
+            'fecha_nacimiento' => $alumno->persona->fecha_nacimiento,
+            'nacionalidad' => $alumno->persona->nacionalidad,
+            'aula' => $alumno->aula->descripcion,
+            'inasistencias' => $alumno->inasistencias,
+            'cud' => $alumno->cud ? 'Sí' : 'No',
+            'situacion_socioeconomica' => $alumno->situacion_socioeconomica,
+            'situacion_familiar' => $alumno->situacion_familiar,
+            'situacion_medica' => $alumno->situacion_medica,
+            'situacion_escolar' => $alumno->situacion_escolar,
+            'actividades_extraescolares' => $alumno->actividades_extraescolares,
+            'intervenciones_externas' => $alumno->intervenciones_externas,
+            'antecedentes' => $alumno->antecedentes,
+            'observaciones' => $alumno->observaciones,
+        ];
+
+        return view('alumnos.crear-editar', compact('alumnoData', 'cursos', 'alumno'))
+            ->with('modo', 'editar');
+    }
+
+    public function actualizar(Request $request, int $id): RedirectResponse
+    {
+        try {
+            $this->alumnoService->actualizar($id, $request->all());
+            return redirect()->route('alumnos.principal')->with('success', 'Alumno actualizado correctamente.');
+        } catch (\Throwable $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', $e->getMessage());
+        }
+    }
+
 
 }

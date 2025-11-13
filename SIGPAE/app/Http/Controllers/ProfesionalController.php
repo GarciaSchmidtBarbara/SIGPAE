@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Services\Interfaces\ProfesionalServiceInterface;
+use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 
 use Illuminate\Http\Request;
 use App\Models\Profesional;
+use App\Enums\Siglas;
 
 
 class ProfesionalController extends Controller {
@@ -19,34 +21,10 @@ class ProfesionalController extends Controller {
     }
 
     public function vista(Request $request) {
-        $query = Profesional::with('persona');
-
-        if ($request->filled('nombre')) {
-            $nombre = strtolower($this->quitarTildes($request->nombre));
-            $query->whereHas('persona', function ($q) use ($nombre) {
-                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"]);
-            });
-        }
-
-       if ($request->filled('apellido')) {
-            $apellido = strtolower($this->quitarTildes($request->apellido));
-            $query->whereHas('persona', function ($q) use ($apellido) {
-                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"]);
-            });
-        }
-
-        if ($request->filled('documento')) {
-            $query->whereHas('persona', fn($q) => $q->where('dni', 'like', '%' . $request->documento . '%'));
-        }
-
-        if ($request->filled('profesion')) {
-            $profesion_siglas = $request->profesion;
-            $query->where('siglas', $profesion_siglas);
-        }
-
-        $usuarios = $query->get();
+        $usuarios = $this->profesionalService->filtrar($request);
+        $siglas = $this->profesionalService->obtenerTodasLasSiglas();
         
-        return view('usuarios.principal', compact('usuarios'));
+        return view('usuarios.principal', compact('usuarios', 'siglas'));
     }
 
     public function index(): JsonResponse {
@@ -72,6 +50,13 @@ class ProfesionalController extends Controller {
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
+    }
+
+    public function crearEditar() {
+        $siglas = collect(Siglas::cases())->map(fn($sigla) => $sigla->value);
+        $usuarioData = Session::get('usuario_temp', []);
+        
+        return view('usuarios.crear-editar', compact('usuarioData', 'siglas'));
     }
 
     public function update(Request $request, int $id): JsonResponse {
