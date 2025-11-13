@@ -3,6 +3,44 @@
 @section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Alumno' : 'Crear Alumno')
 
 @section('contenido')
+
+{{-- Mensajes de estado --}}
+    @if (session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
+
+@php
+    $esEdicion = isset($modo) && $modo === 'editar' && isset($alumno);
+    $inactivo = $esEdicion ? ($alumno->persona->activo === false) : false;
+@endphp
+
+<div class="mt-4 my-4 flex justify-between items-center">
+    <div class="text-sm text-red-600 min-h-[1.5rem]">
+        @if($esEdicion && $inactivo)
+            <p>Este alumno está inactivo. No se permiten modificaciones.</p>
+        @endif
+    </div>
+    <div class="flex justify-end space-x-4">
+        @if($esEdicion)
+            <x-boton-estado 
+                :activo="$alumno->persona->activo" 
+                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
+            />
+        @endif
+        <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
+    </div>
+</div>
+
+
+
 <div x-data="{
     familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
     
@@ -29,14 +67,15 @@
         }
     }
 }">
-
+    
     <form method="POST" action="{{ isset($modo) && $modo === 'editar' 
             ? route('alumnos.actualizar', $alumno->id_alumno)
             : route('alumnos.store') }}">
         @csrf
-        @if(isset($modo) && $modo === 'editar')
+        @if($esEdicion)
             @method('PUT')
         @endif
+        <fieldset {{ $inactivo ? 'disabled' : '' }}>
         <div class="space-y-8 mb-6">
             <p class="separador">Información Personal del Alumno</p>
             <div class="fila-botones mt-8">
@@ -168,10 +207,7 @@
             <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
             <textarea name="observaciones" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['observaciones'] ?? old('observaciones') }}</textarea>      
         </div>
-
-        <div class="space-y-8">
-        </div>
-
+        </fieldset>
        
         <div class="space-y-8">
             <p class="separador">Documentación</p>
@@ -199,10 +235,28 @@
         </div>
 
         <div class="fila-botones mt-8">
-            <button type="submit" class="btn-aceptar">Guardar</button>
-            <button type="button" class="btn-eliminar" >Desactivar</button>
-            <a class="btn-volver" href="{{ route('alumnos.principal') }}" >Volver</a>
+            @if(!$inactivo)
+                <button type="submit" class="btn-aceptar">Guardar</button>
+            @endif   
         </div>
     </form>
+   
+    @if($esEdicion)
+    <div class="mt-4 my-4 flex justify-between items-center">
+        <div class="text-sm text-red-600 min-h-[1.5rem]">
+            @if($inactivo)
+                <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
+            @endif
+        </div>
+
+        <div class="flex space-x-4">
+            <x-boton-estado 
+                :activo="$alumno->persona->activo" 
+                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
+            />
+            <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
+        </div>
+    </div>
+@endif
 </div>
 @endsection
