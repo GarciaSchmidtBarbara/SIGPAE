@@ -18,7 +18,20 @@
                     <span>{{ $label }}</span>
                 </label>
             @endforeach
-            <input x-show="parentesco==='otro'" x-transition name="otro_parentesco" value="{{ old('otro_parentesco') }}" placeholder="Especificar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div x-show="parentesco==='otro'" x-transition class="flex items-center gap-1">
+                <input
+                    name="otro_parentesco"
+                    x-model="formData.otro_parentesco"
+                    value="{{ old('otro_parentesco') }}"
+                    @input="limpiarError('otro_parentesco')"
+                    @input="formData.otro_parentesco = formData.otro_parentesco.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                    placeholder="Especificar"
+                    class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <span class="text-red-500">*</span>
+            </div>
+            <template x-if="errors.otro_parentesco">
+                <p class="text-red-500 text-sm mt-1" x-text="errors.otro_parentesco"></p>
+            </template>
         </div>
 
         <p class="separador mt-6">Información Personal del Familiar</p>
@@ -232,7 +245,7 @@
             
             searchQuery: '',
             results: [],
-            selected: null,
+            selected: {{ isset($familiarData['persona']) ? json_encode($familiarData['persona']) : 'null' }},
 
             formData: {
                 nombre: '{{ old('nombre', $familiarData['nombre'] ?? '') }}',
@@ -246,6 +259,7 @@
                 telefono_laboral: '{{ old('telefono_laboral', $familiarData['telefono_laboral'] ?? '') }}',
                 lugar_de_trabajo: '{{ old('lugar_de_trabajo', $familiarData['lugar_de_trabajo'] ?? '') }}',
                 observaciones: '{{ old('observaciones', $familiarData['observaciones'] ?? '') }}',
+                otro_parentesco: '{{ old('otro_parentesco', $familiarData['otro_parentesco'] ?? '') }}'
             },
 
             editIndex: '{{ $familiarData['edit_familiar_index'] ?? '' }}',
@@ -254,7 +268,8 @@
                 nombre: '',
                 apellido: '',
                 documento: '',
-                fecha_nacimiento: ''
+                fecha_nacimiento: '',
+                otro_parentesco: ''
             },
 
             async validarYGuardar($el) {
@@ -284,6 +299,13 @@
                         errorEncontrado = true;
                     }
                 }
+
+                if (this.parentesco === 'otro' && (!this.formData.otro_parentesco || this.formData.otro_parentesco.trim() === '')) {
+                    this.errors.otro_parentesco = 'Debe especificar el parentesco.';
+                    errorEncontrado = true;
+                }
+
+                console.log('Errores detectados:', this.errors, 'DNI Error:', this.dniError);
 
                 if (errorEncontrado || this.dniError) {
                     return; // detenemos aquí
@@ -320,53 +342,53 @@
             dniError: '',
 
             async checkDni() {
-            if (this.parentesco === 'hermano' && this.isFilled) {
-                // Es hermano ya cargado como alumno → no validar
-                this.dniError = '';
-                return;
-            }
-
-            const dni = this.formData.documento.trim();
-
-            // Si el campo está vacío, limpiamos error y salimos
-            if (!dni) {
-                this.dniError = '';
-                this.dniDisponible = true;
-                return;
-            }
-
-            // Limpiamos el error antes de la nueva llamada
-            this.dniError = '';
-
-            try {
-                const response = await fetch('{{ route('personas.check-dni') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        dni: dni,
-                        edit_index: this.editIndex,
-                        context: 'familiar'
-                    })
-                });
-
-                const disponible = await response.json();
-
-                if (!disponible) {
-                    this.dniError = 'El DNI ya está registrado o en uso.';
-                } else {
+                if (this.parentesco === 'hermano' && this.isFilled) {
+                    // Es hermano ya cargado como alumno → no validar
                     this.dniError = '';
+                    return;
                 }
 
-            } catch (e) {
-                console.error('Error en fetch:', e);
-                this.dniError = 'No se pudo conectar con el servidor para validar.';
-                this.dniDisponible = false;
-            }
-        },
+                const dni = this.formData.documento.trim();
+
+                // Si el campo está vacío, limpiamos error y salimos
+                if (!dni) {
+                    this.dniError = '';
+                    this.dniDisponible = true;
+                    return;
+                }
+
+                // Limpiamos el error antes de la nueva llamada
+                this.dniError = '';
+
+                try {
+                    const response = await fetch('{{ route('personas.check-dni') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            dni: dni,
+                            edit_index: this.editIndex,
+                            context: 'familiar'
+                        })
+                    });
+
+                    const disponible = await response.json();
+
+                    if (!disponible) {
+                        this.dniError = 'El DNI ya está registrado o en uso.';
+                    } else {
+                        this.dniError = '';
+                    }
+
+                } catch (e) {
+                    console.error('Error en fetch:', e);
+                    this.dniError = 'No se pudo conectar con el servidor para validar.';
+                    this.dniDisponible = false;
+                }
+            },
 
             limpiarError(campo) {
                 if (this.errors[campo]) {
@@ -439,8 +461,22 @@
                 if (this.formData.fecha_nacimiento) {
                     this.calcularEdad();
                 }
+
+                @if(isset($familiarData) && ($familiarData['parentesco'] ?? '') === 'hermano')
+                    this.selected = {
+                        persona: {
+                            dni: '{{ $familiarData["dni"] ?? "" }}',
+                            nombre: '{{ $familiarData["nombre"] ?? "" }}',
+                            apellido: '{{ $familiarData["apellido"] ?? "" }}',
+                            fecha_nacimiento: '{{ $familiarData["fecha_nacimiento"] ?? "" }}',
+                            edad: '{{ $familiarData["edad"] ?? "" }}',
+                            domicilio: '{{ $familiarData["domicilio"] ?? "" }}',
+                            nacionalidad: '{{ $familiarData["nacionalidad"] ?? "" }}',
+                        }
+                    };
+                @endif
             }
-                    }
+        }
     }
 </script>
 @endsection
