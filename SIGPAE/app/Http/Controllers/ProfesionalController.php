@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Services\Interfaces\ProfesionalServiceInterface;
+use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Profesional;
+use App\Enums\Siglas;
 
 class ProfesionalController extends Controller {
     protected $profesionalService;
@@ -45,6 +47,13 @@ class ProfesionalController extends Controller {
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
+    }
+
+    public function crearEditar() {
+        $siglas = collect(Siglas::cases())->map(fn($sigla) => $sigla->value);
+        $usuarioData = Session::get('usuario_temp', []);
+        
+        return view('usuarios.crear-editar', compact('usuarioData', 'siglas'));
     }
 
     public function update(Request $request, int $id): JsonResponse {
