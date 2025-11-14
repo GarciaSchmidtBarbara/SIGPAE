@@ -3,17 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\PasswordController;
-use App\Http\Controllers\Auth\ForgotPasswordController;
 
-
-// Página de inicio → formulario de login
-Route::get('/', [LoginController::class, 'showLoginForm'])->name('login.form');
-
-// Rutas de autenticación
-Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+require __DIR__.'/auth.php';
 
 // Ruta protegida
 Route::get('/welcome', function () {
@@ -58,14 +49,6 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
     })->name('planillas.planilla-medial.create');
 });
 
-//Ruta Perfil
-Route::get('/perfil', function(){
-    return view('perfil.principal');
-})->middleware('auth')->name('perfil.principal');
-Route::get('/perfil/editar', function(){
-    return view('perfil.editar');
-})->middleware('auth')->name('perfil.editar');
-
 //Rutas Alumnos
 use App\Http\Controllers\AlumnoController;
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
@@ -93,17 +76,14 @@ use App\Http\Controllers\ProfesionalController;
 Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
 Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->name('usuarios.crear-editar');
 
-//Rutas de cambio de contraseña con sesión iniciada
-Route::get('/change-password', [PasswordController::class, 'showChangePasswordForm'])->middleware('auth');
-Route::post('/change-password', [PasswordController::class, 'changePassword'])->middleware('auth')->name('password.change');
 
-//Ruta para restaurar contraseña
-Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
-Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-
-Route::get('/reset-password/{token}', [ForgotPasswordController::class, 'showResetForm'])->name('password.reset.form');
-Route::post('/reset-password', [ForgotPasswordController::class, 'resetPassword'])->name('password.update');
-
-//ruta para token
-Route::get('/enter-token', [ForgotPasswordController::class, 'showEnterTokenForm'])->name('password.enterToken');
-Route::post('/enter-token', [ForgotPasswordController::class, 'verifyToken'])->name('password.verifyToken');
+//Ruta Perfil
+use App\Http\Controllers\Auth\PasswordController;
+Route::middleware(['auth'])->group(function () {
+    Route::get('/perfil', [ProfesionalController::class, 'perfil'])
+        ->name('perfil.principal');
+    Route::put('/perfil/cambiar-contrasenia', [PasswordController::class, 'update'])
+        ->name('perfil.cambiar-contrasenia');
+    Route::post('/perfil/actualizar', [ProfesionalController::class, 'actualizarPerfil'])
+        ->name('perfil.actualizar');
+});
