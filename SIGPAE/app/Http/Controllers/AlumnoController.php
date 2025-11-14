@@ -116,6 +116,17 @@ class AlumnoController extends Controller
         );
     }
 
+    public function iniciarCreacion(): RedirectResponse
+    {
+        Session::forget('alumno_temp');
+        Session::forget('familiares_temp');
+
+        Session::forget('editando_alumno_id'); 
+
+
+        return redirect()->route('alumnos.crear-editar');
+    }
+
    public function crearEditar() {
         $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
         $familiares_temp = Session::get('familiares_temp', []);
@@ -130,6 +141,7 @@ class AlumnoController extends Controller
         // Store all form data except token in session
         $alumnoData = $request->except(['_token']);
         Session::put('alumno_temp', $alumnoData);
+        Session::put('edit_familiar_index', $request->input('edit_familiar_index'));
 
         return redirect()->route('familiares.create');
     }

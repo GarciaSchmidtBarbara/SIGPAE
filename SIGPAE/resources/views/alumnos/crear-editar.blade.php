@@ -75,6 +75,9 @@
         @if($esEdicion)
             @method('PUT')
         @endif
+
+        <input type="hidden" name="edit_familiar_index">
+
         <fieldset {{ $inactivo ? 'disabled' : '' }}>
         <div class="space-y-8 mb-6">
             <p class="separador">Información Personal del Alumno</p>
@@ -99,7 +102,7 @@
                         'fecha_nacimiento',
                         isset($alumno) && isset($alumno->persona->fecha_nacimiento)
                             ? \Illuminate\Support\Carbon::parse($alumno->persona->fecha_nacimiento)->format('Y-m-d')
-                            : ''
+                            : ($alumnoData['fecha_nacimiento'] ?? '')
                     )"
                     edad-name="edad"
                     :edad-value="old('edad', $alumnoData['edad'] ?? '')"
@@ -109,7 +112,7 @@
 
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
-                    <x-campo-requerido text="Nacionalidad" required />
+                    <p class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</p>
                     <input name="nacionalidad" value="{{ $alumnoData['nacionalidad'] ?? old('nacionalidad') }}" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
@@ -122,7 +125,7 @@
                     </select>
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <p class="text-sm font-medium text-gray-700 mb-1">Cantidad inasistencias</p>
+                    <x-campo-requerido text="Cantidad inasistencias" required />
                     <input name="inasistencias" value="{{ $alumnoData['inasistencias'] ?? old('inasistencias') }}" placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="space-y-2">
@@ -134,7 +137,7 @@
                          :seleccion="$alumnoData['cud'] ?? old('cud', 'No')" 
                     />
                 </div>
-            </div>  
+            </div>
         </div>
 
         <div class="space-y-8 mb-6">
@@ -155,14 +158,20 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {{-- Bucle para mostrar familiares temporales cargados --}}
                         <template x-for="(familiar, index) in familyMembers" :key="index">
-                            <tr>
+                            <tr @click="
+                                let form = $event.target.closest('form') ;
+                                form.querySelector('input[name=edit_familiar_index]').value = index ;
+                                form.action = '{{ route('alumnos.prepare-familiar') }}' ;
+                                form.noValidate = true;
+                                form.submit();
+                            " class="cursor-pointer hover:bg-gray-50">
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.apellido"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.dni"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.telefono_personal"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
-                                    <button @click.prevent="removeFamiliar(index)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                    <button @click.prevent.stop="removeFamiliar(index)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                         </svg>
@@ -173,12 +182,7 @@
                     </tbody>
                 </table>
             </div>
-            {{--
-                ACCIÓN CLAVE: Aquí se debe enviar la data del formulario actual al controller (GET o POST)
-                para que el controller guarde la data del alumno en la sesión
-                y luego redirija a route('familiares.create') FALTA IMPLEMENTAR LA  LOGICA DE GUARDADO EN SESSION
-            --}}
-                        <button type="submit" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
+            <button type="submit" id="btn-prepare-familiar" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
         </div>
 
         <div class="space-y-8 mb-6">

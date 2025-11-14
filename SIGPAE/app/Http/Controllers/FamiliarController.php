@@ -68,7 +68,21 @@ class FamiliarController extends Controller
 
     public function create()
     {
-        return view('familiares.crear-familiar');
+        $familiarData = [];
+        $editIndex = null;
+        $editIndex = Session::get('edit_familiar_index');
+
+        if (is_numeric($editIndex)) {
+            $familiaresTemp = Session::get('familiares_temp', []);
+
+            if (isset($familiaresTemp[$editIndex])) {
+                $familiarData = $familiaresTemp[$editIndex];
+                $familiarData['edit_familiar_index'] = $editIndex; 
+            }
+            Session::forget('edit_familiar_index');
+        }
+        
+        return view('familiares.crear-familiar', ['familiarData' => $familiarData]);
     }
 
     public function storeAndReturn(Request $request): RedirectResponse
@@ -97,10 +111,22 @@ class FamiliarController extends Controller
         
         
         $familiares_temp = Session::get('familiares_temp', []);
-        $familiares_temp[] = $tempFamiliar;
+
+        //Agrego logica de si existe el indice, y si esta en el array, guardo los datos de familiar ahi mismo
+        //sino lo agrego al final del array
+        $editIndex = $request->input('edit_familiar_index');
+        if (is_numeric($editIndex) && isset($familiares_temp[$editIndex])) {
+            $familiares_temp[$editIndex] = $tempFamiliar;
+            $message = 'Familiar actualizado en la lista temporal.';
+
+        } else {
+            $familiares_temp[] = $tempFamiliar;
+            $message = 'Familiar agregado a la lista temporal.';
+        }
+
         Session::put('familiares_temp', $familiares_temp);
         
-        return redirect()->route('alumnos.crear-editar')->with('success', 'Familiar agregado a la lista temporal.');
+        return redirect()->route('alumnos.crear-editar')->with('success', $message);
     }
 
     public function removeTempFamiliar(int $index): JsonResponse

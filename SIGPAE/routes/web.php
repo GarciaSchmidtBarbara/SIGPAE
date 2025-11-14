@@ -49,12 +49,18 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
     })->name('planillas.planilla-medial.create');
 });
 
+
+//Rutas Personas
+use App\Http\Controllers\PersonaController;
+Route::post('/personas/check-dni', [PersonaController::class, 'checkDni'])->name('personas.check-dni');
+
 //Rutas Alumnos
 use App\Http\Controllers\AlumnoController;
+Route::get('/alumnos/iniciar-creacion', [AlumnoController::class, 'iniciarCreacion'])->name('alumnos.iniciar-creacion');
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
 Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('alumnos.crear-editar');
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
-Route::post('/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
+Route::match(['POST', 'PUT'], '/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
 Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
