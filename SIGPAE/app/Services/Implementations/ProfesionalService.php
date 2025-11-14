@@ -1,16 +1,22 @@
 <?php
 
 namespace App\Services\Implementations;
-
+// Imports
+// Profesional
 use App\Repositories\Interfaces\ProfesionalRepositoryInterface;
 use App\Services\Interfaces\ProfesionalServiceInterface;
+use App\Models\Profesional;
+// Persona
 use App\Services\Interfaces\PersonaServiceInterface;
+use App\Models\Persona;
+// Illuminate
+use Illuminate\Support\Collection as ISupportCollection;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use InvalidArgumentException;
-use App\Models\Profesional;
-use App\Models\Persona;
+use App\Enums\Siglas;
 
 class ProfesionalService implements ProfesionalServiceInterface
 {
@@ -28,6 +34,39 @@ class ProfesionalService implements ProfesionalServiceInterface
     public function getProfesionalById(int $id): ?Profesional
     {
         return $this->profesionalRepository->find($id);
+    }
+
+    // Lógica de búsqueda y filtrado
+    public function filtrar(Request $request): ISupportCollection {
+        $query = Profesional::with('persona');
+
+        if ($request->filled('nombre')) {
+            $nombre = $this->normalizarTexto($request->nombre);
+            $query->whereHas('persona', fn($q) =>
+                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
+            );
+        }
+
+        if ($request->filled('apellido')) {
+            $apellido = $this->normalizarTexto($request->apellido);
+            $query->whereHas('persona', fn($q) =>
+                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"])
+            );
+        }
+
+        if ($request->filled('documento')) {
+            $query->whereHas('persona', fn($q) =>
+                $q->where('dni', 'like', '%' . $request->documento . '%')
+            );
+        }
+
+        if ($request->filled('profesion')) {
+            $query->where('siglas', $request->profesion);
+        }
+
+        $usuarios = $query->get();
+
+        return $usuarios;
     }
 
     public function createProfesional(array $data): Profesional
@@ -54,9 +93,9 @@ class ProfesionalService implements ProfesionalServiceInterface
                     throw new InvalidArgumentException('Se requiere fk_id_persona o datos de persona');
                 }
             }
-
+            
             $profesional = $this->profesionalRepository->create($profesionalFields);
-
+            
             DB::commit();
             return $profesional;
         } catch (\Exception $e) {
@@ -124,5 +163,13 @@ class ProfesionalService implements ProfesionalServiceInterface
     public function getAllProfesionalesWithPersona(): Collection
     {
         return $this->profesionalRepository->allWithPersona();
+    }
+    public function obtenerTodasLasSiglas(): ISupportCollection {
+        // Devuelve una colección con todas las siglas posibles del enum
+        return collect(Siglas::cases())->map(fn($sigla) => $sigla->value);
+    }
+
+    private function normalizarTexto(string $texto): string {
+        return strtolower(strtr(iconv('UTF-8', 'ASCII//TRANSLIT', $texto), "´`^~¨", "     "));
     }
 }

@@ -40,11 +40,12 @@
     }
 
     .btn-volver {
-        @apply inline-flex items-center pl-10 pr-4 py-2 bg-gray-300 text-gray-800 text-shadow-lg cursor-pointer rounded-md transition-all duration-200 hover:bg-gray-400 hover:shadow-md hover:scale-105 transform;
+        @apply inline-flex items-center px-[10px] py-[5px] bg-gray-300 text-gray-800 text-shadow-lg cursor-pointer rounded-md transition-all duration-200 hover:bg-gray-400 hover:shadow-md hover:scale-105 transform;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='currentColor'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 19l-7-7m0 0l7-7m-7 7h18'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: 12px center;
-        background-size: 20px 20px;
+        background-position: 8px center;
+        background-size: 18px 18px;
+        padding-left: 32px;
     }
 
     .btn-subir {
@@ -99,8 +100,9 @@
     }
 
     .form-input {
-        @apply border border-gray-300 rounded-lg py-1 px-2 text-gray-500
+        @apply border border-gray-300 rounded-lg py-1 px-2 text-gray-500 w-full mb-2
     }
+
     .form-input:hover {
         @apply border-gray-300 text-black
     }

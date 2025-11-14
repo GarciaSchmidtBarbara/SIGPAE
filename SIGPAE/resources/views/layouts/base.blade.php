@@ -114,13 +114,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- mensajes globales -->
-    @if (session('success'))
+    @if (session('success') && empty($no_global_flash))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
             {{ session('success') }}
         </div>
     @endif
 
-    @if (session('error'))
+    @if (session('error') && empty($no_global_flash))
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {{ session('error') }}
         </div>

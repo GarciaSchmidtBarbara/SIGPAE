@@ -31,7 +31,8 @@ class AlumnoService implements AlumnoServiceInterface
     public function crearAlumno(array $data): Alumno
     {
         try {
-            $fecha = \DateTime::createFromFormat('Y-m-d', $data['fecha_nacimiento'] ?? '');
+            $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
+            $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
             $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
 
             $persona = Persona::create([
@@ -271,7 +272,10 @@ class AlumnoService implements AlumnoServiceInterface
         if (!$alumno) {
             throw new \Exception('Alumno no encontrado.');
         }
-
+        // Bloquear edición si la persona está inactiva
+        if (($alumno->persona->activo ?? false) === false) {
+            throw new \Exception('No se puede modificar un alumno inactivo.');
+        }
         $persona = $alumno->persona;
         $persona->update([
             'dni' => $data['dni'] ?? $persona->dni,

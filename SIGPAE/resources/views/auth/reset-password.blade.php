@@ -2,63 +2,76 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Restablecer Contraseña</title>
+    <title>Restablecer Contraseña - SIGPAE</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
-    <div class="min-h-screen w-full bg-[radial-gradient(circle_at_top_left,_#9850CF,_#6688F6)] flex items-center justify-center">
-        <div class="bg-white py-8 px-10 w-4/9 rounded-2xl shadow-lg">
-            <p class="text-4xl pb-6 text-center font-semibold">Restablecer Contraseña</p>
+    <div class="min-h-screen w-full bg-[radial-gradient(circle_at_top_left,_#9850CF,_#6688F6)] flex items-center justify-center gap-0">
+        <div class="bg-white py-8 px-25 w-4/9 rounded-2xl shadow-lg z-10">
+            <p class="text-5xl pb-10 w-full text-center">Restablecer Contraseña</p>
 
-            @if ($errors->any())
-                <div class="text-red-500 mb-4">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+            @if (session('status'))
+                <div class="text-green-500 mb-4">
+                    {{ session('status') }}
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('password.update') }}">
+            <form method="POST" action="{{ route('password.store') }}">
                 @csrf
-                <input type="hidden" name="token" value="{{ $token }}">
 
-                <label for="email" class="block font-medium">Correo electrónico</label>
+                <!-- Token -->
+                <input type="hidden" name="token" value="{{ $request->route('token') }}">
+
+                <!-- Email -->
+                <label for="email">Correo electrónico</label><br>
                 <input 
                     type="email" 
                     name="email" 
-                    id="email" 
+                    value="{{ old('email', $request->email) }}" 
                     required 
+                    autofocus
                     class="input-form-login"
-                >
+                ><br>
 
-                <label for="password" class="block font-medium mt-4">Nueva contraseña</label>
+                <!-- Nueva contraseña -->
+                <label for="password" class="mt-4">Contraseña</label><br>
                 <input 
                     type="password" 
                     name="password" 
-                    id="password" 
-                    required 
-                    minlength="8"
+                    required
                     class="input-form-login"
-                >
+                ><br>
 
-                <label for="password_confirmation" class="block font-medium mt-4">Confirmar nueva contraseña</label>
+                <!-- Confirmar contraseña -->
+                <label for="password_confirmation" class="mt-4">Confirmar Contraseña</label><br>
                 <input 
                     type="password" 
                     name="password_confirmation" 
-                    id="password_confirmation" 
-                    required 
-                    minlength="8"
+                    required
                     class="input-form-login"
-                >
+                ><br>
 
-                <button type="submit" class="btn-ingresar mt-6">Restablecer contraseña</button>
+                @if ($errors->any())
+                    <div class="text-red-500 mt-2">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <button type="submit" class="btn-ingresar mt-4 w-full">
+                    Restablecer Contraseña
+                </button>
             </form>
 
             <div class="text-center mt-4">
-                <a href="{{ route('login.form') }}" class="text-blue-500 hover:underline">Volver al inicio de sesión</a>
+                <a href="{{ route('login') }}" class="text-blue-500 hover:underline">
+                    Volver al inicio de sesión
+                </a>
             </div>
         </div>
     </div>
