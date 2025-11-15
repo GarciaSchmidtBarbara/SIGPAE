@@ -19,7 +19,7 @@
 
 <div class="p-6">
     <form id="form-alumno" method="GET" action="{{ route('alumnos.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
-        <a class="btn-aceptar" href="{{ route('alumnos.iniciar-creacion') }}">Registrar Alumno</a>
+        <a class="btn-aceptar" href="{{ route('alumnos.crear-editar') }}">Registrar Alumno</a>
         <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
         <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
         <input name="documento" placeholder="Documento" class="border px-2 py-1 rounded w-1/5">
