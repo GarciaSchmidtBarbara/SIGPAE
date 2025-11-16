@@ -42,14 +42,14 @@
 
 
 <div x-data="{
-    familyMembers: {{ json_encode(session('asistente.familiares', [])) }},
+    familiares: {{ json_encode(session('asistente.familiares', [])) }},
 
     alumnoData: {{ json_encode(session('asistente.alumno', [])) }},
     
-    async removeFamiliar(index) {
+    async removeFamiliar(indice) {
         if (confirm('¿Estás seguro de eliminar este familiar?')) {
             try {
-                const response = await fetch(`/familiares/temp/${index}`, {
+                const response = await fetch(`/familiares/temp/${indice}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -58,7 +58,7 @@
                 });
                 
                 if (response.ok) {
-                    this.familyMembers.splice(index, 1);
+                    this.familiares.splice(indice, 1);
                 } else {
                     alert('Error al eliminar el familiar');
                 }
@@ -183,10 +183,10 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         {{-- Bucle para mostrar familiares temporales cargados --}}
-                        <template x-for="(familiar, index) in familyMembers" :key="index">
+                        <template x-for="(familiar, indice) in familiares" :key="indice">
                             <tr @click="
                                 let form = $event.target.closest('form') ;
-                                form.querySelector('input[name=edit_familiar_index]').value = index ;
+                                form.querySelector('input[name=edit_familiar_index]').value = indice ;
                                 form.action = '{{ route('alumnos.prepare-familiar') }}' ;
                                 form.noValidate = true;
                                 form.submit();
@@ -197,7 +197,7 @@
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.telefono_personal"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
-                                    <button @click.prevent.stop="removeFamiliar(index)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                    <button @click.prevent.stop="removeFamiliar(indice)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                         </svg>
@@ -208,6 +208,7 @@
                     </tbody>
                 </table>
             </div>
+
             <button type="submit" id="btn-prepare-familiar" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
         </div>
 
