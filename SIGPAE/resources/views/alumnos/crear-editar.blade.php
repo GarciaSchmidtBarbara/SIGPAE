@@ -101,6 +101,38 @@
                     label="Fecha de nacimiento"
                     name="fecha_nacimiento"
                     edad-name="edad"
+                    {{-- realizao una sobreescritura del x-data del componente
+                        porque el x-data del componenete esta "aislado del x-data
+                        principal (el de alumnoData) al que tengo que bindearlo" --}}
+                    x-data="{
+                        fechaNacimiento: alumnoData.fecha_nacimiento,
+                        edad: alumnoData.edad,
+                        
+                        calcularEdad() {
+                            // Primero, actualiza el estado 'padre' (alumnoData) con el valor del input
+                            alumnoData.fecha_nacimiento = this.fechaNacimiento;
+
+                            if (!this.fechaNacimiento) { 
+                                this.edad = ''; 
+                                alumnoData.edad = ''; // Sincroniza el borrado
+                                return; 
+                            }
+                            
+                            const hoy = new Date();
+                            const nacimiento = new Date(this.fechaNacimiento);
+                            let edadCalc = hoy.getFullYear() - nacimiento.getFullYear();
+                            const mes = hoy.getMonth() - nacimiento.getMonth();
+                            
+                            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+                                edadCalc--;
+                            }
+                            
+                            this.edad = edadCalc >= 0 ? edadCalc : '';
+                            
+                            // Sincroniza el resultado del cálculo con el 'padre'
+                            alumnoData.edad = this.edad;
+                        }
+                    }"
                 />
             </div>
 
