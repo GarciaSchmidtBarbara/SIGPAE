@@ -70,18 +70,15 @@
     },
 
     /**
-    * Sincroniza el estado de Alpine (alumnoData, familiares) con la
-    * sesión del servidor antes de redirigir.
-    */
+     * Sincroniza el estado (envía JSON al servidor) y luego redirige.
+     */
     async sincronizarEstado(rutaDestino) {
-        // 1. Preparamos el estado actual del cliente
         const estado = {
             alumno: this.alumnoData,
             familiares: this.familiares
         };
 
         try {
-            // 2. Llamamos a la ruta de sincronización
             const response = await fetch('{{ route("asistente.sincronizar") }}', {
                 method: 'POST',
                 headers: {
@@ -92,35 +89,29 @@
                 body: JSON.stringify(estado)
             });
 
-            if (!response.ok) {
-                throw new Error('Error al sincronizar el estado.');
-            }
+            if (!response.ok) throw new Error('Error al sincronizar');
 
-            // 3. Si el servidor guardó (OK), redirigimos
             window.location.href = rutaDestino;
 
         } catch (error) {
-            console.error('Error en sincronizarEstado:', error);
-            alert('Hubo un error al guardar los datos. Por favor, intente de nuevo.');
+            console.error(error);
+            alert('Error al guardar los datos. Intente de nuevo.');
         }
     },
 
     /**
-    * Llama al sincronizador para ir a la vista de EDICIÓN
-    */
+     * Prepara la URL de edición y llama al sincronizador
+     */
     prepararEdicionFamiliar(indice) {
-        // Genera la URL de edición dinámicamente
+        // Usamos url() de base y le pegamos el índice con JS
         const urlDestino = `{{ url('/familiares') }}/${indice}/editar`;
-
-        // Llama al sincronizador y le pasa la URL de destino
         this.sincronizarEstado(urlDestino);
     },
 
     /**
-    * Llama al sincronizador para ir a la vista de CREACIÓN
-    */
+     * Prepara la URL de creación y llama al sincronizador
+     */
     prepararCreacionFamiliar() {
-        // Llama al sincronizador y le pasa la URL de creación
         this.sincronizarEstado('{{ route("familiares.crear") }}');
     }
 }">
@@ -256,7 +247,7 @@
                 </table>
             </div>
 
-            <button type="submit" @click="prepararCreacionFamiliar" class="btn-aceptar">Crear Familiar</button>
+            <button type="button" @click="prepararCreacionFamiliar" class="btn-aceptar">Crear Familiar</button>
         </div>
 
         <div class="space-y-8 mb-6">

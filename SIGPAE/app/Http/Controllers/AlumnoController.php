@@ -210,7 +210,7 @@ class AlumnoController extends Controller
     {
         $datos = $request->validate([
             'alumno' => 'required|array',
-            'familiares' => 'required|array',
+            'familiares' => 'present|array',
         ]);
 
         $familiares_eliminados = session('asistente.familiares_a_eliminar', []);

@@ -68,21 +68,40 @@ class FamiliarController extends Controller
 
     public function crear()
     {
-        $familiarData = [];
-        $editIndex = null;
-        $editIndex = Session::get('edit_familiar_index');
-
-        if (is_numeric($editIndex)) {
-            $familiaresTemp = Session::get('familiares_temp', []);
-
-            if (isset($familiaresTemp[$editIndex])) {
-                $familiarData = $familiaresTemp[$editIndex];
-                $familiarData['edit_familiar_index'] = $editIndex; 
-            }
-            Session::forget('edit_familiar_index');
-        }
+        // Preparamos un array de 'familiar' vacío para el formulario
+        $familiarData = [
+            'id' => null, // Importante: id=null significa que es NUEVO
+            'tipo' => '', // Asumiendo que 'tipo' es un campo
+            'nombre' => '',
+            'apellido' => '',
+            'dni' => '',
+            // ... agrega cualquier otro campo de familiar aquí con ''
+        ];
         
-        return view('familiares.crear-editar', ['familiarData' => $familiarData]);
+        // Le pasamos el 'indice' como null para que el formulario sepa
+        // que estamos en modo "Crear".
+        return view('familiares.crear-editar', [
+            'familiarData' => $familiarData,
+            'indice' => null
+        ]);
+    }
+
+    public function editar(int $indice)
+    {
+        // obtengo todos los familiares de la sesion
+        $familiares = session('asistente.familiares', []);
+
+        // verifico que existe este familiar que quiero editar, aunque si existe pero por las dudas
+        if (!isset($familiares[$indice])) {
+            // Sde no existir lo mando de vuelta al usuario a la vista de crear-aditar del alumno
+            return redirect()->route('alumnos.crear')->with('error', 'Error: No se pudo encontrar el familiar para editar.');
+        }
+
+        // paso los datos de ese familiar a la vista
+        $familiarData = $familiares[$indice];
+
+        // tambien le paso el indice para que el formulario de l avista alumnos/crear-editar sepa qué familiar está editando.
+        return view('familiares.crear-editar', ['familiarData' => $familiarData,'indice' => $indice]);
     }
 
     public function storeAndReturn(Request $request): RedirectResponse
@@ -127,18 +146,6 @@ class FamiliarController extends Controller
         Session::put('familiares_temp', $familiares_temp);
         
         return redirect()->route('alumnos.crear-editar')->with('success', $message);
-    }
-
-    public function removeTempFamiliar(int $index): JsonResponse
-    {
-        $familiares_temp = Session::get('familiares_temp', []);
-        
-        if (isset($familiares_temp[$index])) {
-            array_splice($familiares_temp, $index, 1);
-            Session::put('familiares_temp', $familiares_temp);
-            return response()->json(['success' => true]);
-        }
-        
-        return response()->json(['success' => false, 'message' => 'Familiar no encontrado'], 404);
+    
     }
 }
