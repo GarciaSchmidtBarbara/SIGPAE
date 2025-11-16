@@ -191,6 +191,52 @@ class AlumnoController extends Controller
         return view('alumnos.crear-editar', compact('cursos', 'alumno'))->with('modo', 'editar');
     }
 
+    // Si el familiar existe en la bbdd, lo marca para borrado lógico, an ambos casos los borra de la sesion.
+    public function eliminarFamiliarDeSesion(int $indice): JsonResponse
+    {
+        $familiares = session('asistente.familiares', []);
+
+        if (!isset($familiares[$indice])) {
+            return response()->json(['error' => 'Índice no válido'], 404);
+        }
+
+        $familiar_a_borrar = $familiares[$indice];
+
+        if (isset($familiar_a_borrar['id']) && $familiar_a_borrar['id'] !== null) {
+
+            // si esta en la bbdd, agrego el id para el borrado lógico final
+            session()->push('asistente.familiares_a_eliminar', $familiar_a_borrar['id']);
+        }
+
+        // borro el familiar del array de la sesión
+        array_splice($familiares, $indice, 1);
+        session(['asistente.familiares' => $familiares]);
+
+        // devuelvo una repuesta vacia para que alpine sepa que salió bien
+        return response()->json(null, 204);
+    }
+
+    //sincronizo el estado del formulario del asistente (en alpine) con la sesión de laravel
+    public function sincronizarEstado(Request $request): JsonResponse
+    {
+        $datos = $request->validate([
+            'alumno' => 'required|array',
+            'familiares' => 'required|array',
+        ]);
+
+        $familiares_eliminados = session('asistente.familiares_a_eliminar', []);
+
+        // sobreescribo los datos de la sesion con lo de alpine
+        session([
+            'asistente.alumno' => $datos['alumno'],
+            'asistente.familiares' => $datos['familiares'],
+            'asistente.familiares_a_eliminar' => $familiares_eliminados
+        ]);
+
+        // devuelvo una repuesta vacia para que alpine sepa que salió bien
+        return response()->json(null, 204);
+    }
+
     public function actualizar(Request $request, int $id): RedirectResponse
     {
         try {
