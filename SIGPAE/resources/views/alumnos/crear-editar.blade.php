@@ -49,7 +49,7 @@
     async removeFamiliar(indice) {
         if (confirm('¿Estás seguro de eliminar este familiar?')) {
             try {
-                const response = await fetch(`/familiares/temp/${indice}`, {
+                const response = await fetch(`{{ url('/alumnos/asistente/familiar') }}/${indice}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -67,6 +67,61 @@
                 alert('Error al eliminar el familiar');
             }
         }
+    },
+
+    /**
+    * Sincroniza el estado de Alpine (alumnoData, familiares) con la
+    * sesión del servidor antes de redirigir.
+    */
+    async sincronizarEstado(rutaDestino) {
+        // 1. Preparamos el estado actual del cliente
+        const estado = {
+            alumno: this.alumnoData,
+            familiares: this.familiares
+        };
+
+        try {
+            // 2. Llamamos a la ruta de sincronización
+            const response = await fetch('{{ route("asistente.sincronizar") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(estado)
+            });
+
+            if (!response.ok) {
+                throw new Error('Error al sincronizar el estado.');
+            }
+
+            // 3. Si el servidor guardó (OK), redirigimos
+            window.location.href = rutaDestino;
+
+        } catch (error) {
+            console.error('Error en sincronizarEstado:', error);
+            alert('Hubo un error al guardar los datos. Por favor, intente de nuevo.');
+        }
+    },
+
+    /**
+    * Llama al sincronizador para ir a la vista de EDICIÓN
+    */
+    prepararEdicionFamiliar(indice) {
+        // Genera la URL de edición dinámicamente
+        const urlDestino = `{{ url('/familiares') }}/${indice}/editar`;
+
+        // Llama al sincronizador y le pasa la URL de destino
+        this.sincronizarEstado(urlDestino);
+    },
+
+    /**
+    * Llama al sincronizador para ir a la vista de CREACIÓN
+    */
+    prepararCreacionFamiliar() {
+        // Llama al sincronizador y le pasa la URL de creación
+        this.sincronizarEstado('{{ route("familiares.crear") }}');
     }
 }">
     
@@ -77,8 +132,6 @@
         @if($esEdicion)
             @method('PUT')
         @endif
-
-        <input type="hidden" name="edit_familiar_index">
 
         <fieldset {{ $inactivo ? 'disabled' : '' }}>
         <div class="space-y-8 mb-6">
@@ -184,13 +237,7 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {{-- Bucle para mostrar familiares temporales cargados --}}
                         <template x-for="(familiar, indice) in familiares" :key="indice">
-                            <tr @click="
-                                let form = $event.target.closest('form') ;
-                                form.querySelector('input[name=edit_familiar_index]').value = indice ;
-                                form.action = '{{ route('alumnos.prepare-familiar') }}' ;
-                                form.noValidate = true;
-                                form.submit();
-                            " class="cursor-pointer hover:bg-gray-50">
+                            <tr @click=""prepararEdicionFamiliar(indice)" class="cursor-pointer hover:bg-gray-50">
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.apellido"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.dni"></td>
@@ -209,7 +256,7 @@
                 </table>
             </div>
 
-            <button type="submit" id="btn-prepare-familiar" class="btn-aceptar" formaction="{{ route('alumnos.prepare-familiar') }}" formmethod="POST" formnovalidate>Crear Familiar</button>
+            <button type="submit" @click="prepararCreacionFamiliar" class="btn-aceptar">Crear Familiar</button>
         </div>
 
         <div class="space-y-8 mb-6">
