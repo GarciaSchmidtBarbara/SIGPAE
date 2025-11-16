@@ -73,7 +73,8 @@ Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alum
 
 //Rutas familiares
 use App\Http\Controllers\FamiliarController;
-Route::get('/familiares/crear', [FamiliarController::class, 'create'])->name('familiares.create');
+Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
+Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
 Route::post('/familiares/store-and-return', [FamiliarController::class, 'storeAndReturn'])->name('familiares.storeAndReturn');
 Route::delete('/familiares/temp/{index}', [FamiliarController::class, 'removeTempFamiliar'])->name('familiares.removeTemp');
 
