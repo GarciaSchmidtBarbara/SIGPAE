@@ -139,17 +139,6 @@ class AlumnoController extends Controller
         return view('alumnos.crear-editar', compact('cursos'))->with('modo', 'crear');
     }
 
-    //Para mantener los datos del alumno al ir a crear un familiar
-    public function prepareFamiliarCreation(Request $request): RedirectResponse
-    {
-        // Store all form data except token in session
-        $alumnoData = $request->except(['_token']);
-        Session::put('alumno_temp', $alumnoData);
-        Session::put('edit_familiar_index', $request->input('edit_familiar_index'));
-
-        return redirect()->route('familiares.create');
-    }
-
     public function editar(int $id)
     {
         $alumno = $this->alumnoService->obtener($id);
