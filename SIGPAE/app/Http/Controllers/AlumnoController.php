@@ -107,6 +107,7 @@ class AlumnoController extends Controller
         $q = (string)$request->get('q', '');
         return response()->json($this->alumnoService->buscar($q));
     }
+
     private function quitarTildes(string $texto): string
     {
         return strtr(
@@ -116,12 +117,26 @@ class AlumnoController extends Controller
         );
     }
 
-   public function crear() {
+    public function crear() {
+        session()->forget('asistente');
+
         $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
-        $familiares_temp = Session::get('familiares_temp', []);
-        $alumnoData = Session::get('alumno_temp', []);
         
-        return view('alumnos.crear-editar', compact('cursos', 'familiares_temp', 'alumnoData'));
+        // Preparamos la sesión con la estructura vacía del asistente
+        session([
+            'asistente.alumno' => [
+                // Rellenamos los campos vacíos para evitar errores en la vista
+                'dni' => '', 'nombre' => '', 'apellido' => '', 'fecha_nacimiento' => '',
+                'nacionalidad' => '', 'aula' => '', 'inasistencias' => 0, 'cud' => 'No',
+                'situacion_socioeconomica' => '', 'situacion_familiar' => '', 'situacion_medica' => '',
+                'situacion_escolar' => '', 'actividades_extraescolares' => '', 'intervenciones_externas' => '',
+                'antecedentes' => '', 'observaciones' => ''
+            ],
+            'asistente.familiares' => [],
+            'asistente.familiares_a_eliminar' => []
+        ]);
+                
+        return view('alumnos.crear-editar', compact('cursos'))->with('modo', 'crear');
     }
 
     //Para mantener los datos del alumno al ir a crear un familiar
@@ -141,6 +156,8 @@ class AlumnoController extends Controller
         if (!$alumno) {
             return redirect()->route('alumnos.principal')->with('error', 'Alumno no encontrado.');
         }
+
+        session()->forget('asistente');
 
         $cursos = $this->alumnoService->obtenerCursos();
 
@@ -164,8 +181,14 @@ class AlumnoController extends Controller
             'observaciones' => $alumno->observaciones,
         ];
 
-        return view('alumnos.crear-editar', compact('alumnoData', 'cursos', 'alumno'))
-            ->with('modo', 'editar');
+        // Poblamos la sesión con los datos del alumno y sus familiares
+        session([
+            'asistente.alumno' => $alumnoData,
+            'asistente.familiares' => $alumno->familiares->toArray(), // Esta línea es clave
+            'asistente.familiares_a_eliminar' => []
+        ]);
+
+        return view('alumnos.crear-editar', compact('cursos', 'alumno'))->with('modo', 'editar');
     }
 
     public function actualizar(Request $request, int $id): RedirectResponse
