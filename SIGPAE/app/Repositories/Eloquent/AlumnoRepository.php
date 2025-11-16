@@ -35,7 +35,7 @@ class AlumnoRepository implements AlumnoRepositoryInterface
 
     public function buscarPorId(int $id): ?Alumno
     {
-        return Alumno::with(['persona', 'aula'])->find($id);
+        return Alumno::with(['persona', 'aula', 'familiares' => function ($query) {$query->wherePivot('activa', true);}])->find($id);
     }
 
     //metodo para cambiar de activo a inactivo
