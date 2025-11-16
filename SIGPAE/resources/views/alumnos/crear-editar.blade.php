@@ -42,7 +42,9 @@
 
 
 <div x-data="{
-    familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
+    familyMembers: {{ json_encode(session('asistente.familiares', [])) }},
+
+    alumnoData: {{ json_encode(session('asistente.alumno', [])) }},
     
     async removeFamiliar(index) {
         if (confirm('¿Estás seguro de eliminar este familiar?')) {
@@ -84,49 +86,41 @@
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Documento" required />
-                    <input name="dni" value="{{ $alumnoData['dni'] ?? old('dni') }}" placeholder="Documento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="dni" x-model="alumnoData.dni" placeholder="Documento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Nombres" required />
-                    <input name="nombre" value="{{ $alumnoData['nombre'] ?? old('nombre') }}" placeholder="Nombres" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="nombre" x-model="alumnoData.nombre" placeholder="Nombres" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Apellidos" required />
-                    <input name="apellido" value="{{ $alumnoData['apellido'] ?? old('apellido') }}" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="apellido" x-model="alumnoData.apellido" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
 
                 <x-campo-fecha-edad
                     label="Fecha de nacimiento"
                     name="fecha_nacimiento"
-                    :value="old(
-                        'fecha_nacimiento',
-                        isset($alumno) && isset($alumno->persona->fecha_nacimiento)
-                            ? \Illuminate\Support\Carbon::parse($alumno->persona->fecha_nacimiento)->format('Y-m-d')
-                            : ($alumnoData['fecha_nacimiento'] ?? '')
-                    )"
                     edad-name="edad"
-                    :edad-value="old('edad', $alumnoData['edad'] ?? '')"
-                    required
                 />
             </div>
 
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
                     <p class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</p>
-                    <input name="nacionalidad" value="{{ $alumnoData['nacionalidad'] ?? old('nacionalidad') }}" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="nacionalidad" x-model="alumnoData.nacionalidad" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Aula" required />
-                    <select name="aula" id="aula" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select name="aula" id="aula"  x-model="alumnoData.aula" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">Seleccionar aula</option>
                         @foreach($cursos as $curso)
-                            <option value="{{ $curso }}" @selected(($alumnoData['aula'] ?? old('aula')) == $curso)>{{ $curso }}</option>
+                            <option value="{{ $curso }}">{{ $curso }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Cantidad inasistencias" required />
-                    <input name="inasistencias" value="{{ $alumnoData['inasistencias'] ?? old('inasistencias') }}" placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="inasistencias" x-model="alumnoData.inasistencias" placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="space-y-2">
                     <x-campo-requerido text="Tiene CUD" required />
@@ -134,7 +128,7 @@
                         :items="['Sí', 'No']"
                         name="cud"
                         layout="horizontal"
-                         :seleccion="$alumnoData['cud'] ?? old('cud', 'No')" 
+                        x-model="alumnoData.cud"
                     />
                 </div>
             </div>
@@ -188,28 +182,28 @@
         <div class="space-y-8 mb-6">
             <p class="separador">Situación Integral</p>
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación socioeconómica </label>
-            <textarea name="situacion_socioeconomica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_socioeconomica'] ?? old('situacion_socioeconomica') }}</textarea>
+            <textarea name="situacion_socioeconomica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2" x-model="alumnoData.situacion_socioeconomica"></textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación familiar</label>
-            <textarea name="situacion_familiar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_familiar'] ?? old('situacion_familiar') }}</textarea>
+            <textarea name="situacion_familiar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2" x-model="alumnoData.situacion_familiar"></textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación medica </label>
-            <textarea  name="situacion_medica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_medica'] ?? old('situacion_medica') }}</textarea>
+            <textarea  name="situacion_medica" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2" x-model="alumnoData.situacion_medica"></textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Situación escolar </label>
-            <textarea name="situacion_escolar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['situacion_escolar'] ?? old('situacion_escolar') }}</textarea>
+            <textarea name="situacion_escolar" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2" x-model="alumnoData.situacion_escolar"></textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Actividades extraescolares </label>
-            <textarea name="actividades_extraescolares" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['actividades_extraescolares'] ?? old('actividades_extraescolares') }}</textarea>
+            <textarea name="actividades_extraescolares" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2" x-model="alumnoData.actividades_extraescolares"></textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Intervenciones externas</label>
-            <textarea name="intervenciones_externas" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['intervenciones_externas'] ?? old('intervenciones_externas') }}</textarea>
+            <textarea name="intervenciones_externas" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2" x-model="alumnoData.intervenciones_externas"></textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Antecedentes</label>
-            <textarea name="antecedentes" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['antecedentes'] ?? old('antecedentes') }}</textarea>
+            <textarea name="antecedentes" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2" x-model="alumnoData.antecedentes"></textarea>
             
             <label class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
-            <textarea name="observaciones" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2">{{ $alumnoData['observaciones'] ?? old('observaciones') }}</textarea>      
+            <textarea name="observaciones" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" rows="2" x-model="alumnoData.observaciones"></textarea>      
         </div>
         </fieldset>
        
