@@ -66,7 +66,7 @@ class FamiliarController extends Controller
         return response()->json(['message' => 'Familiar no encontrado'], 404);
     }
 
-    public function create()
+    public function crear()
     {
         $familiarData = [];
         $editIndex = null;
@@ -82,7 +82,7 @@ class FamiliarController extends Controller
             Session::forget('edit_familiar_index');
         }
         
-        return view('familiares.crear-familiar', ['familiarData' => $familiarData]);
+        return view('familiares.crear-editar', ['familiarData' => $familiarData]);
     }
 
     public function storeAndReturn(Request $request): RedirectResponse
