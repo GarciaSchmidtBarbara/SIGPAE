@@ -5,26 +5,38 @@
     'edadName' => 'edad',
     'edadValue' => '',
     'required' => false,
+    // NUEVOS PROPS: Permiten cambiar qué variable de Alpine usan los inputs
+    'modelFecha' => 'fechaNacimiento', 
+    'modelEdad' => 'edad',
 ])
 
 <div 
-    x-data="{
-        fechaNacimiento: '{{ $value }}',
-        edad: '{{ $edadValue }}',
-        calcularEdad() {
-            if (!this.fechaNacimiento) { this.edad = ''; return; }
-            const hoy = new Date();
-            const nacimiento = new Date(this.fechaNacimiento);
-            let edad = hoy.getFullYear() - nacimiento.getFullYear();
-            const mes = hoy.getMonth() - nacimiento.getMonth();
-            if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
-                edad--;
+    {{-- 
+       LÓGICA INTELIGENTE:
+       Solo cargamos el x-data por defecto si NO nos pasaron uno desde afuera.
+       Esto evita el conflicto de "doble cerebro".
+    --}}
+    @if(!$attributes->has('x-data'))
+        x-data="{
+            fechaNacimiento: '{{ $value }}',
+            edad: '{{ $edadValue }}',
+            calcularEdad() {
+                if (!this.fechaNacimiento) { this.edad = ''; return; }
+                const hoy = new Date();
+                const nacimiento = new Date(this.fechaNacimiento);
+                let edad = hoy.getFullYear() - nacimiento.getFullYear();
+                const mes = hoy.getMonth() - nacimiento.getMonth();
+                if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+                    edad--;
+                }
+                this.edad = edad >= 0 ? edad : '';
             }
-            this.edad = edad >= 0 ? edad : '';
-        }
-    }"
-    x-init="calcularEdad"
-    class="flex gap-6 items-end"
+        }"
+        x-init="calcularEdad"
+    @endif
+
+    {{-- Fusionamos atributos (aquí entrará el x-data externo si lo mandamos) --}}
+    {{ $attributes->merge(['class' => 'flex gap-6 items-end']) }}
 >
     <!-- Campo de fecha -->
     <div class="flex flex-col w-1/2">
@@ -37,10 +49,15 @@
         <input 
             type="date"
             name="{{ $name }}"
-            x-model="fechaNacimiento"
-            @change="calcularEdad"
+            {{-- USAMOS LA VARIABLE DINÁMICA --}}
+            x-model="{{ $modelFecha }}" 
+            
+            {{-- Si usamos lógica externa, usamos el evento @change externo --}}
+            @if(!$attributes->has('x-data'))
+                @change="calcularEdad"
+            @endif
+
             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            value="{{ $value }}"
             {{ $required ? 'required' : '' }}
         >
     </div>
@@ -51,7 +68,8 @@
         <input 
             type="number"
             name="{{ $edadName }}"
-            x-model="edad"
+            {{-- USAMOS LA VARIABLE DINÁMICA --}}
+            x-model="{{ $modelEdad }}"
             readonly
             class="border px-2 py-1 rounded bg-gray-100 text-gray-700"
         >
