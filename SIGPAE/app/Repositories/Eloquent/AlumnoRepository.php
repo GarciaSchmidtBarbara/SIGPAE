@@ -49,4 +49,28 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         return false;
     }
 
+    public function buscarPorIdPersona(int $idPersona): ?Alumno
+    {
+        return Alumno::where('fk_id_persona', $idPersona)->first();
+    }
+
+    public function vincularHermano(int $idAlumno, int $idHermano): void
+    {
+        $alumno = Alumno::find($idAlumno);
+        $hermano = Alumno::find($idHermano);
+        
+        if ($alumno && $hermano) {
+            //Relación bidireccional si elijo un hermano que esta en la institucion, también se le vincula el alumno actual
+            $alumno->hermanos()->syncWithoutDetaching([$idHermano]);
+            $hermano->hermanos()->syncWithoutDetaching([$idAlumno]);
+        }
+    }
+
+    public function vincularFamiliar(int $idAlumno, int $idFamiliar): void
+    {
+        $alumno = Alumno::find($idAlumno);
+        if ($alumno) {
+            $alumno->familiares()->attach($idFamiliar);
+        }
+    }
 }

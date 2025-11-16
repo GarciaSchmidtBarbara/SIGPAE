@@ -43,25 +43,51 @@ class AlumnoController extends Controller
 
     public function store(Request $request)
     {
-        request->validate([
+        $request->validate([
             'dni' => 'required|numeric',
             'nombre' => 'required|string|max:191',
             'apellido' => 'required|string|max:191',
-            'fecha_nacimiento' => 'required|date',
+            'fecha_nacimiento' => 'required|date|before_or_equal:today',
             'nacionalidad' => 'required|string|max:191',
             'aula' => 'required|string',
         ], [
             'required' => 'Este campo es obligatorio.',
             'date' => 'Debe ingresar una fecha válida.',
             'numeric' => 'Debe ingresar un número válido.',
+            'before_or_equal' => 'La fecha de nacimiento no puede ser posterior a hoy.',
         ]);
         try {
+            //Verificar si estamos editando un alumno existente o si estamos creando
+            $editandoAlumnoId = Session::get('editando_alumno_id');
+            
+            if ($editandoAlumnoId) {
+                //Estamos editando, actualizar en lugar de crear
+                $this->alumnoService->actualizar($editandoAlumnoId, $request->all());
+                
+                //Procesar familiares temporales si existen
+                $familiaresTemp = Session::get('familiares_temp', []);
+                if (!empty($familiaresTemp)) {
+                    $this->alumnoService->procesarFamiliaresTemporales($editandoAlumnoId, $familiaresTemp);
+                }
+                
+                //Limpiar las sesiones temporales
+                Session::forget('familiares_temp');
+                Session::forget('alumno_temp');
+                Session::forget('editando_alumno_id');
+                Session::forget('familiares_existentes');
+                
+                return redirect()->route('alumnos.principal')->with('success', 'Alumno actualizado correctamente');
+            }
+            
+            //Crear nuevo alumno
             $familiaresTemp = Session::get('familiares_temp', []);
             $alumno = $this->alumnoService->crearAlumnoConFamiliares($request->all(), $familiaresTemp);
             
-            // Limpiar las sesiones temporales
+            //Limpiar las sesiones temporales (basicamente para que no salgan los familiares de un alumno en los de otro)
             Session::forget('familiares_temp');
             Session::forget('alumno_temp');
+            Session::forget('editando_alumno_id');
+            Session::forget('familiares_existentes');
             
             //Si es una petición AJAX, retornar JSON
             if ($request->expectsJson()) {
@@ -120,16 +146,20 @@ class AlumnoController extends Controller
     {
         Session::forget('alumno_temp');
         Session::forget('familiares_temp');
-
-        Session::forget('editando_alumno_id'); 
-
+        Session::forget('editando_alumno_id');
+        Session::forget('familiares_existentes');
 
         return redirect()->route('alumnos.crear-editar');
     }
 
    public function crearEditar() {
         $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
+        
+        //Mezclar familiares existentes (si estamos editando, o sea, de la bd) con los temporales nuevos
+        $familiaresExistentes = Session::get('familiares_existentes', []);
         $familiares_temp = Session::get('familiares_temp', []);
+        $familiares_temp = array_merge($familiaresExistentes, $familiares_temp);
+        
         $alumnoData = Session::get('alumno_temp', []);
         
         return view('alumnos.crear-editar', compact('cursos', 'familiares_temp', 'alumnoData'));
@@ -142,6 +172,30 @@ class AlumnoController extends Controller
         $alumnoData = $request->except(['_token']);
         Session::put('alumno_temp', $alumnoData);
         Session::put('edit_familiar_index', $request->input('edit_familiar_index'));
+        
+        //Si estamos editando, cargar familiares existentes y mantenerlos en sesión
+        $editandoAlumnoId = Session::get('editando_alumno_id');
+        if ($editandoAlumnoId) {
+            $alumno = $this->alumnoService->obtener($editandoAlumnoId);
+            if ($alumno) {
+                $familiaresExistentes = $alumno->familiares()->with('persona')->get()->map(function($familiar) {
+                    return [
+                        'id_familiar' => $familiar->id_familiar,
+                        'dni' => $familiar->persona->dni ?? '',
+                        'nombre' => $familiar->persona->nombre ?? '',
+                        'apellido' => $familiar->persona->apellido ?? '',
+                        'parentesco' => $familiar->parentesco ?? '',
+                        'telefono_personal' => $familiar->telefono_personal ?? '',
+                        'existente' => true, // Marcar como existente
+                    ];
+                })->toArray();
+                
+                //Mantener familiares existentes en la sesión
+                if (!Session::has('familiares_existentes')) {
+                    Session::put('familiares_existentes', $familiaresExistentes);
+                }
+            }
+        }
 
         return redirect()->route('familiares.create');
     }
@@ -155,7 +209,7 @@ class AlumnoController extends Controller
 
         $cursos = $this->alumnoService->obtenerCursos();
 
-        // Convertir datos del modelo en un array simple para la vista
+        //Convertir datos del modelo en un array simple para la vista
         $alumnoData = [
             'dni' => $alumno->persona->dni,
             'nombre' => $alumno->persona->nombre,
@@ -175,7 +229,58 @@ class AlumnoController extends Controller
             'observaciones' => $alumno->observaciones,
         ];
 
-        return view('alumnos.crear-editar', compact('alumnoData', 'cursos', 'alumno'))
+        //Cargar familiares existentes del alumno
+        $familiaresExistentes = $alumno->familiares()->with('persona')->get()->map(function($familiar) {
+            return [
+                'id_familiar' => $familiar->id_familiar,
+                'dni' => $familiar->persona->dni ?? '',
+                'nombre' => $familiar->persona->nombre ?? '',
+                'apellido' => $familiar->persona->apellido ?? '',
+                'parentesco' => $familiar->parentesco ?? '',
+                'telefono_personal' => $familiar->telefono_personal ?? '',
+                'fecha_nacimiento' => $familiar->persona->fecha_nacimiento ?? '',
+                'edad' => $familiar->persona->fecha_nacimiento ? \Carbon\Carbon::parse($familiar->persona->fecha_nacimiento)->age : '',
+                'nacionalidad' => $familiar->persona->nacionalidad ?? '',
+                'domicilio' => $familiar->persona->domicilio ?? '',
+                'telefono_laboral' => $familiar->telefono_laboral ?? '',
+                'lugar_de_trabajo' => $familiar->lugar_de_trabajo ?? '',
+                'observaciones' => $familiar->observaciones ?? '',
+                'otro_parentesco' => $familiar->otro_parentesco ?? '',
+                'existente' => true,
+            ];
+        })->toArray();
+
+        //Cargar hermanos (alumnos relacionados)
+        $hermanos = $alumno->hermanos()->with('persona')->get()->map(function($hermano) {
+            return [
+                'fk_id_persona' => $hermano->fk_id_persona,
+                'dni' => $hermano->persona->dni ?? '',
+                'nombre' => $hermano->persona->nombre ?? '',
+                'apellido' => $hermano->persona->apellido ?? '',
+                'parentesco' => 'HERMANO',
+                'telefono_personal' => '',
+                'fecha_nacimiento' => $hermano->persona->fecha_nacimiento ?? '',
+                'edad' => $hermano->persona->fecha_nacimiento ? \Carbon\Carbon::parse($hermano->persona->fecha_nacimiento)->age : '',
+                'nacionalidad' => $hermano->persona->nacionalidad ?? '',
+                'domicilio' => $hermano->persona->domicilio ?? '',
+                'existente' => true,
+            ];
+        })->toArray();
+
+        //Combinar familiares y hermanos
+        $familiaresExistentes = array_merge($familiaresExistentes, $hermanos);
+
+        //Mezclar familiares existentes con los temporales (si hay)
+        $familiares_temp = Session::get('familiares_temp', []);
+        $familiares_temp = array_merge($familiaresExistentes, $familiares_temp);
+
+        //Guardar familiares existentes en sesión para mantenerlos al crear nuevos
+        Session::put('familiares_existentes', $familiaresExistentes);
+        
+        //Guardar el ID en sesión para saber que estamos editando
+        Session::put('editando_alumno_id', $id);
+
+        return view('alumnos.crear-editar', compact('alumnoData', 'cursos', 'alumno', 'familiares_temp'))
             ->with('modo', 'editar');
     }
 

@@ -62,7 +62,6 @@ Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('al
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::match(['POST', 'PUT'], '/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
 Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
-Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
 
@@ -74,10 +73,10 @@ Route::get('/familiares/crear', [FamiliarController::class, 'create'])->name('fa
 Route::post('/familiares/store-and-return', [FamiliarController::class, 'storeAndReturn'])->name('familiares.storeAndReturn');
 Route::delete('/familiares/temp/{index}', [FamiliarController::class, 'removeTempFamiliar'])->name('familiares.removeTemp');
 
-// Búsqueda de alumnos (para seleccionar hermano)
+//Búsqueda de alumnos (para seleccionar hermano)
 Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
 
-// Rutas de los usuarios (profesionales)
+//Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;
 Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
 Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->name('usuarios.crear-editar');

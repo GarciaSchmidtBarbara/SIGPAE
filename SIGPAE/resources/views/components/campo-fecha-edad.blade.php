@@ -39,6 +39,7 @@
             name="{{ $name }}"
             x-model="fechaNacimiento"
             @change="calcularEdad"
+            max="{{ date('Y-m-d') }}" 
             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
             value="{{ $value }}"
             {{ $required ? 'required' : '' }}

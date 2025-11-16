@@ -99,63 +99,7 @@ class AlumnoService implements AlumnoServiceInterface
             $alumno = $this->crearAlumno($alumnoData); //Para crear la persona+alumno
 
             if (!empty($familiaresTemp)) {
-                $famSrv = app(\App\Services\Interfaces\FamiliarServiceInterface::class);
-                $personaSrv = app(\App\Services\Interfaces\PersonaServiceInterface::class);
-
-                $alumnoModel = app(\App\Models\Alumno::class);
-
-                foreach ($familiaresTemp as $f) {
-                    $parentesco = strtoupper((string)($f['parentesco'] ?? ''));
-                    $map = [ 'padre'=>'PADRE','madre'=>'MADRE','hermano'=>'HERMANO','tutor'=>'TUTOR','otro'=>'OTRO' ];
-                    if (!in_array($parentesco, ['PADRE','MADRE','HERMANO','TUTOR','OTRO'])) {
-                        $parentesco = $map[strtolower($parentesco)] ?? 'OTRO';
-                    }
-                    
-                    if ($parentesco === 'HERMANO' && !empty($f['fk_id_persona'])) {
-                        if (empty($f['fk_id_persona'])) {
-                            throw new \Exception('Se seleccionó "Hermano" pero no se proporcionó un ID de persona (fk_id_persona).');
-                        }
-                        $hermano = $alumnoModel->where('fk_id_persona', (int)$f['fk_id_persona'])->first();
-                        
-                        if (!$hermano) {
-                            throw new \Exception('El ID de persona proporcionado para el hermano no corresponde a un alumno existente.');
-                        }
-                        $alumno->hermanos()->attach($hermano->id_alumno);
-
-                    } else { //este else es el que sta en rojo
-
-                        $payloadFamiliar = [
-                            'parentesco'        => $parentesco,
-                            'otro_parentesco'   => $f['otro_parentesco'] ?? null,
-                            'telefono_personal' => $f['telefono_personal'] ?? null,
-                            'telefono_laboral'  => $f['telefono_laboral'] ?? null,
-                            'lugar_de_trabajo'  => $f['lugar_de_trabajo'] ?? null,
-                            'observaciones'     => $f['observaciones'] ?? null,
-                        ];
-
-                        if (!empty($f['fk_id_persona'])) {
-                            // Esto es si el familiar (ej. un padre) ya existía en la BBDD
-                            $payloadFamiliar['fk_id_persona'] = (int)$f['fk_id_persona'];
-                        } else {
-                            // Creamos una NUEVA Persona para este familiar
-                            $personaPayload = [
-                                'nombre'            => $f['nombre'] ?? null,
-                                'apellido'          => $f['apellido'] ?? null,
-                                'dni'               => $f['dni'] ?? null,
-                                'fecha_nacimiento'  => $f['fecha_nacimiento'] ?? null,
-                                'domicilio'         => $f['domicilio'] ?? null,
-                                'nacionalidad'      => $f['nacionalidad'] ?? null,
-                            ];
-                            $persona = $personaSrv->createPersona($personaPayload);
-                            $payloadFamiliar['fk_id_persona'] = $persona->id_persona;
-                        }
-
-                        // Creamos el registro en la tabla 'familiares'
-                        $familiar = $famSrv->createFamiliar($payloadFamiliar);
-                        // Usamos la relación 'familiares()' (tabla 'tiene_familiar')
-                        $alumno->familiares()->attach($familiar->id_familiar);
-                    }
-                }
+                $this->procesarFamiliaresTemporales($alumno->id_alumno, $familiaresTemp);
             }
 
             \DB::commit();
@@ -272,7 +216,7 @@ class AlumnoService implements AlumnoServiceInterface
         if (!$alumno) {
             throw new \Exception('Alumno no encontrado.');
         }
-        // Bloquear edición si la persona está inactiva
+        //Bloquear edición si la persona está inactiva
         if (($alumno->persona->activo ?? false) === false) {
             throw new \Exception('No se puede modificar un alumno inactivo.');
         }
@@ -285,7 +229,7 @@ class AlumnoService implements AlumnoServiceInterface
             'nacionalidad' => $data['nacionalidad'] ?? $persona->nacionalidad,
         ]);
 
-        // actualizar aula
+        //actualizar aula
         if (!empty($data['aula']) && str_contains($data['aula'], '°')) {
             [$curso, $division] = explode('°', $data['aula']);
             $aula = \App\Models\Aula::where('curso', $curso)
@@ -310,6 +254,63 @@ class AlumnoService implements AlumnoServiceInterface
         ]);
 
         return $alumno->save();
+    }
+
+    public function procesarFamiliaresTemporales(int $idAlumno, array $familiaresTemp): void
+    {
+        $famSrv = app(\App\Services\Interfaces\FamiliarServiceInterface::class);
+        $personaSrv = app(\App\Services\Interfaces\PersonaServiceInterface::class);
+
+        foreach ($familiaresTemp as $f) {
+            $parentesco = strtoupper((string)($f['parentesco'] ?? ''));
+            $map = ['padre'=>'PADRE','madre'=>'MADRE','hermano'=>'HERMANO','tutor'=>'TUTOR','otro'=>'OTRO'];
+            if (!in_array($parentesco, ['PADRE','MADRE','HERMANO','TUTOR','OTRO'])) {
+                $parentesco = $map[strtolower($parentesco)] ?? 'OTRO';
+            }
+            
+            if ($parentesco === 'HERMANO' && !empty($f['fk_id_persona'])) {
+                //Buscar hermano por ID de persona
+                $hermano = $this->repo->buscarPorIdPersona((int)$f['fk_id_persona']);
+                
+                if (!$hermano) {
+                    throw new \Exception('El ID de persona proporcionado para el hermano no corresponde a un alumno existente.');
+                }
+                
+                $this->repo->vincularHermano($idAlumno, $hermano->id_alumno);
+                
+            } else {
+                //Preparar datos del familiar
+                $payloadFamiliar = [
+                    'parentesco'        => $parentesco,
+                    'otro_parentesco'   => $f['otro_parentesco'] ?? null,
+                    'telefono_personal' => $f['telefono_personal'] ?? null,
+                    'telefono_laboral'  => $f['telefono_laboral'] ?? null,
+                    'lugar_de_trabajo'  => $f['lugar_de_trabajo'] ?? null,
+                    'observaciones'     => $f['observaciones'] ?? null,
+                ];
+
+                if (!empty($f['fk_id_persona'])) {
+                    //Familiar ya existía en la BBDD
+                    $payloadFamiliar['fk_id_persona'] = (int)$f['fk_id_persona'];
+                } else {
+                    //Crear nueva Persona para este familiar
+                    $personaPayload = [
+                        'nombre'            => $f['nombre'] ?? null,
+                        'apellido'          => $f['apellido'] ?? null,
+                        'dni'               => $f['dni'] ?? null,
+                        'fecha_nacimiento'  => $f['fecha_nacimiento'] ?? null,
+                        'domicilio'         => $f['domicilio'] ?? null,
+                        'nacionalidad'      => $f['nacionalidad'] ?? null,
+                    ];
+                    $persona = $personaSrv->createPersona($personaPayload);
+                    $payloadFamiliar['fk_id_persona'] = $persona->id_persona;
+                }
+
+                //Crear el familiar y vincularlo
+                $familiar = $famSrv->createFamiliar($payloadFamiliar);
+                $this->repo->vincularFamiliar($idAlumno, $familiar->id_familiar);
+            }
+        }
     }
 
 }
