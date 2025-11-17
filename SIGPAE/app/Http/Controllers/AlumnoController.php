@@ -133,7 +133,8 @@ class AlumnoController extends Controller
                 'antecedentes' => '', 'observaciones' => ''
             ],
             'asistente.familiares' => [],
-            'asistente.familiares_a_eliminar' => []
+            'asistente.familiares_a_eliminar' => [],
+            'asistente.hermanos_alumnos_a_eliminar' => []
         ]);
                 
         return view('alumnos.crear-editar', compact('cursos'))->with('modo', 'crear');
@@ -141,7 +142,7 @@ class AlumnoController extends Controller
 
     public function editar(int $id)
     {
-        $alumno = $this->alumnoService->obtener($id);
+        $alumno = $this->alumnoService->obtenerParaEditar($id);
         if (!$alumno) {
             return redirect()->route('alumnos.principal')->with('error', 'Alumno no encontrado.');
         }
@@ -170,39 +171,24 @@ class AlumnoController extends Controller
             'observaciones' => $alumno->observaciones,
         ];
 
+        //unificao los familiares puros con los hermanos alumnos
+        $familiares_puros = $alumno->familiares;
+
+        $hermanos_que_el_apunta = $alumno->hermanos;
+        $hermanos_que_lo_apuntan = $alumno->esHermanoDe;
+        $hermanos_alumnos = $hermanos_que_el_apunta->merge($hermanos_que_lo_apuntan);
+
+        $familiares_unificados = $familiares_puros-->merge($hermanos_alumnos)->toArray();
+
         // Poblamos la sesión con los datos del alumno y sus familiares
         session([
             'asistente.alumno' => $alumnoData,
-            'asistente.familiares' => $alumno->familiares->toArray(), // Esta línea es clave
-            'asistente.familiares_a_eliminar' => []
+            'asistente.familiares' => $familiares_unificados,
+            'asistente.familiares_a_eliminar' => [],
+            'asistente.hermanos_alumnos_a_eliminar' => []
         ]);
 
         return view('alumnos.crear-editar', compact('cursos', 'alumno'))->with('modo', 'editar');
-    }
-
-    // Si el familiar existe en la bbdd, lo marca para borrado lógico, an ambos casos los borra de la sesion.
-    public function eliminarFamiliarDeSesion(int $indice): JsonResponse
-    {
-        $familiares = session('asistente.familiares', []);
-
-        if (!isset($familiares[$indice])) {
-            return response()->json(['error' => 'Índice no válido'], 404);
-        }
-
-        $familiar_a_borrar = $familiares[$indice];
-
-        if (isset($familiar_a_borrar['id']) && $familiar_a_borrar['id'] !== null) {
-
-            // si esta en la bbdd, agrego el id para el borrado lógico final
-            session()->push('asistente.familiares_a_eliminar', $familiar_a_borrar['id']);
-        }
-
-        // borro el familiar del array de la sesión
-        array_splice($familiares, $indice, 1);
-        session(['asistente.familiares' => $familiares]);
-
-        // devuelvo una repuesta vacia para que alpine sepa que salió bien
-        return response()->json(null, 204);
     }
 
     //sincronizo el estado del formulario del asistente (en alpine) con la sesión de laravel
