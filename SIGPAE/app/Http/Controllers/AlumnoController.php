@@ -232,7 +232,6 @@ class AlumnoController extends Controller
         // cuando me refiero a item me refiero a un familiar o a un hermano alumno
         // btenemos el 'tipo' que pase por la url
         $tipo = $request->query('tipo'); 
-
         $familiares = session('asistente.familiares', []);
 
         if (!isset($familiares[$indice])) {
@@ -240,7 +239,14 @@ class AlumnoController extends Controller
         }
 
         $item_a_borrar = $familiares[$indice];
-        $id_a_borrar = $item_a_borrar['id'] ?? null;
+
+        if ($tipo === 'familiar') {
+            // si es familiar puro, busco 'id_familiar'
+            $id_a_borrar = $item_a_borrar['id_familiar'] ?? null;
+        } elseif ($tipo === 'hermano') {
+            // si es hermano alumno, busco 'id_alumno'
+            $id_a_borrar = $item_a_borrar['id_alumno'] ?? null;
+        }
 
         if ($id_a_borrar) {
             if ($tipo === 'familiar') {
