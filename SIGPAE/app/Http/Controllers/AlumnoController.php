@@ -122,13 +122,13 @@ class AlumnoController extends Controller
         // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
         //session()->forget('asistente');
 
-        $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
+        $cursos = $this->alumnoService->obtenerCursos();
         
         // Preparamos la sesión con la estructura vacía del asistente
         session([
             'asistente.alumno' => [
                 // Rellenamos los campos vacíos para evitar errores en la vista
-                'dni' => '', 'nombre' => '', 'apellido' => '', 'fecha_nacimiento' => '',
+                'id_alumno' => null, 'dni' => '', 'nombre' => '', 'apellido' => '', 'fecha_nacimiento' => '',
                 'nacionalidad' => '', 'aula' => '', 'inasistencias' => 0, 'cud' => 'No',
                 'situacion_socioeconomica' => '', 'situacion_familiar' => '', 'situacion_medica' => '',
                 'situacion_escolar' => '', 'actividades_extraescolares' => '', 'intervenciones_externas' => '',
@@ -194,6 +194,37 @@ class AlumnoController extends Controller
         ]);
 
         return view('alumnos.crear-editar', compact('cursos', 'alumno'))->with('modo', 'editar');
+    }
+
+    /**
+     * Muestra la vista del alumno recuperando el estado 
+     * de la sesión actual, sin limpiar nada.
+     * Se usa al volver de la carga de familiares.
+     */
+    public function continuar()
+    {
+        // 1. Obtenemos dependencias básicas para la vista (selects)
+        // (Idealmente usarías tu servicio, aquí replico lo que tienes en crear/editar)
+        $cursos = $this->alumnoService->obtenerCursos();
+
+        // leo los datos del alumno de la sesión para saber en qué modo estamos
+        $alumnoData = session('asistente.alumno', []);
+
+        $idAlumno = $alumnoData['id_alumno'] ?? null; 
+        $modo = $idAlumno ? 'editar' : 'crear';
+
+        // Si es edición, necesitamos el objeto Alumno para la lógica extra de la vista
+        // (botones de estado, rutas que piden el objeto, etc.)
+        $alumno = null;
+        if ($modo === 'editar') {
+            // Buscamos el alumno (sin cargar relaciones pesadas, solo lo básico para la vista)
+            $alumno = $this->alumnoService->obtener($idAlumno);
+        }
+
+        // no paso 'alumnoData' ni 'familiares' explícitamente porque 
+        // la vista ya sabe leerlos de session('asistente...') en su x-data.
+        return view('alumnos.crear-editar', compact('cursos', 'alumno'))
+            ->with('modo', $modo);
     }
 
     public function eliminarItemDeSesion(Request $request, int $indice): JsonResponse

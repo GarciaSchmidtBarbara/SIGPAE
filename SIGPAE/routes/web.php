@@ -59,6 +59,7 @@ use App\Http\Controllers\AlumnoController;
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
 Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear');
 Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
+Route::get('/alumnos/asistente/continuar', [AlumnoController::class, 'continuar'])->name('alumnos.continuar');
 
 //con item me refiero a que puede ser un familiar o un hermano alumno
 Route::delete('/alumnos/asistente/item/eliminar/{indice}', [AlumnoController::class, 'eliminarItemDeSesion'])->name('asistente.item.eliminar');
