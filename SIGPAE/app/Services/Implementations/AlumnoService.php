@@ -190,6 +190,11 @@ class AlumnoService implements AlumnoServiceInterface
         return $this->repo->buscarPorId($id);
     }
 
+    public function obtenerParaEditar(int $id): ?Alumno
+    {
+        return $this->repo->buscarParaEditar($id);
+    }
+
     public function cambiarActivo(int $id): bool
     {
         return $this->repo->cambiarActivo($id);
