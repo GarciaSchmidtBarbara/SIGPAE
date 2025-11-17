@@ -118,7 +118,9 @@ class AlumnoController extends Controller
     }
 
     public function crear() {
-        session()->forget('asistente');
+        // limpio la sesion manualmente antes de entrar, en caso de que el usuario abra otra pestaña en el navegador
+        // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
+        //session()->forget('asistente');
 
         $cursos = Aula::all()->map(fn($aula) => $aula->descripcion)->unique();
         
@@ -147,12 +149,15 @@ class AlumnoController extends Controller
             return redirect()->route('alumnos.principal')->with('error', 'Alumno no encontrado.');
         }
 
+        // limpio la sesion manualmente antes de entrar, en caso de que el usuario abra otra pestaña en el navegador
+        // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
         session()->forget('asistente');
 
         $cursos = $this->alumnoService->obtenerCursos();
 
         // Convertir datos del modelo en un array simple para la vista
         $alumnoData = [
+            'id_alumno' => $alumno->id_alumno,
             'dni' => $alumno->persona->dni,
             'nombre' => $alumno->persona->nombre,
             'apellido' => $alumno->persona->apellido,
@@ -178,7 +183,7 @@ class AlumnoController extends Controller
         $hermanos_que_lo_apuntan = $alumno->esHermanoDe;
         $hermanos_alumnos = $hermanos_que_el_apunta->merge($hermanos_que_lo_apuntan);
 
-        $familiares_unificados = $familiares_puros-->merge($hermanos_alumnos)->toArray();
+        $familiares_unificados = $familiares_puros->merge($hermanos_alumnos)->toArray();
 
         // Poblamos la sesión con los datos del alumno y sus familiares
         session([
@@ -191,6 +196,38 @@ class AlumnoController extends Controller
         return view('alumnos.crear-editar', compact('cursos', 'alumno'))->with('modo', 'editar');
     }
 
+    public function eliminarItemDeSesion(Request $request, int $indice): JsonResponse
+    {
+        // cuando me refiero a item me refiero a un familiar o a un hermano alumno
+        // btenemos el 'tipo' que pase por la url
+        $tipo = $request->query('tipo'); 
+
+        $familiares = session('asistente.familiares', []);
+
+        if (!isset($familiares[$indice])) {
+            return response()->json(['error' => 'Índice no válido'], 404);
+        }
+
+        $item_a_borrar = $familiares[$indice];
+        $id_a_borrar = $item_a_borrar['id'] ?? null;
+
+        if ($id_a_borrar) {
+            if ($tipo === 'familiar') {
+                // si es un familiar puro, lo preparo para el borrado logico
+                session()->push('asistente.familiares_a_eliminar', $id_a_borrar);
+            } else if ($tipo === 'hermano') {
+                // si es un familiar "hermano alumno" lo preparo para el borrado fisico
+                session()->push('asistente.hermanos_alumnos_a_eliminar', $id_a_borrar);
+            }
+        }
+
+        // para todos los casos borro el item de la tabla de familiares
+        array_splice($familiares, $indice, 1);
+        session(['asistente.familiares' => $familiares]);
+
+        return response()->json(null, 204);
+    }
+
     //sincronizo el estado del formulario del asistente (en alpine) con la sesión de laravel
     public function sincronizarEstado(Request $request): JsonResponse
     {
@@ -200,12 +237,14 @@ class AlumnoController extends Controller
         ]);
 
         $familiares_eliminados = session('asistente.familiares_a_eliminar', []);
+        $hermanos_alumnos_eliminados = session('asistente.hermanos_alumnos_a_eliminar', []);
 
         // sobreescribo los datos de la sesion con lo de alpine
         session([
             'asistente.alumno' => $datos['alumno'],
             'asistente.familiares' => $datos['familiares'],
-            'asistente.familiares_a_eliminar' => $familiares_eliminados
+            'asistente.familiares_a_eliminar' => $familiares_eliminados,
+            'asistente.hermanos_alumnos_a_eliminar' => $hermanos_alumnos_eliminados
         ]);
 
         // devuelvo una repuesta vacia para que alpine sepa que salió bien

@@ -46,25 +46,30 @@
 
     alumnoData: {{ json_encode(session('asistente.alumno', [])) }},
     
-    async removeFamiliar(indice) {
-        if (confirm('¿Estás seguro de eliminar este familiar?')) {
+    async gestionarEliminacion(indice, tipo) {
+        const confirmMsg = tipo === 'familiar' 
+            ? '¿Estás seguro de eliminar este familiar?' 
+            : '¿Estás seguro de desvincular este hermano alumno?';
+
+        if (confirm(confirmMsg)) {
             try {
-                const response = await fetch(`{{ url('/alumnos/asistente/familiar') }}/${indice}`, {
+                // ¡LA MAGIA! Pasamos el 'tipo' como un query parameter en la URL
+                const response = await fetch(`{{ url('/alumnos/asistente/item/eliminar') }}/${indice}?tipo=${tipo}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                         'Accept': 'application/json'
                     }
                 });
-                
+
                 if (response.ok) {
                     this.familiares.splice(indice, 1);
                 } else {
-                    alert('Error al eliminar el familiar');
+                    alert('Error al eliminar el item.');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error al eliminar el familiar');
+                alert('Error al eliminar el item.');
             }
         }
     },
@@ -228,14 +233,17 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         {{-- Bucle para mostrar familiares temporales cargados --}}
                         <template x-for="(familiar, indice) in familiares" :key="indice">
-                            <tr @click=""prepararEdicionFamiliar(indice)" class="cursor-pointer hover:bg-gray-50">
+                            <tr @click="prepararEdicionFamiliar(indice)" class="cursor-pointer hover:bg-gray-50">
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.apellido"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.dni"></td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco"></td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco ? familiar.parentesco : 'Hermano Alumno'"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.telefono_personal"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
-                                    <button @click.prevent.stop="removeFamiliar(indice)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                    {{-- 'familiar' es el discriminante que sirve para evaluar a posterior en el back en que array de eliminacion se debe agregar
+                                        el id del familiar que existe en la tabla, ya que este familiar puede ser un "familiar puro" o un "familiar hermano alumno" --}}
+                                    <button @click.prevent.stop="gestionarEliminacion(indice, familiar.parentesco ? 'familiar' : 'hermano')"
+                                        type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                             <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
                                         </svg>

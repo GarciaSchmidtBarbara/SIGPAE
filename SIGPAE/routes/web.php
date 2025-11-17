@@ -60,7 +60,8 @@ Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.princi
 Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear');
 Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
 
-Route::delete('/alumnos/asistente/familiar/{indice}', [AlumnoController::class, 'eliminarFamiliarDeSesion'])->name('asistente.familiar.eliminar');
+//con item me refiero a que puede ser un familiar o un hermano alumno
+Route::delete('/alumnos/asistente/item/eliminar/{indice}', [AlumnoController::class, 'eliminarItemDeSesion'])->name('asistente.item.eliminar');
 Route::post('/alumnos/asistente/sincronizar', [AlumnoController::class, 'sincronizarEstado'])->name('asistente.sincronizar');
 
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
