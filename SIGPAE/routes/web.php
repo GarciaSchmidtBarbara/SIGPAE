@@ -59,17 +59,16 @@ use App\Http\Controllers\AlumnoController;
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
 Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear');
 Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
-Route::get('/alumnos/asistente/continuar', [AlumnoController::class, 'continuar'])->name('alumnos.continuar');
 
 //con item me refiero a que puede ser un familiar o un hermano alumno
 Route::delete('/alumnos/asistente/item/eliminar/{indice}', [AlumnoController::class, 'eliminarItemDeSesion'])->name('asistente.item.eliminar');
 Route::post('/alumnos/asistente/sincronizar', [AlumnoController::class, 'sincronizarEstado'])->name('asistente.sincronizar');
 
-Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
-Route::match(['POST', 'PUT'], '/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
-Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+Route::get('/alumnos/asistente/continuar', [AlumnoController::class, 'continuar'])->name('alumnos.continuar');
 Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
+
+Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
 
 
@@ -77,6 +76,7 @@ Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alum
 use App\Http\Controllers\FamiliarController;
 Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
 Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
+Route::post('/familiares/guardar', [FamiliarController::class, 'guardar'])->name('familiares.guardar');
 Route::post('/familiares/store-and-return', [FamiliarController::class, 'storeAndReturn'])->name('familiares.storeAndReturn');
 Route::delete('/familiares/temp/{index}', [FamiliarController::class, 'removeTempFamiliar'])->name('familiares.removeTemp');
 

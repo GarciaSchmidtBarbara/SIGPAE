@@ -68,21 +68,37 @@ class FamiliarController extends Controller
 
     public function crear()
     {
-        // Preparamos un array de 'familiar' vacío para el formulario
+        // preparamos un array de 'familiar' vacío para el formulario
         $familiarData = [
-            'id' => null, // Importante: id=null significa que es NUEVO
-            'tipo' => '', // Asumiendo que 'tipo' es un campo
+            'id_familiar' => null,
+            'fk_id_persona' => null,
+            
+            // datos de persona
             'nombre' => '',
             'apellido' => '',
-            'dni' => '',
-            // ... agrega cualquier otro campo de familiar aquí con ''
+            'documento' => '',
+            'fecha_nacimiento' => '',
+            'domicilio' => '',
+            'nacionalidad' => '',
+
+            // datos de familiar
+            'telefono_personal' => '',
+            'telefono_laboral' => '',
+            'lugar_de_trabajo' => '',
+            'parentesco' => '',
+            'otro_parentesco' => '',
+            'observaciones' => '',
+            
+            // campos para el hermano alumno
+            'asiste_a_institucion' => false,
+            'fk_id_persona' => null,
         ];
         
-        // Le pasamos el 'indice' como null para que el formulario sepa
-        // que estamos en modo "Crear".
+        // le paso indice == null porque es un familiar nuevo para la table de familiares
         return view('familiares.crear-editar', [
             'familiarData' => $familiarData,
-            'indice' => null
+            'indice' => null,
+            'solo_lectura' => false // por defecto va a ser false en porque se crear familiar
         ]);
     }
 
@@ -100,8 +116,63 @@ class FamiliarController extends Controller
         // paso los datos de ese familiar a la vista
         $familiarData = $familiares[$indice];
 
+        // Si tiene 'parentesco', es un Familiar Puro (Editable).
+        // Si NO tiene 'parentesco', es un Hermano Alumno (Solo Lectura).
+        $solo_lectura = !isset($familiarData['parentesco']);
+
         // tambien le paso el indice para que el formulario de l avista alumnos/crear-editar sepa qué familiar está editando.
-        return view('familiares.crear-editar', ['familiarData' => $familiarData,'indice' => $indice]);
+        return view('familiares.crear-editar', ['familiarData' => $familiarData,'indice' => $indice, 'solo_lectura' => $solo_lectura]);
+    }
+
+    public function guardar(Request $request)
+    {
+        // 1. Validamos los campos (usando la lista que descubrimos)
+        // Nota: Ajustá las reglas según tus necesidades reales
+        $datosFamiliar = $request->validate([
+            'nombre' => 'required|string|max:191',
+            'apellido' => 'required|string|max:191',
+            'documento' => 'required|string|max:20',
+            'fecha_nacimiento' => 'required|date',
+            'domicilio' => 'nullable|string',
+            'nacionalidad' => 'nullable|string',
+            'telefono_personal' => 'nullable|string',
+            'telefono_laboral' => 'nullable|string',
+            'lugar_de_trabajo' => 'nullable|string',
+            'parentesco' => 'required|string',
+            'otro_parentesco' => 'nullable|string',
+            'observaciones' => 'nullable|string',
+            // Campos ocultos o de lógica
+            'asiste_a_institucion' => 'boolean',
+            'fk_id_persona' => 'nullable',
+            'id_familiar' => 'nullable',        // ID del familiar (si existía)
+        ]);
+
+        $datosFamiliar['id_familiar'] = $request->input('id_familiar', null);
+        $datosFamiliar['fk_id_persona'] = $request->input('fk_id_persona', null);
+
+        // 2. Recuperar el array unificado de la sesión
+        $familiares = session('asistente.familiares', []);
+
+        // 3. Recuperar el índice (campo hidden del formulario)
+        $indice = $request->input('indice');
+
+        // 4. Guardamos o Actualizamos
+        if (is_numeric($indice) && isset($familiares[$indice])) {
+            // MODO EDITAR:
+            // Usamos array_merge para conservar cualquier dato del array original 
+            // que no este en el formulario, y sobreescribimos con los nuevos datos.
+            $familiares[$indice] = array_merge($familiares[$indice], $datosFamiliar);
+        } else {
+            // MODO CREAR:
+            // Simplemente agregamos el nuevo familiar al final del array.
+            $familiares[] = $datosFamiliar;
+        }
+
+        // 5. Actualizamos la sesión
+        session(['asistente.familiares' => $familiares]);
+
+        // 6. Volvemos al Hub (Vista 1) usando la ruta de retorno seguro
+        return redirect()->route('alumnos.continuar');
     }
 
     public function storeAndReturn(Request $request): RedirectResponse
