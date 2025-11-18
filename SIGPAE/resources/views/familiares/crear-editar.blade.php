@@ -52,8 +52,8 @@
 
         // Validación básica de 'otro' parentesco
         if (this.parentesco === 'otro' && !this.formData.otro_parentesco) {
-            this.errors.otro_parentesco = 'Debe especificar';
-            return;
+            this.errors.otro_parentesco = 'Debe especificar el parentesco';
+            errorEncontrado = true;
         }
 
         if (!errorEncontrado) {
@@ -332,7 +332,7 @@
         </div>
 
         <div class="fila-botones mt-8">
-            <button **type="button"** class="btn-aceptar" @click="validarYGuardar()">Guardar y Volver</button>
+            <button type="button" class="btn-aceptar" @click="validarYGuardar()">Guardar y Volver</button>
             <a href="{{ route('alumnos.continuar') }}" class="btn-volver">Volver</a>
         </div>
     </form>
