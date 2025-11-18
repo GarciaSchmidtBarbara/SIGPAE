@@ -131,7 +131,7 @@ class FamiliarController extends Controller
         $datosFamiliar = $request->validate([
             'nombre' => 'required|string|max:191',
             'apellido' => 'required|string|max:191',
-            'documento' => 'required|string|max:20',
+            'dni' => 'required|string|max:20',
             'fecha_nacimiento' => 'required|date',
             'domicilio' => 'nullable|string',
             'nacionalidad' => 'nullable|string',
@@ -146,9 +146,6 @@ class FamiliarController extends Controller
             'fk_id_persona' => 'nullable',
             'id_familiar' => 'nullable',        // ID del familiar (si existía)
         ]);
-
-        $datosFamiliar['dni'] = $datosFamiliar['documento'];
-        unset($datosFamiliar['documento']);
 
         $datosFamiliar['id_familiar'] = $request->input('id_familiar', null);
         $datosFamiliar['fk_id_persona'] = $request->input('fk_id_persona', null);

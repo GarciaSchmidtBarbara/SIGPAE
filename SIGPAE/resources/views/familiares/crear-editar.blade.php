@@ -14,7 +14,7 @@
     isFilled: false,
     searchQuery: '',
     results: [],
-    errors: {},
+    errors: { nombre: '', apellido: '', dni: '', fecha_nacimiento: '', otro_parentesco: '' },
     dniError: '',
 
     // 3. Inicialización
@@ -31,17 +31,39 @@
 
     // 4. Funciones
     validarYGuardar() {
+        // Limpiamos errores
+        this.errors = {};
+        
+        // CAMBIO: Validamos campos requeridos usando 'dni'
+        let camposRequeridos = [];
+        if (this.parentesco !== 'hermano' || (this.parentesco === 'hermano' && !this.isFilled)) {
+            camposRequeridos = ['nombre', 'apellido', 'dni', 'fecha_nacimiento']; // <-- ACÁ DECÍA 'documento'
+        }
+
+        let errorEncontrado = false;
+        
+        for (const campo of camposRequeridos) {
+            if (!this.formData[campo] || String(this.formData[campo]).trim() === '') {
+                // Mensaje personalizado
+                this.errors[campo] = `El campo ${campo} es requerido.`;
+                errorEncontrado = true;
+            }
+        }
+
         // Validación básica de 'otro' parentesco
         if (this.parentesco === 'otro' && !this.formData.otro_parentesco) {
             this.errors.otro_parentesco = 'Debe especificar';
             return;
         }
-        this.$refs.form.submit();
+
+        if (!errorEncontrado) {
+            this.$refs.form.submit();
+        }
     },
 
     limpiarError(campo) {
         if (this.errors[campo]) delete this.errors[campo];
-        if (campo === 'documento') this.dniError = '';
+        if (campo === 'dni') this.dniError = '';
     },
     
     // Placeholders para la Etapa 3
@@ -51,8 +73,7 @@
 
 }" x-init="init()" x-cloak>
 
-    <form method="POST" action="{{ route('familiares.guardar') }}" @submit.prevent="validarYGuardar" novalidate x-ref="form" x-init="init()">
-        <form method="POST" action="{{ route('familiares.guardar') }}" x-ref="form" novalidate>
+    <form method="POST" action="{{ route('familiares.guardar') }}" x-ref="form" novalidate>
         @csrf
 
         <input type="hidden" name="indice" :value="editIndex">
@@ -92,16 +113,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex flex-col">
                         <x-campo-requerido text="DNI" required />
-                        <input name="documento" 
-                            x-model="formData.documento"
+                        <input name="dni" 
+                            x-model="formData.dni"
                             placeholder="dni familiar" 
                             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            @input="formData.documento = formData.documento.replace(/[^0-9]/g, '')"                      
-                            @input.debounce.500ms="checkDni()"
-                            @input="limpiarError('documento')"
+                            @input="formData.dni = formData.dni.replace(/[^0-9]/g, '')"
+                            @input="limpiarError('dni')"
                             :class="{ 'border-red-500 text-red-700': dniError }">                    
                         <div x-show="dniError" x-text="dniError" class="text-xs text-red-600 mt-1"></div>
-                        <div x-show="errors.documento" x-text="errors.documento" class="text-xs text-red-600 mt-1"></div>
+                        <div x-show="errors.dni" x-text="errors.dni" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Nombre" required />
@@ -217,17 +237,16 @@
                     <div class="flex flex-col">
                         <x-campo-requerido text="DNI" required />
                         <input 
-                            x-model="formData.documento"
+                            x-model="formData.dni"
                             :disabled="isFilled || soloLectura"
                             placeholder="dni"
                             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            @input="formData.documento = formData.documento.replace(/[^0-9]/g, '')"     
-                            @input.debounce.500ms="checkDni()"
-                            @input="limpiarError('documento')"
+                            @input="formData.dni = formData.dni.replace(/[^0-9]/g, '')"
+                            @input="limpiarError('dni')"
                             :class="{ 'border-red-500 text-red-700': dniError }"
                         >
                         <div x-show="dniError" x-text="dniError" class="text-xs text-red-600 mt-1"></div>
-                        <div x-show="errors.documento" x-text="errors.documento" class="text-xs text-red-600 mt-1"></div>
+                        <div x-show="errors.dni" x-text="errors.dni" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Nombre" required />
@@ -271,7 +290,7 @@
                     <div>
                         <input type="hidden" name="nombre" :value="formData.nombre">
                         <input type="hidden" name="apellido" :value="formData.apellido">
-                        <input type="hidden" name="documento" :value="formData.documento">
+                        <input type="hidden" name="dni" :value="formData.dni">
                         <input type="hidden" name="fecha_nacimiento" :value="formData.fecha_nacimiento">
                         <input type="hidden" name="edad" :value="formData.edad">
                         <input type="hidden" name="domicilio" :value="formData.domicilio">
@@ -313,7 +332,7 @@
         </div>
 
         <div class="fila-botones mt-8">
-            <button **type="button"** class="btn-aceptar" @click.prevent="validarYGuardar($el)">Guardar y Volver</button>
+            <button **type="button"** class="btn-aceptar" @click="validarYGuardar()">Guardar y Volver</button>
             <a href="{{ route('alumnos.continuar') }}" class="btn-volver">Volver</a>
         </div>
     </form>
