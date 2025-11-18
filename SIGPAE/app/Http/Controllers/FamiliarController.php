@@ -147,6 +147,9 @@ class FamiliarController extends Controller
             'id_familiar' => 'nullable',        // ID del familiar (si existía)
         ]);
 
+        $datosFamiliar['dni'] = $datosFamiliar['documento'];
+        unset($datosFamiliar['documento']);
+
         $datosFamiliar['id_familiar'] = $request->input('id_familiar', null);
         $datosFamiliar['fk_id_persona'] = $request->input('fk_id_persona', null);
 
