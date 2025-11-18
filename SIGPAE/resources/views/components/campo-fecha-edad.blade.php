@@ -10,7 +10,7 @@
     'modelEdad' => 'edad',
 ])
 
-<div 
+<fieldset 
     {{-- 
        LÓGICA INTELIGENTE:
        Solo cargamos el x-data por defecto si NO nos pasaron uno desde afuera.
