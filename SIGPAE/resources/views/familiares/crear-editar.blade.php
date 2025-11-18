@@ -3,11 +3,61 @@
 @section('encabezado', 'Crear Familiar')
 
 @section('contenido')
-<div x-data="familiarForm()" x-cloak> <!--lo envuelvo con xcloak porque el form depende de alpine-->
-    <form method="POST" action="{{ route('familiares.storeAndReturn') }}" @submit.prevent="validarYGuardar" novalidate x-ref="form" x-init="init()">
+<div x-data="{
+    // 1. Inyectamos los datos de PHP
+    formData: {{ json_encode($familiarData) }},
+    parentesco: '{{ $familiarData['parentesco'] ?? '' }}' || 'padre',
+    editIndex: {{ json_encode($indice) }},
+    soloLectura: {{ json_encode($solo_lectura) }},
+
+    // 2. Variables de estado visual
+    isFilled: false,
+    searchQuery: '',
+    results: [],
+    errors: {},
+    dniError: '',
+
+    // 3. Inicialización
+    init() {
+        if (this.soloLectura) {
+            this.isFilled = true;
+        }
+        
+        // Watcher para parentesco
+        this.$watch('parentesco', (val) => {
+             this.formData.parentesco = val; // Sincronizar
+        });
+    },
+
+    // 4. Funciones
+    validarYGuardar() {
+        // Validación básica de 'otro' parentesco
+        if (this.parentesco === 'otro' && !this.formData.otro_parentesco) {
+            this.errors.otro_parentesco = 'Debe especificar';
+            return;
+        }
+        this.$refs.form.submit();
+    },
+
+    limpiarError(campo) {
+        if (this.errors[campo]) delete this.errors[campo];
+        if (campo === 'documento') this.dniError = '';
+    },
+    
+    // Placeholders para la Etapa 3
+    checkDni() {},
+    search() {},
+    selectAlumno(al) {}
+
+}" x-init="init()" x-cloak>
+
+    <form method="POST" action="{{ route('familiares.guardar') }}" @submit.prevent="validarYGuardar" novalidate x-ref="form" x-init="init()">
+        <form method="POST" action="{{ route('familiares.guardar') }}" x-ref="form" novalidate>
         @csrf
 
-        <input type="hidden" name="edit_familiar_index" :value="editIndex">
+        <input type="hidden" name="indice" :value="editIndex">
+        <input type="hidden" name="id_familiar" :value="formData.id_familiar">
+        <input type="hidden" name="fk_id_persona" :value="formData.fk_id_persona">
 
         <p class="separador">Relación</p>
         <div class="flex flex-wrap items-center gap-4 mt-2">
@@ -84,16 +134,44 @@
                         <input name="lugar_de_trabajo" x-model="formData.lugar_de_trabajo" @input="formData.lugar_de_trabajo = formData.lugar_de_trabajo.replace(/[^a-zA-Z0-9\s]/g, '')"
                             placeholder="nombre_trabajo" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
-                    <div class="flex flex-col">
-                        <x-campo-requerido text="Fec. Nacimiento" required />
-                        <input name="fecha_nacimiento" x-model="formData.fecha_nacimiento" type="date"  :max="new Date().toISOString().split('T')[0]"
-                            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="errors.fecha_nacimiento = ''; calcularEdad()">
-                        <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
-                        <input name="edad" x-model="formData.edad" placeholder="edad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-100 text-gray-700">
-                    </div>
+                    <x-campo-fecha-edad
+                        label="Fec. Nacimiento"
+                        name="fecha_nacimiento"
+                        edad-name="edad"
+                        required
+
+                        {{-- 1. Conectamos a las variables de ESTA vista (formData) --}}
+                        model-fecha="formData.fecha_nacimiento"
+                        model-edad="formData.edad"
+                        
+                        {{-- 2. Pasamos el estado de deshabilitado --}}
+                        x-bind:disabled="isFilled || soloLectura"
+
+                        {{-- 3. Inyectamos la lógica calculada conectada a formData --}}
+                        x-data="{
+                            calcularEdad() {
+                                let fecha = formData.fecha_nacimiento;
+                                if (!fecha) { 
+                                    formData.edad = ''; 
+                                    return; 
+                                }
+                                
+                                const hoy = new Date();
+                                const nacimiento = new Date(fecha);
+                                let edadCalc = hoy.getFullYear() - nacimiento.getFullYear();
+                                const mes = hoy.getMonth() - nacimiento.getMonth();
+                                
+                                if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+                                    edadCalc--;
+                                }
+                                
+                                formData.edad = edadCalc >= 0 ? edadCalc : '';
+                            }
+                        }"
+                        
+                        x-init="calcularEdad()"
+                        @change="calcularEdad()"
+                    />
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex flex-col">
@@ -140,7 +218,7 @@
                         <x-campo-requerido text="DNI" required />
                         <input 
                             x-model="formData.documento"
-                            :disabled="isFilled"
+                            :disabled="isFilled || soloLectura"
                             placeholder="dni"
                             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             @input="formData.documento = formData.documento.replace(/[^0-9]/g, '')"     
@@ -153,19 +231,19 @@
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Nombre" required />
-                        <input x-model="formData.nombre" :disabled="isFilled" @input="formData.nombre = formData.nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        <input x-model="formData.nombre" :disabled="isFilled || soloLectura" @input="formData.nombre = formData.nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Apellido" required />
-                        <input x-model="formData.apellido" :disabled="isFilled" @input="formData.apellido = formData.apellido.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        <input x-model="formData.apellido" :disabled="isFilled || soloLectura" @input="formData.apellido = formData.apellido.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
-                        <input x-model="formData.nacionalidad" :disabled="isFilled"  @input="formData.nacionalidad = formData.nacionalidad.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        <input x-model="formData.nacionalidad" :disabled="isFilled || soloLectura"  @input="formData.nacionalidad = formData.nacionalidad.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
@@ -173,18 +251,18 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">Domicilio</label>
-                        <input x-model="formData.domicilio" :disabled="isFilled" placeholder="domicilio" @input="formData.domicilio = formData.domicilio.replace(/[^a-zA-Z0-9\s]/g, '')"
+                        <input x-model="formData.domicilio" :disabled="isFilled || soloLectura" placeholder="domicilio" @input="formData.domicilio = formData.domicilio.replace(/[^a-zA-Z0-9\s]/g, '')"
                             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Fec. Nacimiento" required />
-                        <input x-model="formData.fecha_nacimiento" :disabled="isFilled" type="date" :max="new Date().toISOString().split('T')[0]" placeholder="dd/mm/aaaa"
+                        <input x-model="formData.fecha_nacimiento" :disabled="isFilled || soloLectura" type="date" :max="new Date().toISOString().split('T')[0]" placeholder="dd/mm/aaaa"
                             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="calcularEdad()">
                         <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
-                        <input x-model="formData.edad" :disabled="isFilled" placeholder="edad"  class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-100 text-gray-700">
+                        <input x-model="formData.edad" :disabled="isFilled || soloLectura" placeholder="edad"  class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-100 text-gray-700">
                     </div>
                 </div>
 
@@ -240,270 +318,4 @@
         </div>
     </form>
 </div>
-
-<script>
-    function familiarForm() {
-        return {
-            parentesco: '{{ old('parentesco', $familiarData['parentesco'] ?? 'padre') }}',
-            
-            searchQuery: '',
-            results: [],
-            selected: null,
-
-            formData: {
-                nombre: '{{ old('nombre', $familiarData['nombre'] ?? '') }}',
-                apellido: '{{ old('apellido', $familiarData['apellido'] ?? '') }}',
-                documento: '{{ old('documento', $familiarData['dni'] ?? '') }}', 
-                fecha_nacimiento: '{{ old('fecha_nacimiento', $familiarData['fecha_nacimiento'] ?? '') }}',
-                edad: '{{ old('edad', $familiarData['edad'] ?? '') }}',
-                domicilio: '{{ old('domicilio', $familiarData['domicilio'] ?? '') }}',
-                nacionalidad: '{{ old('nacionalidad', $familiarData['nacionalidad'] ?? '') }}',
-                telefono_personal: '{{ old('telefono_personal', $familiarData['telefono_personal'] ?? '') }}',
-                telefono_laboral: '{{ old('telefono_laboral', $familiarData['telefono_laboral'] ?? '') }}',
-                lugar_de_trabajo: '{{ old('lugar_de_trabajo', $familiarData['lugar_de_trabajo'] ?? '') }}',
-                observaciones: '{{ old('observaciones', $familiarData['observaciones'] ?? '') }}',
-                otro_parentesco: '{{ old('otro_parentesco', $familiarData['otro_parentesco'] ?? '') }}'
-            },
-
-            editIndex: '{{ $familiarData['edit_familiar_index'] ?? '' }}',
-
-            errors: {
-                nombre: '',
-                apellido: '',
-                documento: '',
-                fecha_nacimiento: '',
-                otro_parentesco: ''
-            },
-
-            validarYGuardar($el) {
-                // Limpia solo los errores de campos locales
-                this.errors = {
-                    nombre: '', apellido: '', documento: '', fecha_nacimiento: '', otro_parentesco: ''
-                };
-                
-                let errorEncontrado = false; 
-
-                // Revisa el error de DNI asíncrono (que checkDni ya estableció)
-                if (this.dniError) {
-                    errorEncontrado = true; 
-                }
-
-                // Caso especial: Hermano Alumno. Solo guarda observaciones, no valida nada más.
-                if (this.parentesco === 'hermano' && this.isFilled) {
-                    $el.closest('form').submit(); // Envía directo
-                    return;
-                }
-
-                // Validación de campos locales vacíos
-                let camposRequeridos = [];
-                if (this.parentesco !== 'hermano' || (this.parentesco === 'hermano' && !this.isFilled)) {
-                    camposRequeridos = ['nombre', 'apellido', 'documento', 'fecha_nacimiento'];
-                }
-
-                const datos = this.formData;
-
-                for (const campo of camposRequeridos) {
-                    if (!datos[campo] || datos[campo].trim() === '') {
-                        this.errors[campo] = `El campo ${campo.replace('_', ' ')} es requerido.`;
-                        errorEncontrado = true;
-                    }
-                }
-
-                // Validación de 'Otro'
-                if (this.parentesco === 'otro' && (!this.formData.otro_parentesco || this.formData.otro_parentesco.trim() === '')) {
-                    this.errors.otro_parentesco = 'Debe especificar el parentesco.';
-                    errorEncontrado = true;
-                }
-                
-                // Decisión final: solo envía si NO se encontraron errores
-                if (!errorEncontrado) {
-                    $el.closest('form').submit();
-                }
-            },
-
-            resetFormState() {
-                // Borra los datos del formulario
-                this.formData.nombre = '';
-                this.formData.apellido = '';
-                this.formData.documento = '';
-                this.formData.fecha_nacimiento = '';
-                this.formData.edad = '';
-                this.formData.domicilio = '';
-                this.formData.nacionalidad = '';
-                this.formData.telefono_personal = '';
-                this.formData.telefono_laboral = '';
-                this.formData.lugar_de_trabajo = '';
-                this.formData.observaciones = '';
-                // 'otro_parentesco' se limpia solo cuando el radio 'otro' se oculta
-                
-                // Borra el estado de "Hermano Alumno"
-                this.selected = null;
-                this.searchQuery = '';
-                this.results = [];
-                
-                // Borra los errores
-                this.errors = {
-                    nombre: '', apellido: '', documento: '', fecha_nacimiento: '', otro_parentesco: ''
-                };
-                this.dniError = '';
-            },
-
-            dniError: '',
-
-            async checkDni() {
-                if (this.parentesco === 'hermano' && this.isFilled) {
-                    // Es hermano ya cargado como alumno → no validar
-                    this.dniError = '';
-                    return;
-                }
-
-                const dni = this.formData.documento.trim();
-
-                // Si el campo está vacío, limpiamos error y salimos
-                if (!dni) {
-                    this.dniError = '';
-                    this.dniDisponible = true;
-                    return;
-                }
-
-                // Limpiamos el error antes de la nueva llamada
-                this.dniError = '';
-
-                try {
-                    const response = await fetch('{{ route('personas.check-dni') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            dni: dni,
-                            edit_index: this.editIndex,
-                            context: 'familiar'
-                        })
-                    });
-
-                    const disponible = await response.json();
-
-                    if (!disponible) {
-                        this.dniError = 'El DNI ya está registrado o en uso.';
-                    } else {
-                        this.dniError = '';
-                    }
-
-                } catch (e) {
-                    console.error('Error en fetch:', e);
-                    this.dniError = 'No se pudo conectar con el servidor para validar.';
-                    this.dniDisponible = false;
-                }
-            },
-
-            limpiarError(campo) {
-                if (this.errors[campo]) {
-                    this.errors[campo] = '';
-                }
-            },
-
-            get isFilled(){ return this.selected !== null; },
-            field(key) {
-                if (this.selected) {
-                    if (key === 'dni') return this.selected.persona?.dni || '';
-                    return this.selected.persona?.[key] || '';
-                }
-                return this.formData[key] || '';
-            },
-            async search(){
-                const q = this.searchQuery?.trim();
-                if (!q) { this.results=[]; return; }
-                try {
-                    const res = await fetch('{{ route('alumnos.buscar') }}?q=' + encodeURIComponent(q));
-                    if (!res.ok) return;
-                    this.results = await res.json();
-                } catch(e) { console.error(e); }
-            },
-            selectAlumno(al){ 
-                this.selected = al; 
-                this.results = []; 
-                this.searchQuery = al.persona?.dni || '';
-                // Actualizar formData con los datos del alumno seleccionado
-                this.formData.nombre = al.persona?.nombre || '';
-                this.formData.apellido = al.persona?.apellido || '';
-                this.formData.documento = al.persona?.dni || '';
-                this.formData.fecha_nacimiento = al.persona?.fecha_nacimiento ? new Date(al.persona.fecha_nacimiento).toISOString().split('T')[0] : '';
-                this.formData.edad = al.persona?.edad || '';
-                this.formData.domicilio = al.persona?.domicilio || '';
-                this.formData.nacionalidad = al.persona?.nacionalidad || '';
-                this.calcularEdad();
-            },
-            // no puedo utilizar el componente de edad porque no es compatible con alpine anidados de componentes blade
-            // asi que hago la logica aca
-            calcularEdad() {
-                if (!this.formData.fecha_nacimiento) {
-                    this.formData.edad = '';
-                    return;
-                }
-                const fechaNac = new Date(this.formData.fecha_nacimiento);
-                
-                if (isNaN(fechaNac.getTime())) {
-                    this.formData.edad = '';
-                    return;
-                }
-
-                const hoy = new Date();
-
-                if (fechaNac > hoy) {
-                    this.formData.edad = 0;
-                    this.formData.fecha_nacimiento = hoy.toISOString().split('T')[0];
-                    return;
-                }
-                let edadCalc = hoy.getFullYear() - fechaNac.getFullYear();
-                const mes = hoy.getMonth() - fechaNac.getMonth();
-                
-                if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-                    edadCalc--;
-                }
-                this.formData.edad = edadCalc;
-            },
-
-            init() {
-                this.$watch('parentesco', (newValue, oldValue) => {
-                    if (newValue === 'hermano' || oldValue === 'hermano') {
-                        this.resetFormState();
-                    }
-                });
-                
-                if (this.formData.fecha_nacimiento) {
-                    this.calcularEdad();
-                }
-
-                @if(
-                    isset($familiarData) && 
-                    ($familiarData['parentesco'] ?? '') === 'hermano' && 
-                    !empty($familiarData['fk_id_persona']) 
-                    )
-                    // Es un Hermano Alumno, rellenamos 'selected' para deshabilitar campos
-                    this.selected = {
-                        persona: {
-                            dni: '{{ $familiarData["dni"] ?? "" }}',
-                            nombre: '{{ $familiarData["nombre"] ?? "" }}',
-                            apellido: '{{ $familiarData["apellido"] ?? "" }}',
-                            fecha_nacimiento: '{{ $familiarData["fecha_nacimiento"] ?? "" }}',
-                            edad: '{{ $familiarData["edad"] ?? "" }}',
-                            domicilio: '{{ $familiarData["domicilio"] ?? "" }}',
-                            nacionalidad: '{{ $familiarData["nacionalidad"] ?? "" }}'
-                        },
-                        // También rellenamos datos del 'aula' si existen
-                        aula: {
-                            curso: '{{ $familiarData["curso"] ?? "" }}',
-                            division: '{{ $familiarData["division"] ?? "" }}'
-                        }
-                    };
-                    // Rellenamos la barra de búsqueda para que se vea el DNI
-                    this.searchQuery = this.formData.documento;
-                @endif
-            }
-        }
-    }
-</script>
 @endsection
