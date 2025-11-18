@@ -74,4 +74,4 @@
             class="border px-2 py-1 rounded bg-gray-100 text-gray-700"
         >
     </div>
-</div>
+</fieldset>
