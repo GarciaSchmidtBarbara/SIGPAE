@@ -46,6 +46,79 @@
 
     alumnoData: {{ json_encode(session('asistente.alumno', [])) }},
     
+    errors: {
+        dni: '',
+        nombre: '',
+        apellido: '',
+        nacionalidad: '',
+        aula: '',
+        inasistencias: '',
+        fecha_nacimiento: ''
+    },
+
+    limpiarError(campo) {
+        if (this.errors[campo]) {
+            this.errors[campo] = '';
+        }
+    },
+
+    async validarYGuardar() {
+        this.errors = {}; // Limpiamos errores viejos visuales
+        let error = false;
+        
+        // A. Validación Local (Campos Vacíos)
+        const requeridos = ['dni', 'nombre', 'apellido', 'aula', 'inasistencias', 'fecha_nacimiento'];
+
+        requeridos.forEach(campo => {
+            if (!this.alumnoData[campo] || String(this.alumnoData[campo]).trim() === '') {
+                this.errors[campo] = 'Este campo es requerido.';
+                error = true;
+            }
+        });
+
+        if (this.alumnoData.dni) {
+            try {
+                const response = await fetch('{{ route("alumnos.validar-dni") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        dni: this.alumnoData.dni,
+                        id_alumno: this.alumnoData.id_alumno 
+                    })
+                });
+
+                if (!response.ok) throw new Error('Error de red');
+
+                const data = await response.json();
+
+                if (!data.valid) {
+                    // ¡SEMÁFORO ROJO!
+                    // Sobrescribimos cualquier error previo del DNI con este mensaje específico
+                    this.errors.dni = data.message; 
+                    hayErrores = true; // Levantamos la bandera de error
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert('Error al validar DNI. Intente nuevamente.');
+                return; // Acá sí frenamos porque es un error técnico
+            }
+        }
+
+        // 3. DECISIÓN FINAL
+        // Si hubo errores (ya sea por campos vacíos O por DNI duplicado), frenamos.
+        if (hayErrores) {
+            return;
+        }
+
+        // C. Si llegamos acá, todo está verde. Enviamos manualmente.
+        this.$refs.form.submit();
+    },
+    
     async gestionarEliminacion(indice, tipo) {
         const confirmMsg = tipo === 'familiar' 
             ? '¿Estás seguro de eliminar este familiar?' 
@@ -121,9 +194,8 @@
     }
 }">
     
-    <form method="POST" action="{{ isset($modo) && $modo === 'editar' 
-            ? route('alumnos.actualizar', $alumno->id_alumno)
-            : route('alumnos.store') }}">
+    <form method="POST" action="{{ isset($modo) && $modo === 'editar' ? route('alumnos.actualizar', $alumno->id_alumno) : route('alumnos.store') }}"
+            x-ref="form" novalidate>
         @csrf
         @if($esEdicion)
             @method('PUT')
@@ -134,16 +206,25 @@
             <p class="separador">Información Personal del Alumno</p>
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
-                    <x-campo-requerido text="Documento" required />
-                    <input name="dni" x-model="alumnoData.dni" placeholder="Documento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <x-campo-requerido text="DNI" required />
+                    <input name="dni" x-model="alumnoData.dni"
+                        @input="alumnoData.dni = alumnoData.dni.replace(/[^0-9]/g, ''); limpiarError('dni')"    
+                    placeholder="Documento" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.dni" x-text="errors.dni" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <x-campo-requerido text="Nombres" required />
-                    <input name="nombre" x-model="alumnoData.nombre" placeholder="Nombres" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <x-campo-requerido text="Nombre" required />
+                    <input name="nombre" x-model="alumnoData.nombre"
+                        @input="alumnoData.nombre = alumnoData.nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s']/g, ''); limpiarError('nombre')"
+                        placeholder="Nombres" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <x-campo-requerido text="Apellidos" required />
-                    <input name="apellido" x-model="alumnoData.apellido" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <x-campo-requerido text="Apellido" required />
+                    <input name="apellido" x-model="alumnoData.apellido"
+                        @input="alumnoData.apellido = alumnoData.apellido.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s']/g, ''); limpiarError('apellido')"
+                        placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
                 </div>
 
                 <x-campo-fecha-edad
@@ -161,6 +242,8 @@
                     (Como pasamos 'x-data', el componente desactivará su lógica interna).
                     --}}
                     x-data="{
+                        errorFuturo: false,
+
                         calcularEdad() {
                             let fecha = alumnoData.fecha_nacimiento;
                             if (!fecha) { 
@@ -170,6 +253,13 @@
                             
                             const hoy = new Date();
                             const nacimiento = new Date(fecha);
+
+                            if (nacimiento > hoy) {
+                                this.errorFuturo = true;
+                                alumnoData.fecha_nacimiento = ''; // Borramos
+                                alumnoData.edad = '';
+                                return;
+                            }
                             let edadCalc = hoy.getFullYear() - nacimiento.getFullYear();
                             const mes = hoy.getMonth() - nacimiento.getMonth();
                             
@@ -183,25 +273,41 @@
                     
                     {{-- 3. Ejecutamos el cálculo al iniciar (para modo Editar) y al cambiar --}}
                     x-init="calcularEdad()"
-                    @change="calcularEdad()" />
+                    @change="calcularEdad()"
+                    @input="calcularEdad()"
+                    >
+
+                    {{-- Errores dentro del slot --}}
+                    <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
+                    <div x-show="errorFuturo" class="text-xs text-red-600 mt-1" style="display: none;">
+                        La fecha no puede ser futura.
+                    </div>
+                </x-campo-fecha-edad>
 
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
                     <p class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</p>
-                    <input name="nacionalidad" x-model="alumnoData.nacionalidad" placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="nacionalidad" x-model="alumnoData.nacionalidad"
+                        @input="alumnoData.nacionalidad = alumnoData.nacionalidad.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s']/g, '')"
+                        placeholder="Nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Aula" required />
-                    <select name="aula" id="aula"  x-model="alumnoData.aula" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select name="aula" id="aula"  x-model="alumnoData.aula" @change="limpiarError('aula')"
+                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">Seleccionar aula</option>
                         @foreach($cursos as $curso)
                             <option value="{{ $curso }}">{{ $curso }}</option>
                         @endforeach
                     </select>
+                    <div x-show="errors.aula" x-text="errors.aula" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Cantidad inasistencias" required />
-                    <input name="inasistencias" x-model="alumnoData.inasistencias" placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="inasistencias" type="text" inputmode="numeric" x-model="alumnoData.inasistencias"
+                        @input="alumnoData.inasistencias = String(alumnoData.inasistencias).replace(/[^0-9]/g, ''); limpiarError('inasistencias')"
+                        placeholder="Inasistencias" type="number" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.inasistencias" x-text="errors.inasistencias" class="text-xs text-red-600 mt-1"></div>
                 </div>
                 <div class="space-y-2">
                     <x-campo-requerido text="Tiene CUD" required />
@@ -313,7 +419,7 @@
 
         <div class="fila-botones mt-8">
             @if(!$inactivo)
-                <button type="submit" class="btn-aceptar">Guardar</button>
+                <button type="button" class="btn-aceptar" @click="validarYGuardar()">Guardar</button>
             @endif   
         </div>
     </form>
