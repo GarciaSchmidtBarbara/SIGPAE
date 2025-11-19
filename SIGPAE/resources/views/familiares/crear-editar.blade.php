@@ -14,7 +14,14 @@
     isFilled: false,
     searchQuery: '',
     results: [],
-    errors: { nombre: '', apellido: '', dni: '', fecha_nacimiento: '', otro_parentesco: '' },
+    errors: {
+        nombre: '',
+        apellido: '',
+        documento: '',
+        fecha_nacimiento: '',
+        otro_parentesco: ''
+    },
+
     dniError: '',
 
     // 3. Inicialización
@@ -30,35 +37,70 @@
     },
 
     // 4. Funciones
-    validarYGuardar() {
-        // Limpiamos errores
+    async validarYGuardar() {
+        // Reiniciar estado de errores
         this.errors = {};
-        
-        // CAMBIO: Validamos campos requeridos usando 'dni'
+        this.dniError = '';
+        let errorLocal = false;
+
+        // Determinar campos requeridos según contexto
         let camposRequeridos = [];
         if (this.parentesco !== 'hermano' || (this.parentesco === 'hermano' && !this.isFilled)) {
-            camposRequeridos = ['nombre', 'apellido', 'dni', 'fecha_nacimiento']; // <-- ACÁ DECÍA 'documento'
+            camposRequeridos = ['nombre', 'apellido', 'dni', 'fecha_nacimiento'];
         }
 
-        let errorEncontrado = false;
-        
+        // Validar campos generales
         for (const campo of camposRequeridos) {
             if (!this.formData[campo] || String(this.formData[campo]).trim() === '') {
-                // Mensaje personalizado
-                this.errors[campo] = `El campo ${campo} es requerido.`;
-                errorEncontrado = true;
+                this.errors[campo] = 'Requerido';
+                errorLocal = true;
             }
         }
 
-        // Validación básica de 'otro' parentesco
-        if (this.parentesco === 'otro' && !this.formData.otro_parentesco) {
-            this.errors.otro_parentesco = 'Debe especificar el parentesco';
-            errorEncontrado = true;
+        // Validar campo condicional 'otro'
+        if (this.parentesco === 'otro' && (!this.formData.otro_parentesco || String(this.formData.otro_parentesco).trim() === '')) {
+            this.errors.otro_parentesco = 'Requerido';
+            errorLocal = true;
         }
 
-        if (!errorEncontrado) {
-            this.$refs.form.submit();
+        // Detener si hay errores locales
+        if (errorLocal) return;
+
+        // Validación remota de DNI (si aplica)
+        if (this.formData.dni && (!this.isFilled || this.parentesco !== 'hermano')) {
+            try {
+                const response = await fetch('{{ route("familiares.validar-dni") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        dni: this.formData.dni,
+                        indice: this.editIndex,
+                        fk_id_persona: this.formData.fk_id_persona
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Error de red');
+
+                const data = await response.json();
+
+                if (!data.valid) {
+                    this.dniError = data.message;
+                    return; // Detener envío
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert('Error al validar DNI.');
+                return;
+            }
         }
+
+        // Envío del formulario
+        this.$refs.form.submit();
     },
 
     limpiarError(campo) {
@@ -67,7 +109,6 @@
     },
     
     // Placeholders para la Etapa 3
-    checkDni() {},
     search() {},
     selectAlumno(al) {}
 
