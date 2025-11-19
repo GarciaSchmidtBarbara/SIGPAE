@@ -65,6 +65,7 @@ Route::delete('/alumnos/asistente/item/eliminar/{indice}', [AlumnoController::cl
 Route::post('/alumnos/asistente/sincronizar', [AlumnoController::class, 'sincronizarEstado'])->name('asistente.sincronizar');
 
 Route::get('/alumnos/asistente/continuar', [AlumnoController::class, 'continuar'])->name('alumnos.continuar');
+Route::post('/alumnos/validar-dni', [AlumnoController::class, 'validarDniAjax'])->name('alumnos.validar-dni');
 Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
 

@@ -288,6 +288,34 @@ class AlumnoController extends Controller
         return response()->json(null, 204);
     }
 
+    public function validarDniAjax(Request $request): JsonResponse
+    {
+        $dniIngresado = $request->input('dni');
+        $idAlumnoActual = $request->input('id_alumno');
+
+        $familiares = session('asistente.familiares', []);
+        foreach ($familiares as $familiar) {
+            if (isset($familiar['dni']) && $familiar['dni'] === $dniIngresado) {
+                return response()->json(['valid' => false, 'message' => 'Este DNI ya fue asignado a un familiar en esta carga.']);
+            }
+        }
+
+        $personaEnBBDD = \App\Models\Persona::where('dni', $dniIngresado)->first();
+
+        if ($personaEnBBDD) {
+            $alumnoAsociado = $personaEnBBDD->alumno; 
+
+            if ($alumnoAsociado) {
+                if ($idAlumnoActual != $alumnoAsociado->id_alumno) {
+                    return response()->json(['valid' => false, 'message' => 'El DNI ya pertenece a otro alumno registrado.']);
+                }
+                return response()->json(['valid' => false, 'message' => 'El DNI ya existe en el sistema (registrado como Persona).']);
+            }
+        }
+
+        return response()->json(['valid' => true]);
+    }
+
     public function actualizar(Request $request, int $id): RedirectResponse
     {
         try {
