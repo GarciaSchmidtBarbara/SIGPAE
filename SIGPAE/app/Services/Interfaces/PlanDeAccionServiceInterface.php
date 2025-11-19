@@ -13,4 +13,6 @@ interface PlanDeAccionServiceInterface
     public function cambiarActivo(int $id): bool;
     public function buscar(string $q): \Illuminate\Support\Collection;
     public function obtenerPlanesParaPrincipal(\Illuminate\Http\Request $request): array;
+    public function obtenerAulasParaFiltro(): \Illuminate\Support\Collection;
+
 }

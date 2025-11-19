@@ -47,12 +47,12 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     {
         $query = $this->model->newQuery();
 
-        // 🚨 CLAVE: Carga Eager de todas las relaciones necesarias para la vista
+        //CLAVE: Carga Eager de todas las relaciones necesarias para la vista
         $query->with([
-            'profesionalGenerador.persona', // Generador (necesario para responsables)
-            'profesionalesParticipantes.persona', // Participantes (necesario para responsables)
-            'alumnos.persona', // Alumnos (necesario para destinatarios)
-            'aulas' // Aulas (necesario para destinatarios/filtros)
+            'profesionalGenerador.persona', 
+            'profesionalesParticipantes.persona', 
+            'alumnos.persona', 
+            'aulas' 
         ]);
 
         // 1. Filtrar por Tipo (tipo_plan)
@@ -89,16 +89,18 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
      */
     public function obtenerAulasParaFiltro(): Collection
     {
-        return Aula::select('id_aula', 'descripcion')->orderBy('descripcion')->get();
+        return Aula::select('id_aula', 'curso', 'division')
+           ->orderBy('curso')
+           ->orderBy('division')
+           ->get();
     }
     
-    // También debes implementar los métodos de la interfaz que no existen en el repository, como:
+    
     public function obtenerPorId(int $id): ?PlanDeAccion
     {
         return $this->model->find($id);
     }
 
-    // El método obtenerTodos ya no es el principal para la vista, puedes dejarlo para listar sin filtros.
     public function obtenerTodos(): Collection
     {
         return $this->model->all(); 

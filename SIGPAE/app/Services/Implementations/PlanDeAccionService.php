@@ -6,6 +6,7 @@ use App\Repositories\PlanDeAccionRepository;
 use App\Services\Interfaces\PlanDeAccionServiceInterface;
 use App\Repositories\Interfaces\PlanDeAccionRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use App\Models\PlanDeAccion;
 
 class PlanDeAccionService implements PlanDeAccionServiceInterface
@@ -44,27 +45,34 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
     
     public function obtener(int $id): ?PlanDeAccion
     {
-        // Tu repositorio no tiene un método 'obtener' directo, ajustamos la llamada:
-        return $this->repository->obtenerPorId($id); // Asumiendo que crearás este método en el Repository
+        return $this->repository->obtenerPorId($id); 
     }
     
     public function buscar(string $q): \Illuminate\Support\Collection
     {
-        // Asumiendo que crearás un método de búsqueda en el Repository
         return $this->repository->buscarPorCriterio($q);
     }
    
     public function obtenerPlanesParaPrincipal(Request $request): array
     {
-        // Llama al método optimizado con filtros y paginación
         $planes = $this->repository->obtenerPlanesFiltrados($request);
-        
-        // Asumimos que el Repository tiene un método para obtener la lista de aulas para el filtro
-        $aulas = $this->repository->obtenerAulasParaFiltro(); // <-- Requiere un nuevo método en el Repository
+        $aulas = $this->obtenerAulasParaFiltro();
         
         return [
-            'planesDeAccion' => $planes, // El nombre de la variable que usaste en la vista
-            'aulasContenido' => $aulas, // El nombre de la variable que usaste en la vista
+            'planesDeAccion' => $planes, 
+            'aulas' => $aulas, 
         ];
     }
+
+    public function obtenerAulasParaFiltro(): Collection
+    {
+        return $this->repository->obtenerAulasParaFiltro()
+            ->map(function ($aula) {
+                return (object)[
+                    'id' => $aula->id_aula,
+                    'descripcion' => $aula->descripcion, // accessor
+                ];
+            });
+    }
+
 }

@@ -41,9 +41,9 @@
 
         <select name="aula" class="border px-2 py-1 rounded w-1/5">
             <option value="">Todos los cursos</option>
-            @foreach($cursos as $curso)
-                <option value="{{ $curso }}" {{ request('aula') === $curso ? 'selected' : '' }}>
-                    {{ $curso }}
+            @foreach($aulas as $aula)
+                <option value="{{ $aula->id }}" {{ request('aula') === $aula->id ? 'selected' : '' }}>
+                    {{ $aula->descripcion }}
                 </option>
             @endforeach
         </select>
