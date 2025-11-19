@@ -175,6 +175,43 @@ class FamiliarController extends Controller
         return redirect()->route('alumnos.continuar');
     }
 
+    public function validarDniAjax(Request $request): JsonResponse
+    {
+        $dniIngresado = $request->input('dni');
+        $indiceActual = $request->input('indice'); 
+        $idPersonaActual = $request->input('fk_id_persona');
+
+        // 1. Validar contra el Alumno (En sesión)
+        $alumnoData = session('asistente.alumno', []);
+        if (isset($alumnoData['dni']) && $alumnoData['dni'] === $dniIngresado) {
+            return response()->json(['valid' => false, 'message' => 'El DNI pertenece al alumno.']);
+        }
+
+        // 2. Validar contra otros Familiares (En sesión)
+        $familiaresEnSesion = session('asistente.familiares', []);
+        foreach ($familiaresEnSesion as $k => $familiar) {
+            // Si estamos editando, nos saltamos a nosotros mismos
+            if (is_numeric($indiceActual) && $k == $indiceActual) {
+                continue; 
+            }
+            if (isset($familiar['dni']) && $familiar['dni'] === $dniIngresado) {
+                return response()->json(['valid' => false, 'message' => 'DNI ya ingresado en esta carga.']);
+            }
+        }
+
+        // 3. Validar contra la Base de Datos
+        $personaEnBBDD = \App\Models\Persona::where('dni', $dniIngresado)->first();
+        if ($personaEnBBDD) {
+            // Si el ID encontrado es DISTINTO al actual, es duplicado
+            if ($idPersonaActual != $personaEnBBDD->id_persona) {
+                return response()->json(['valid' => false, 'message' => 'DNI ya registrado en el sistema.']);
+            }
+        }
+
+        // Si pasó todo, es válido
+        return response()->json(['valid' => true]);
+    }
+
     public function storeAndReturn(Request $request): RedirectResponse
     {
         $tempFamiliar = [

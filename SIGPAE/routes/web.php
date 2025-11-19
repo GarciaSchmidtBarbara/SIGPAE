@@ -77,6 +77,7 @@ use App\Http\Controllers\FamiliarController;
 Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
 Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
 Route::post('/familiares/guardar', [FamiliarController::class, 'guardar'])->name('familiares.guardar');
+Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
 Route::post('/familiares/store-and-return', [FamiliarController::class, 'storeAndReturn'])->name('familiares.storeAndReturn');
 Route::delete('/familiares/temp/{index}', [FamiliarController::class, 'removeTempFamiliar'])->name('familiares.removeTemp');
 
