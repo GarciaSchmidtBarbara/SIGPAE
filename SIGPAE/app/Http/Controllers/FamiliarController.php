@@ -126,6 +126,10 @@ class FamiliarController extends Controller
 
     public function guardar(Request $request)
     {
+        // Si viene "on", lo convertimos a 1. Si no viene, queda en 0.
+        $request->merge([
+            'asiste_a_institucion' => $request->has('asiste_a_institucion') ? 1 : 0,
+        ]);
         // 1. Validamos los campos (usando la lista que descubrimos)
         // Nota: Ajustá las reglas según tus necesidades reales
         $datosFamiliar = $request->validate([
