@@ -51,7 +51,10 @@ class AlumnoRepository implements AlumnoRepositoryInterface
             'familiares.persona',
             
             'hermanos.persona',
-            'esHermanoDe.persona' 
+            'hermanos.aula',
+            
+            'esHermanoDe.persona',
+            'esHermanoDe.aula'
 
         ])->find($id);
     }
