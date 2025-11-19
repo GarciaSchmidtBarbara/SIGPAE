@@ -17,13 +17,21 @@ Route::post('/probar-post', function () {
 
 
 //Rutas Plan de Acción
-Route::get('/planDeAccion', function () {
-    return view('planDeAccion.principal');
-})->middleware('auth')->name('planDeAccion.principal');
+use App\Http\Controllers\PlanDeAccionController;
+Route::prefix('planes-de-accion')->group(function () {
+    Route::get('/', [PlanDeAccionController::class, 'principal'])->name('planDeAccion.principal');
+    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])->name('planDeAccion.iniciar-creacion');
+    Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
+        
+    // Ejemplo de ruta de eliminación (asumiendo que implementarás el método en el controller y service)
+    // Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])
+    //     ->name('planDeAccion.eliminar');
+        
+    // Ejemplo de ruta de edición (usada en la vista)
+    // Route::get('/{id}/editar', [PlanDeAccionController::class, 'editar'])
+    //     ->name('planDeAccion.editar');
+});
 
-Route::get('/planDeAccion/crear', function () {
-    return view('planDeAccion.crear-editar');
-})->middleware('auth')->name('planDeAccion.crear-editar');
 
 //Rutas Planillas
 Route::get('/planillas', function () {

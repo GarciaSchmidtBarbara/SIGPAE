@@ -35,42 +35,35 @@ class PlanDeAccion extends Model
         'estado_plan' => EstadoPlan::class,
     ];
 
-    // revisado
     public function profesionalGenerador(): BelongsTo
     {
         return $this->belongsTo(Profesional::class, 'fk_id_profesional_generador', 'id_profesional');
     }
 
-    // revisado
     public function profesionalesParticipantes(): BelongsToMany
     {
         return $this->belongsToMany(Profesional::class, 'participa_plan', 'fk_id_plan_de_accion', 'fk_id_profesional');
     }
 
-    // revisado
     public function intervenciones(): hasMany
     {
         return $this->hasMany(Intervencion::class, 'fk_id_plan_de_accion', 'id_plan_de_accion');
     }
 
-    // revisado
     public function evaluaciones(): hasMany
     {
         return $this->hasMany(EvaluacionDePlan::class, 'fk_id_plan_de_accion', 'id_plan_de_accion');
     }
 
-    // revisado
     public function aulas():BelongsToMany
     {
         return $this->belongsToMany(Aula::class, 'incluye', 'fk_id_plan_de_accion', 'fk_id_aula');
     }
 
-    // revisado
     public function alumnos(): BelongsToMany
     {
         return $this->belongsToMany(Alumno::class, 'tiene_asignado', 'fk_id_plan_de_accion', 'fk_id_alumno');
     }
-    // revisado
     public function documentos(): HasMany
     {
         return $this->hasMany(Documento::class, 'fk_id_plan_accion', 'id_plan_de_accion');
