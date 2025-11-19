@@ -49,11 +49,6 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
     })->name('planillas.planilla-medial.create');
 });
 
-
-//Rutas Personas
-use App\Http\Controllers\PersonaController;
-Route::post('/personas/check-dni', [PersonaController::class, 'checkDni'])->name('personas.check-dni');
-
 //Rutas Alumnos
 use App\Http\Controllers\AlumnoController;
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
