@@ -36,7 +36,7 @@
     @endif
 
     {{-- Fusionamos atributos (aquí entrará el x-data externo si lo mandamos) --}}
-    {{ $attributes->merge(['class' => 'flex gap-6 items-end']) }}
+    {{ $attributes->merge(['class' => 'flex gap-6 items-start border-0 p-0 m-0 min-w-0']) }}
 >
     <!-- Campo de fecha -->
     <div class="flex flex-col w-1/2">
@@ -51,6 +51,9 @@
             name="{{ $name }}"
             {{-- USAMOS LA VARIABLE DINÁMICA --}}
             x-model="{{ $modelFecha }}" 
+
+            {{-- Esto establece la fecha máxima a "HOY" usando JS --}}
+            :max="new Date().toISOString().split('T')[0]"
             
             {{-- Si usamos lógica externa, usamos el evento @change externo --}}
             @if(!$attributes->has('x-data'))
@@ -60,6 +63,16 @@
             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
             {{ $required ? 'required' : '' }}
         >
+        <div class="mt-1">
+            {{ $slot }}
+        </div>
+
+        <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
+
+        {{-- 2. Mensaje de error del Frontend (Fecha Futura) --}}
+        <div x-show="errorFuturo" class="text-xs text-red-600 mt-1" style="display: none;">
+            La fecha no puede ser futura.
+        </div>
     </div>
 
     <!-- Campo de edad -->

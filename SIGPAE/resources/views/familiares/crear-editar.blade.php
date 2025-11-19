@@ -52,7 +52,7 @@
         // Validar campos generales
         for (const campo of camposRequeridos) {
             if (!this.formData[campo] || String(this.formData[campo]).trim() === '') {
-                this.errors[campo] = 'Requerido';
+                this.errors[campo] = 'Campo Requerido';
                 errorLocal = true;
             }
         }
@@ -210,15 +210,32 @@
 
                         {{-- 3. Inyectamos la lógica calculada conectada a formData --}}
                         x-data="{
+                            errorFuturo: false, // 1. Nueva bandera para el mensaje
+
                             calcularEdad() {
                                 let fecha = formData.fecha_nacimiento;
+                                
+                                // Limpiar si está vacío
                                 if (!fecha) { 
                                     formData.edad = ''; 
+                                    this.errorFuturo = false; // Apagar error si borra
                                     return; 
                                 }
                                 
                                 const hoy = new Date();
                                 const nacimiento = new Date(fecha);
+
+                                // 2. VALIDACIÓN SIN ALERT
+                                if (nacimiento > hoy) {
+                                    this.errorFuturo = true; // Activamos el mensaje rojo
+                                    formData.fecha_nacimiento = ''; // Borramos la fecha inválida
+                                    formData.edad = '';
+                                    return;
+                                }
+                                
+                                this.errorFuturo = false; // Apagamos el error si la fecha es válida
+
+                                // ... (El resto del cálculo de edad sigue igual) ...
                                 let edadCalc = hoy.getFullYear() - nacimiento.getFullYear();
                                 const mes = hoy.getMonth() - nacimiento.getMonth();
                                 
