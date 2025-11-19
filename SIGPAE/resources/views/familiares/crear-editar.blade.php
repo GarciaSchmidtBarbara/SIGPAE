@@ -245,11 +245,19 @@
                                 
                                 formData.edad = edadCalc >= 0 ? edadCalc : '';
                             }
-                        }"
-                        
-                        x-init="calcularEdad()"
-                        @change="calcularEdad()"
-                    />
+                    }"
+                    
+                    x-init="calcularEdad()"
+                    @change="calcularEdad()"
+                    @input="calcularEdad()"
+                    >
+
+                    {{-- Errores dentro del slot --}}
+                    <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
+                    <div x-show="errorFuturo" class="text-xs text-red-600 mt-1" style="display: none;">
+                        La fecha no puede ser futura.
+                    </div>
+                </x-campo-fecha-edad>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex flex-col">
