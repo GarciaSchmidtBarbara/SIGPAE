@@ -195,7 +195,7 @@ class FamiliarController extends Controller
                 continue; 
             }
             if (isset($familiar['dni']) && $familiar['dni'] === $dniIngresado) {
-                return response()->json(['valid' => false, 'message' => 'DNI ya ingresado en esta carga.']);
+                return response()->json(['valid' => false, 'message' => 'Este DNI ya fue asignado a un familiar en esta carga.']);
             }
         }
 

@@ -305,12 +305,11 @@ class AlumnoController extends Controller
         if ($personaEnBBDD) {
             $alumnoAsociado = $personaEnBBDD->alumno; 
 
-            if ($alumnoAsociado) {
-                if ($idAlumnoActual != $alumnoAsociado->id_alumno) {
-                    return response()->json(['valid' => false, 'message' => 'El DNI ya pertenece a otro alumno registrado.']);
-                }
-                return response()->json(['valid' => false, 'message' => 'El DNI ya existe en el sistema (registrado como Persona).']);
+            if ($idAlumnoActual && $alumnoAsociado && $idAlumnoActual == $alumnoAsociado->id_alumno) {
+                return response()->json(['valid' => true]);
             }
+            
+            return response()->json(['valid' => false, 'message' => 'DNI ya registrado en el sistema.']);
         }
 
         return response()->json(['valid' => true]);
