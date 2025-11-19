@@ -38,7 +38,7 @@ class PlanDeAccionController extends Controller
     
     public function iniciarCreacion(): View
     {
-        return view('planDeAccion.crear'); 
+        return view('planDeAccion.crear-editar'); 
     }
     
     // ... otros métodos CRUD (store, edit, update, destroy)

@@ -2,31 +2,31 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
 use App\Enums\TipoPlan;
 use App\Enums\EstadoPlan;
 
 class PlanDeAccion extends Model
 {
+    use HasFactory;
     protected $table = 'planes_de_accion';
 
     protected $primaryKey = 'id_plan_de_accion';
-
-    const CREATED_AT = 'fecha_hora';
 
     protected $fillable = [
         'estado_plan',
         'tipo_plan', 
         'objetivos',
         'activo',
-        'fecha_hora',
         'acciones',
         'observaciones',
     ];
 
     protected $casts = [
-        'fecha_hora' => 'datetime',
         'activo' => 'boolean',
         'objetivos' => 'string', // será tratado como text
         'observaciones' => 'string', // será tratado como text

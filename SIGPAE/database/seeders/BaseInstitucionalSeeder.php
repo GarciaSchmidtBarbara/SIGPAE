@@ -69,6 +69,12 @@ class BaseInstitucionalSeeder extends Seeder
         );
 
         \App\Models\Alumno::factory()->count(10)->create();
+        \App\Models\PlanDeAccion::factory()
+            ->count(5)
+            ->withAlumnos(2)
+            ->withAulas(3)
+            ->create();
+        
 
     }
 }

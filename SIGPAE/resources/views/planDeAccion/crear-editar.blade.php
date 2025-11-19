@@ -5,8 +5,6 @@
 
 
 @section('contenido')
-{{-- 1. CONTENEDOR PRINCIPAL x-data --}}
-{{-- Inicializamos la variable que contendrá el valor seleccionado --}}
 <div x-data="{ tipoPlanSeleccionado: 'Institucional' }" class="space-y-6">
 
     <div class="space-y-8">
@@ -20,7 +18,6 @@
         @endphp
 
         <div class="space-y-4">
-            {{-- 2. LLAMADA AL COMPONENTE --}}
             <x-opcion-unica
                 :items="$tipoPlan"
                 name="tipo_plan" 
@@ -33,7 +30,6 @@
 
     </div>
 
-    {{-- 3. BLOQUES DEPENDIENTES CON x-show --}}
 
     <!-- DESTINATARIO (Visible solo si es 'Individual') -->
     {{-- AÑADIDO: style="display: none;" para prevenir que se muestre antes de que Alpine cargue --}}
