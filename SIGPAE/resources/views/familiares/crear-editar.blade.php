@@ -17,7 +17,7 @@
     errors: {
         nombre: '',
         apellido: '',
-        documento: '',
+        dni: '',
         fecha_nacimiento: '',
         otro_parentesco: ''
     },
@@ -25,23 +25,46 @@
     dniError: '',
 
     // 3. Inicialización
+
+    limpiarDatos() {
+        this.formData.nombre = '';
+        this.formData.apellido = '';
+        this.formData.dni = '';
+        this.formData.fecha_nacimiento = '';
+        this.formData.edad = '';
+        this.formData.domicilio = '';
+        this.formData.nacionalidad = '';
+        this.formData.fk_id_persona = null; // ¡Clave! Rompemos el vínculo
+        this.isFilled = false; // Desbloqueamos
+        this.selected = null;
+        this.searchQuery = '';
+    },
+    
     init() {
         if (this.soloLectura) {
             this.isFilled = true;
         }
         
-        // Watcher para parentesco
         this.$watch('parentesco', (val) => {
-            // 1. Sincronizamos el valor en formData
-            this.formData.parentesco = val; 
+             this.formData.parentesco = val; 
 
-            // 2. LIMPIEZA DE DATOS FANTASMA
-            // Si cambiaron a algo que NO es 'otro', borramos el campo 'otro_parentesco'
-            if (val !== 'otro') {
-                this.formData.otro_parentesco = '';
-                // También limpiamos el error visual si había uno
-                if (this.errors.otro_parentesco) delete this.errors.otro_parentesco;
-            }
+             // 1. Limpieza de 'otro' 
+             if (val !== 'otro') {
+                 this.formData.otro_parentesco = '';
+                 if (this.errors.otro_parentesco) delete this.errors.otro_parentesco;
+             }
+
+             // 2. PROTECCIÓN DE HERMANO ALUMNO (Lo nuevo)
+             // Si salimos de 'hermano'...
+             if (val !== 'hermano') {
+                 // ...Y teníamos datos vinculados (isFilled es true)...
+                 // ...Y NO estamos en modo edición estricta (soloLectura)...
+                 if (this.isFilled && !this.soloLectura) {
+                     // ¡Borramos todo para no guardar un ID fantasma!
+                     this.limpiarDatos();
+                 }
+                 // Si isFilled es false (escrito a mano), NO entra acá y conserva los datos.
+             }
         });
     },
 
@@ -117,9 +140,62 @@
         if (campo === 'dni') this.dniError = '';
     },
     
-    // Placeholders para la Etapa 3
-    search() {},
-    selectAlumno(al) {}
+    // Función para buscar alumnos en el servidor
+    async search() {
+        const q = this.searchQuery ? this.searchQuery.trim() : '';
+        
+        if (!q) { 
+            this.results = []; 
+            return; 
+        }
+
+        try {
+            // Asegurate que esta ruta exista en web.php
+            const res = await fetch('{{ route('alumnos.buscar') }}?q=' + encodeURIComponent(q));
+            
+            if (!res.ok) return;
+            
+            this.results = await res.json();
+        } catch(e) { 
+            console.error(e); 
+        }
+    },
+
+    // Función para seleccionar un alumno y llenar el formulario
+    selectAlumno(al) { 
+        // 1. Guardamos la selección
+        this.selected = al; 
+        this.results = []; 
+        this.searchQuery = al.persona?.dni || ''; 
+        
+        // 2. RELLENAMOS EL FORMULARIO (Mapeo)
+        this.formData.nombre = al.persona?.nombre || '';
+        this.formData.apellido = al.persona?.apellido || '';
+        this.formData.dni = al.persona?.dni || ''; // Usamos 'dni'
+        
+        // Formateamos fecha para el input
+        this.formData.fecha_nacimiento = al.persona?.fecha_nacimiento 
+            ? new Date(al.persona.fecha_nacimiento).toISOString().split('T')[0] 
+            : '';
+        
+        this.formData.edad = al.persona?.edad || '';
+        this.formData.domicilio = al.persona?.domicilio || '';
+        this.formData.nacionalidad = al.persona?.nacionalidad || '';
+
+        // 3. VINCULACIÓN (Clave para el Back-End)
+        this.formData.fk_id_persona = al.persona?.id_persona || null;
+
+        // 4. ACTIVAMOS EL CANDADO (Bloquea los inputs)
+        this.isFilled = true; 
+        
+        // Limpiamos errores visuales
+        this.errors = {};
+        
+        // Recalculamos edad si hace falta para consistencia visual
+        if(this.formData.fecha_nacimiento) {
+             // El componente x-campo-fecha-edad lo detectará por x-model
+        }
+    },
 
 }" x-init="init()" x-cloak>
 
