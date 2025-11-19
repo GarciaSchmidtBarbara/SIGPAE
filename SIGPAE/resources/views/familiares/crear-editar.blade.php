@@ -32,7 +32,16 @@
         
         // Watcher para parentesco
         this.$watch('parentesco', (val) => {
-             this.formData.parentesco = val; // Sincronizar
+            // 1. Sincronizamos el valor en formData
+            this.formData.parentesco = val; 
+
+            // 2. LIMPIEZA DE DATOS FANTASMA
+            // Si cambiaron a algo que NO es 'otro', borramos el campo 'otro_parentesco'
+            if (val !== 'otro') {
+                this.formData.otro_parentesco = '';
+                // También limpiamos el error visual si había uno
+                if (this.errors.otro_parentesco) delete this.errors.otro_parentesco;
+            }
         });
     },
 
