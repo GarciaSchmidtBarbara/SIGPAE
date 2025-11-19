@@ -66,13 +66,6 @@
         <div class="mt-1">
             {{ $slot }}
         </div>
-
-        <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
-
-        {{-- 2. Mensaje de error del Frontend (Fecha Futura) --}}
-        <div x-show="errorFuturo" class="text-xs text-red-600 mt-1" style="display: none;">
-            La fecha no puede ser futura.
-        </div>
     </div>
 
     <!-- Campo de edad -->
