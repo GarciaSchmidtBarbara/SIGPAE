@@ -116,12 +116,52 @@ class FamiliarController extends Controller
         // paso los datos de ese familiar a la vista
         $familiarData = $familiares[$indice];
 
-        // Si tiene 'parentesco', es un Familiar Puro (Editable).
-        // Si NO tiene 'parentesco', es un Hermano Alumno (Solo Lectura).
-        $solo_lectura = !isset($familiarData['parentesco']);
+        if (isset($familiarData['persona'])) {
+             $familiarData['nombre'] = $familiarData['persona']['nombre'] ?? '';
+             $familiarData['apellido'] = $familiarData['persona']['apellido'] ?? '';
+             $familiarData['dni'] = $familiarData['persona']['dni'] ?? '';
+             $familiarData['fecha_nacimiento'] = $familiarData['persona']['fecha_nacimiento'] ?? '';
+             $familiarData['domicilio'] = $familiarData['persona']['domicilio'] ?? '';
+             $familiarData['nacionalidad'] = $familiarData['persona']['nacionalidad'] ?? '';
+             
+             // La clave para saber que es vinculado:
+             $familiarData['fk_id_persona'] = $familiarData['persona']['id_persona'] ?? null;
+        }
+
+        if (isset($familiarData['aula'])) {
+            $familiarData['curso'] = $familiarData['aula']['curso'] ?? ''; 
+            $familiarData['division'] = $familiarData['aula']['division'] ?? '';
+        }
+        
+        // B. Si viene de SESIÓN (ya está aplanado, no hacemos nada,
+        //    pero nos aseguramos de que 'curso' y 'division' existan para que no falle la vista)
+        $familiarData['curso'] = $familiarData['curso'] ?? '';
+        $familiarData['division'] = $familiarData['division'] ?? '';
+
+
+        // --- 2. LÓGICA DE SOLO LECTURA (La Definitiva) ---
+        
+        // ¿Es un Hermano Alumno Vinculado?
+        // Condición: Tiene un ID de persona vinculado.
+        // (No importa si parentesco es null o 'hermano', lo que importa es el vínculo).
+        $esVinculado = !empty($familiarData['fk_id_persona']);
+        
+        if ($esVinculado) {
+            $solo_lectura = true;
+            // Si venía de BBDD (parentesco null), forzamos 'hermano' para que el radio button se marque.
+            if (!isset($familiarData['parentesco'])) {
+                $familiarData['parentesco'] = 'hermano';
+            }
+        } else {
+            $solo_lectura = false;
+        }
 
         // tambien le paso el indice para que el formulario de l avista alumnos/crear-editar sepa qué familiar está editando.
-        return view('familiares.crear-editar', ['familiarData' => $familiarData,'indice' => $indice, 'solo_lectura' => $solo_lectura]);
+        return view('familiares.crear-editar', [
+            'familiarData' => $familiarData,
+            'indice' => $indice,
+            'solo_lectura' => $solo_lectura
+        ]);
     }
 
     public function guardar(Request $request)
@@ -144,7 +184,9 @@ class FamiliarController extends Controller
             'lugar_de_trabajo' => 'nullable|string',
             'parentesco' => 'required|string',
             'otro_parentesco' => 'nullable|string',
-            'observaciones' => 'nullable|string',
+            'curso' => 'nullable|string',
+            'curso' => 'nullable|string',
+            'division' => 'nullable|string',
             // Campos ocultos o de lógica
             'asiste_a_institucion' => 'boolean',
             'fk_id_persona' => 'nullable',

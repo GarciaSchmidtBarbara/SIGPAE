@@ -181,6 +181,8 @@
         this.formData.edad = al.persona?.edad || '';
         this.formData.domicilio = al.persona?.domicilio || '';
         this.formData.nacionalidad = al.persona?.nacionalidad || '';
+        this.formData.curso = al.aula?.curso || ''; 
+        this.formData.division = al.aula?.division || '';
 
         // 3. VINCULACIÓN (Clave para el Back-End)
         this.formData.fk_id_persona = al.persona?.id_persona || null;
@@ -205,6 +207,8 @@
         <input type="hidden" name="indice" :value="editIndex">
         <input type="hidden" name="id_familiar" :value="formData.id_familiar">
         <input type="hidden" name="fk_id_persona" :value="formData.fk_id_persona">
+        <input type="hidden" name="curso" :value="formData.curso">
+        <input type="hidden" name="division" :value="formData.division">
 
         <p class="separador">Relación</p>
         <div class="flex flex-wrap items-center gap-4 mt-2">
@@ -466,11 +470,23 @@
                     </div>
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">Curso</label>
-                        <input name="curso" :value="selected?.aula?.curso || ''" disabled placeholder="curso" class="border px-2 py-1 rounded bg-gray-100 text-gray-700">
+                        <input 
+                            name="curso" 
+                            x-model="formData.curso" 
+                            :disabled="true" 
+                            placeholder="Curso" 
+                            class="border px-2 py-1 rounded bg-gray-100 text-gray-700 cursor-not-allowed"
+                        >
                     </div>
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">División</label>
-                        <input name="division" :value="selected?.aula?.division || ''" disabled placeholder="división" class="border px-2 py-1 rounded focus:outline-none bg-gray-100 text-gray-700">
+                        <input 
+                            name="division" 
+                            x-model="formData.division" 
+                            :disabled="true" 
+                            placeholder="División" 
+                            class="border px-2 py-1 rounded bg-gray-100 text-gray-700 cursor-not-allowed"
+                        >
                     </div>
                 </div>
             </div>
