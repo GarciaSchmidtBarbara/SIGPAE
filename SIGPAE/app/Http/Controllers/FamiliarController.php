@@ -143,10 +143,24 @@ class FamiliarController extends Controller
 
     public function guardarYVolver(Request $request)
     {
-        // Si viene "on", lo convertimos a 1. Si no viene, queda en 0.
+        $fkPersona = $request->input('fk_id_persona');
+        $asiste = 0; // Por defecto, asumimos que no es alumno
+
+        if ($fkPersona) {
+            // Buscamos en la tabla 'alumnos' si existe una foranea para esta persona.
+            // Si existe, entonces es un "Hermano Alumno" (o un alumno vinculado).
+            $esAlumno = \App\Models\Alumno::where('fk_id_persona', $fkPersona)->exists();
+            
+            if ($esAlumno) {
+                $asiste = 1;
+            }
+        }
+        
+        // Ahora sí, mergeamos con la seguridad de la BBDD
         $request->merge([
-            'asiste_a_institucion' => $request->has('asiste_a_institucion') ? 1 : 0,
+            'asiste_a_institucion' => $asiste,
         ]);
+
         // 1. Validamos los campos (usando la lista que descubrimos)
         // Nota: Ajustá las reglas según tus necesidades reales
         $datosFamiliar = $request->validate([
