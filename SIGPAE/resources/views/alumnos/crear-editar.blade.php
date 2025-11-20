@@ -63,25 +63,25 @@
     },
 
     async validarYGuardar() {
+        // 1. Limpieza inicial
         this.errors = {}; 
-        this.dniError = '';
+        this.dniError = ''; 
         
-        // Usamos UNA sola variable para todo el proceso
+        // Variable maestra única (Corrección del error anterior)
         let hayErrores = false; 
         
-        // 1. Validación Local (Campos Vacíos)
+        // 2. Validación Local (Solo campos de ALUMNO)
+        // Nota: Aquí NO va 'parentesco' porque el alumno no tiene ese campo.
         const requeridos = ['dni', 'nombre', 'apellido', 'aula', 'inasistencias', 'fecha_nacimiento'];
 
         requeridos.forEach(campo => {
-            // Si falta un campo, marcamos error y levantamos la bandera
             if (!this.alumnoData[campo] || String(this.alumnoData[campo]).trim() === '') {
                 this.errors[campo] = 'Este campo es requerido.';
                 hayErrores = true; 
             }
         });
 
-        // 2. Validación Remota de DNI
-        // Solo validamos si el usuario escribió algo en el DNI
+        // 3. Validación Remota de DNI
         if (this.alumnoData.dni) {
             try {
                 const response = await fetch('{{ route("alumnos.validar-dni") }}', {
@@ -102,25 +102,24 @@
                 const data = await response.json();
 
                 if (!data.valid) {
-                    // Si el servidor dice que está duplicado, mostramos el mensaje
                     this.errors.dni = data.message; 
-                    hayErrores = true; // ¡Importante! Levantamos la misma bandera
+                    hayErrores = true; // Marcamos error en la misma variable
                 }
 
             } catch (e) {
                 console.error(e);
                 alert('Error técnico al validar DNI.');
-                return; // Frenamos por error de sistema
+                return; 
             }
         }
 
-        // 3. DECISIÓN FINAL
-        // Si la bandera está levantada (por vacío O por duplicado), no enviamos.
+        // 4. Decisión Final
+        // Si hayErrores es true (por vacío O por DNI), no enviamos.
         if (hayErrores) {
             return;
         }
 
-        // 4. ÉXITO
+        // 5. Éxito
         this.$refs.form.submit();
     },
     
@@ -199,7 +198,7 @@
     }
 }">
     
-    <form method="POST" action="{{ isset($modo) && $modo === 'editar' ? route('alumnos.actualizar', $alumno->id_alumno) : route('alumnos.store') }}"
+    <form method="POST" action="{{ isset($modo) && $modo === 'editar' ? route('alumnos.actualizar', $alumno->id_alumno) : route('alumnos.guardar') }}"
             x-ref="form" novalidate>
         @csrf
         @if($esEdicion)

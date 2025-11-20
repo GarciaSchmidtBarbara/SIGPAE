@@ -70,60 +70,51 @@
 
     // 4. Funciones
     async validarYGuardar() {
-        // Reiniciar estado de errores
         this.errors = {};
-        this.dniError = '';
-        let errorLocal = false;
+        this.dniError = ''; // (Opcional, si usas errors.dni podés sacarlo)
+        let hayErrores = false; // Bandera maestra única
 
-        // Determinar campos requeridos según contexto
+        // 1. Validación Local (Campos Vacíos)
         let camposRequeridos = [];
         if (this.parentesco !== 'hermano' || (this.parentesco === 'hermano' && !this.isFilled)) {
             camposRequeridos = ['nombre', 'apellido', 'dni', 'fecha_nacimiento'];
         }
 
-        // Validar campos generales
         for (const campo of camposRequeridos) {
             if (!this.formData[campo] || String(this.formData[campo]).trim() === '') {
-                this.errors[campo] = 'Campo Requerido';
-                errorLocal = true;
+                this.errors[campo] = 'Este campo es requerido.';
+                hayErrores = true;
             }
         }
 
-        // Validar campo condicional 'otro'
+        // Validación de 'Otro'
         if (this.parentesco === 'otro' && (!this.formData.otro_parentesco || String(this.formData.otro_parentesco).trim() === '')) {
-            this.errors.otro_parentesco = 'Requerido';
-            errorLocal = true;
+            this.errors.otro_parentesco = 'Debe especificar el parentesco.';
+            hayErrores = true;
         }
 
-        // Detener si hay errores locales
-        if (errorLocal) return;
+        // NOTA: No hacemos return acá para que siga y valide DNI también.
 
-        // Validación remota de DNI (si aplica)
+        // 2. Validación Remota de DNI (Semáforo)
         if (this.formData.dni && (!this.isFilled || this.parentesco !== 'hermano')) {
             try {
                 const response = await fetch('{{ route("familiares.validar-dni") }}', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        dni: this.formData.dni,
-                        indice: this.editIndex,
-                        fk_id_persona: this.formData.fk_id_persona
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify({ 
+                        dni: this.formData.dni, 
+                        indice: this.editIndex, 
+                        fk_id_persona: this.formData.fk_id_persona 
                     })
                 });
                 
                 if (!response.ok) throw new Error('Error de red');
-
                 const data = await response.json();
 
                 if (!data.valid) {
-                    this.dniError = data.message;
-                    return; // Detener envío
+                    this.errors.dni = data.message; // Usamos errors.dni para uniformidad
+                    hayErrores = true;
                 }
-
             } catch (error) {
                 console.error(error);
                 alert('Error al validar DNI.');
@@ -131,7 +122,11 @@
             }
         }
 
-        // Envío del formulario
+        // 3. Decisión Final
+        if (hayErrores) {
+            return;
+        }
+
         this.$refs.form.submit();
     },
 
