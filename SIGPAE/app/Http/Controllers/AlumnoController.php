@@ -41,7 +41,7 @@ class AlumnoController extends Controller
         return response()->json($alumno);
     }
 
-    public function store(Request $request)
+    public function guardar(Request $request)
     {
         request->validate([
             'dni' => 'required|numeric',

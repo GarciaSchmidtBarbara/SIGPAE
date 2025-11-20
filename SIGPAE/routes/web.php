@@ -61,7 +61,8 @@ Route::post('/alumnos/asistente/sincronizar', [AlumnoController::class, 'sincron
 
 Route::get('/alumnos/asistente/continuar', [AlumnoController::class, 'continuar'])->name('alumnos.continuar');
 Route::post('/alumnos/validar-dni', [AlumnoController::class, 'validarDniAjax'])->name('alumnos.validar-dni');
-Route::post('/alumnos/store', [AlumnoController::class, 'store'])->name('alumnos.store');
+Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
+Route::post('/alumnos/store', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
 
 Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
@@ -72,11 +73,12 @@ Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarAct
 use App\Http\Controllers\FamiliarController;
 Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
 Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
-Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardarYVolver'])->name('familiares.guardar-y-volver');
+Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardarYVolver'])->name('familiares.guardarYVolver');
 Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
 
-// Búsqueda de alumnos (para seleccionar hermano)
-Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
+Route::post('/alumnos/guardar', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
+Route::put('/alumnos/actualizar/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
+
 
 // Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;

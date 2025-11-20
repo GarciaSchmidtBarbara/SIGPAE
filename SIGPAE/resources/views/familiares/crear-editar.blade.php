@@ -201,7 +201,7 @@
 
 }" x-init="init()" x-cloak>
 
-    <form method="POST" action="{{ route('familiares.guardar-y-volver') }}" x-ref="form" novalidate>
+    <form method="POST" action="{{ route('familiares.guardarYVolver') }}" x-ref="form" novalidate>
         @csrf
 
         <input type="hidden" name="indice" :value="editIndex">
