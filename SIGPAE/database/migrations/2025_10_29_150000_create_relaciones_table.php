@@ -51,6 +51,7 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             
+            $table->boolean('activa')->default(true);
             $table->string('observaciones')->nullable();
             
             $table->primary(['fk_id_alumno', 'fk_id_familiar']);
@@ -70,6 +71,7 @@ return new class extends Migration
                   ->onDelete('cascade');
             
             $table->boolean('activa')->default(true);
+            $table->string('observaciones')->nullable();
 
             $table->primary(['fk_id_alumno', 'fk_id_alumno_hermano']);  
             $table->timestamps();
