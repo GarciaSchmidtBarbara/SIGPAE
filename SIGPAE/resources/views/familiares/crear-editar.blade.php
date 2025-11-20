@@ -214,8 +214,18 @@
         <div class="flex flex-wrap items-center gap-4 mt-2">
             @php($parentescos = ['padre'=>'Padre','madre'=>'Madre','tutor'=>'Tutor','hermano'=>'Hermano','otro'=>'Otro'])
             @foreach($parentescos as $valor => $label)
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="parentesco" value="{{ $valor }}" x-model="parentesco" class="text-indigo-600 focus:ring-indigo-500">
+                <label class="flex items-center gap-2"
+                    {{-- 
+                        LÓGICA DE VISIBILIDAD:
+                        1. Si estamos creando (editIndex === null) -> Mostrar TODO.
+                        2. Si editamos 'hermano' -> Mostrar SOLO la opción 'hermano'.
+                        3. Si editamos 'padre', 'madre', 'tutor', u 'otro' -> Mostrar TODO MENOS 'hermano'.
+                    --}}
+                    x-show="editIndex === null || (parentesco === 'hermano' ? '{{ $valor }}' === 'hermano' : '{{ $valor }}' !== 'hermano')"
+                >
+                    <input type="radio" name="parentesco" value="{{ $valor }}" x-model="parentesco" 
+                        class="text-indigo-600 focus:ring-indigo-500"
+                        x-bind:disabled="soloLectura">
                     <span>{{ $label }}</span>
                 </label>
             @endforeach
@@ -366,7 +376,7 @@
         <!--Si se marca en el Radio button al hermano-->
         <template x-if="parentesco === 'hermano'">
             <div x-cloak class="space-y-4 mt-3">
-                <div class="flex items-end gap-3">
+                <div class="flex items-end gap-3" x-show="editIndex === null">
                     <div class="flex-1">
                         <label class="text-sm font-medium text-gray-700 mb-1">Buscar Alumnos</label>
                         <div class="relative">
