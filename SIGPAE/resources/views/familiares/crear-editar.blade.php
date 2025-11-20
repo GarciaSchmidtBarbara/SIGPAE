@@ -468,22 +468,28 @@
                         name="fecha_nacimiento"
                         edad-name="edad"
                         required
-
-                        {{-- 1. Conectamos a las variables de ESTA vista (formData) --}}
                         model-fecha="formData.fecha_nacimiento"
                         model-edad="formData.edad"
                         
-                        {{-- 2. Estado de deshabilitado --}}
                         x-bind:disabled="isFilled || soloLectura"
 
-                        {{-- 3. Inyectamos la lógica ROBUSTA (Copiada y adaptada de Vista 1) --}}
+                        {{-- Lógica mejorada con Watcher --}}
                         x-data="{
                             errorFuturo: false,
+
+                            init() {
+                                // 1. Calculamos al arrancar (para Edición)
+                                this.calcularEdad();
+
+                                // 2. ¡LA CLAVE! Vigilamos cambios automáticos (para el Buscador)
+                                this.$watch('formData.fecha_nacimiento', (val) => {
+                                    this.calcularEdad();
+                                });
+                            },
 
                             calcularEdad() {
                                 let fecha = formData.fecha_nacimiento;
                                 
-                                // Si está vacío, limpiamos y salimos
                                 if (!fecha) { 
                                     formData.edad = ''; 
                                     this.errorFuturo = false;
@@ -493,17 +499,15 @@
                                 const hoy = new Date();
                                 const nacimiento = new Date(fecha);
                                 
-                                // --- VALIDACIÓN: NO FUTURO ---
                                 if (nacimiento > hoy) {
                                     this.errorFuturo = true;
-                                    formData.fecha_nacimiento = ''; // Borramos la fecha
+                                    formData.fecha_nacimiento = ''; 
                                     formData.edad = '';
                                     return;
                                 }
                                 
-                                this.errorFuturo = false; // Apagamos error si es válida
+                                this.errorFuturo = false;
 
-                                // Cálculo de edad
                                 let edadCalc = hoy.getFullYear() - nacimiento.getFullYear();
                                 const mes = hoy.getMonth() - nacimiento.getMonth();
                                 
@@ -515,22 +519,16 @@
                             }
                         }"
                         
-                        {{-- 4. Eventos: Calculamos al iniciar, al cambiar y limpiamos errores --}}
-                        x-init="calcularEdad()"
-                        @change="calcularEdad(); limpiarError('fecha_nacimiento')"
-                        @input="calcularEdad(); limpiarError('fecha_nacimiento')"
+                        {{-- Usamos el init completo en lugar de llamar a la función suelta --}}
+                        x-init="init()"
+                        @change="calcularEdad()"
+                        @input="calcularEdad()"
                     >
-
-                        {{-- 5. SLOT: MENSAJES DE ERROR (Adentro del componente) --}}
-                        
-                        {{-- Error de Backend/Validación local --}}
+                        {{-- Errores dentro del slot --}}
                         <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
-                        
-                        {{-- Error de Fecha Futura --}}
                         <div x-show="errorFuturo" class="text-xs text-red-600 mt-1" style="display: none;">
                             La fecha no puede ser futura.
                         </div>
-
                     </x-campo-fecha-edad>
                 </div>
 
