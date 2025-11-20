@@ -74,8 +74,6 @@ Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('fam
 Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
 Route::post('/familiares/guardar', [FamiliarController::class, 'guardar'])->name('familiares.guardar');
 Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
-Route::post('/familiares/store-and-return', [FamiliarController::class, 'storeAndReturn'])->name('familiares.storeAndReturn');
-Route::delete('/familiares/temp/{index}', [FamiliarController::class, 'removeTempFamiliar'])->name('familiares.removeTemp');
 
 // Búsqueda de alumnos (para seleccionar hermano)
 Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');

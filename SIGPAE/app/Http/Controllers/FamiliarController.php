@@ -225,8 +225,9 @@ class FamiliarController extends Controller
     public function validarDniAjax(Request $request): JsonResponse
     {
         $dniIngresado = $request->input('dni');
-        $indiceActual = $request->input('indice'); 
-        $idPersonaActual = $request->input('fk_id_persona');
+        
+        // CORRECCIÓN: Usamos el ID de la Persona del familiar (no del alumno)
+        $idPersonaFamiliar = $request->input('fk_id_persona'); 
 
         // 1. Validar contra el Alumno (En sesión)
         $alumnoData = session('asistente.alumno', []);
@@ -235,72 +236,33 @@ class FamiliarController extends Controller
         }
 
         // 2. Validar contra otros Familiares (En sesión)
+        $indiceActual = $request->input('indice');
         $familiaresEnSesion = session('asistente.familiares', []);
+        
         foreach ($familiaresEnSesion as $k => $familiar) {
-            // Si estamos editando, nos saltamos a nosotros mismos
             if (is_numeric($indiceActual) && $k == $indiceActual) {
                 continue; 
             }
             if (isset($familiar['dni']) && $familiar['dni'] === $dniIngresado) {
-                return response()->json(['valid' => false, 'message' => 'Este DNI ya fue asignado a un familiar en esta carga.']);
+                return response()->json(['valid' => false, 'message' => 'DNI ya ingresado en esta carga.']);
             }
         }
 
         // 3. Validar contra la Base de Datos
         $personaEnBBDD = \App\Models\Persona::where('dni', $dniIngresado)->first();
+
         if ($personaEnBBDD) {
-            // Si el ID encontrado es DISTINTO al actual, es duplicado
-            if ($idPersonaActual != $personaEnBBDD->id_persona) {
-                return response()->json(['valid' => false, 'message' => 'DNI ya registrado en el sistema.']);
+            // Si el DNI existe...
+            // Verificamos si le pertenece al familiar que estoy editando.
+            if ($idPersonaFamiliar && $idPersonaFamiliar == $personaEnBBDD->id_persona) {
+                return response()->json(['valid' => true]); // Es el mismo, todo bien.
             }
+            
+            // Si no es el mismo, es un duplicado.
+            return response()->json(['valid' => false, 'message' => 'DNI ya registrado en el sistema.']);
         }
 
-        // Si pasó todo, es válido
         return response()->json(['valid' => true]);
     }
 
-    public function storeAndReturn(Request $request): RedirectResponse
-    {
-        $tempFamiliar = [
-            // Persona (si no hay fk_id_persona, o sea, no es un hermano ya creado en el sistema)
-            'nombre'            => $request->string('nombre')->toString(),
-            'apellido'          => $request->string('apellido')->toString(),
-            'dni'               => $request->string('documento')->toString(),
-            'fecha_nacimiento'  => $request->string('fecha_nacimiento')->toString(),
-            'domicilio'         => $request->string('domicilio')->toString(),
-            'nacionalidad'      => $request->string('nacionalidad')->toString(),
-
-            // Familiar
-            'telefono_personal' => $request->string('telefono_personal')->toString(),
-            'telefono_laboral'  => $request->string('telefono_laboral')->toString(),
-            'lugar_de_trabajo'      => $request->string('lugar_de_trabajo')->toString(),
-            'parentesco'        => $request->string('parentesco')->toString(), // valores: padre,madre,hermano,tutor,otro
-            'otro_parentesco'   => $request->string('otro_parentesco')->toString(),
-            'observaciones'     => $request->string('observaciones')->toString(),
-
-            // Si es hermano seleccionado desde buscador
-            'fk_id_persona'     => $request->input('fk_id_persona'),
-            'asiste_a_institucion' => $request->boolean('asiste_a_institucion'),
-        ];
-        
-        
-        $familiares_temp = Session::get('familiares_temp', []);
-
-        //Agrego logica de si existe el indice, y si esta en el array, guardo los datos de familiar ahi mismo
-        //sino lo agrego al final del array
-        $editIndex = $request->input('edit_familiar_index');
-        if (is_numeric($editIndex) && isset($familiares_temp[$editIndex])) {
-            $familiares_temp[$editIndex] = $tempFamiliar;
-            $message = 'Familiar actualizado en la lista temporal.';
-
-        } else {
-            $familiares_temp[] = $tempFamiliar;
-            $message = 'Familiar agregado a la lista temporal.';
-        }
-
-        Session::put('familiares_temp', $familiares_temp);
-        
-        return redirect()->route('alumnos.crear-editar')->with('success', $message);
-    
-    }
 }
