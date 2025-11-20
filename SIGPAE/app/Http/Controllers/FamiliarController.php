@@ -164,7 +164,7 @@ class FamiliarController extends Controller
         ]);
     }
 
-    public function guardar(Request $request)
+    public function guardarYVolver(Request $request)
     {
         // Si viene "on", lo convertimos a 1. Si no viene, queda en 0.
         $request->merge([
