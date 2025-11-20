@@ -120,7 +120,7 @@ class AlumnoController extends Controller
     public function crear() {
         // limpio la sesion manualmente antes de entrar, en caso de que el usuario abra otra pestaña en el navegador
         // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
-        //session()->forget('asistente');
+        session()->forget('asistente');
 
         $cursos = $this->alumnoService->obtenerCursos();
         
