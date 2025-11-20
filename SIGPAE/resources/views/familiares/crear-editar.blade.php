@@ -218,9 +218,18 @@
                     --}}
                     x-show="editIndex === null || (parentesco === 'hermano' ? '{{ $valor }}' === 'hermano' : '{{ $valor }}' !== 'hermano')"
                 >
-                    <input type="radio" name="parentesco" value="{{ $valor }}" x-model="parentesco" 
+                    <input type="radio" 
+                        name="parentesco" 
+                        value="{{ $valor }}" 
+                        x-model="parentesco" 
                         class="text-indigo-600 focus:ring-indigo-500"
-                        x-bind:disabled="soloLectura">
+                        
+                        {{-- CAMBIO 1: Usamos clases para simular el bloqueo visual (cursor) --}}
+                        :class="{ 'cursor-not-allowed': soloLectura, 'cursor-pointer': !soloLectura }"
+                        
+                        {{-- CAMBIO 2: En lugar de disabled, prevenimos el clic si es solo lectura --}}
+                        @click="if(soloLectura) $event.preventDefault()"
+                    >
                     <span>{{ $label }}</span>
                 </label>
             @endforeach
