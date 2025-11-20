@@ -187,6 +187,7 @@ class FamiliarController extends Controller
             'curso' => 'nullable|string',
             'curso' => 'nullable|string',
             'division' => 'nullable|string',
+            'observaciones' => 'nullable|string',
             // Campos ocultos o de lógica
             'asiste_a_institucion' => 'boolean',
             'fk_id_persona' => 'nullable',
