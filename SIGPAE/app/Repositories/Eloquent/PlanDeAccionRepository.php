@@ -30,9 +30,11 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     
     public function cambiarActivo(int $id): bool
     {
-        $plan = $this->model->find($id);
+        $plan = PlanDeAccion::find($id);
         if ($plan) {
-            return $plan->update(['activo' => !$plan->activo]);
+            $plan->activo = !$plan->activo;
+            $plan->estado_plan = $plan->activo ? 'ABIERTO' : 'CERRADO';
+            return $plan->save();
         }
         return false;
     }

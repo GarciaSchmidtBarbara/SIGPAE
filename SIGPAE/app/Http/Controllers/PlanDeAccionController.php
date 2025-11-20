@@ -28,7 +28,7 @@ class PlanDeAccionController extends Controller
         ]);
     }
     
-    public function cambiarActivo(int $id): RedirectResponse
+    public function cambiarActivo1(int $id): RedirectResponse
     {
         if ($this->planDeAccionService->toggleActivo($id)) {
             return redirect()->route('planDeAccion.principal')
@@ -37,6 +37,15 @@ class PlanDeAccionController extends Controller
 
         return redirect()->route('planDeAccion.principal')
                          ->with('error', 'No se pudo cambiar el estado del Plan de Acción.');
+    }
+    public function cambiarActivo(int $id): RedirectResponse
+    {
+        $resultado = $this->planDeAccionService->cambiarActivo($id);
+        $mensaje = $resultado
+            ? ['success' => 'El estado del Plan de Acción fue actualizado correctamente.']
+            : ['error' => 'No pudo realizarse la actualización de estado del Plan de Acción.'];
+
+        return redirect()->route('planDeAccion.principal')->with($mensaje);
     }
     
     public function iniciarCreacion(): View
