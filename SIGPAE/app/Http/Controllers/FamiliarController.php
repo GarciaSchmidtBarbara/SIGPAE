@@ -35,29 +35,6 @@ class FamiliarController extends Controller
         return response()->json($familiar);
     }
 
-    public function store(Request $request): JsonResponse
-    {
-        try {
-            $payload = $request->all();
-
-            $familiar = $this->familiarService->createFamiliar($payload);
-            return response()->json($familiar, 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-        }
-    }
-
-    public function update(Request $request, int $id): JsonResponse
-    {
-        try {
-            $data = $request->all();
-            $familiar = $this->familiarService->updateFamiliar($id, $data);
-            return response()->json($familiar);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-        }
-    }
-
     public function destroy(int $id): JsonResponse
     {
         if ($this->familiarService->deleteFamiliar($id)) {
@@ -263,6 +240,29 @@ class FamiliarController extends Controller
         }
 
         return response()->json(['valid' => true]);
+    }
+
+    public function guardar(Request $request): JsonResponse
+    {
+        try {
+            $payload = $request->all();
+
+            $familiar = $this->familiarService->createFamiliar($payload);
+            return response()->json($familiar, 201);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function actualizar(Request $request, int $id): JsonResponse
+    {
+        try {
+            $data = $request->all();
+            $familiar = $this->familiarService->updateFamiliar($id, $data);
+            return response()->json($familiar);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
     }
 
 }
