@@ -4,8 +4,8 @@ namespace App\Repositories\Eloquent;
 
 use App\Repositories\Interfaces\PlanDeAccionRepositoryInterface;
 use App\Models\PlanDeAccion;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Collection;
 use App\Models\Aula;
 
 class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
@@ -110,13 +110,23 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
 
     public function obtenerAulasParaFiltro(): Collection
     {
-        return Aula::select('id_aula', 'descripcion')
-            ->orderBy('descripcion')
-            ->get()
-            ->map(fn($aula) => (object)['id' => $aula->id_aula, 'descripcion' => $aula->descripcion]);
+        $aulasData = Aula::select('id_aula', 'curso', 'division') 
+            ->orderBy('curso') 
+            ->orderBy('division')
+            ->get();
+            
+        // 1. Mapear a una Illuminate\Support\Collection de objetos genéricos (stdClass)
+        $mappedCollection = $aulasData->map(fn($aula) => (object)[
+            'id' => $aula->id_aula, 
+            'descripcion' => $aula->curso . ' ° ' . $aula->division // Ejemplo: "5to - A"
+        ]);
+
+        // 2. FORZAR EL RETORNO: Utilizamos Collection::make() (de Illuminate\Database\Eloquent\Collection) 
+        // para envolver la colección mapeada.
+        return Collection::make($mappedCollection);
     }
     
-    
+
     public function obtenerPorId(int $id): ?PlanDeAccion
     {
         return PlanDeAccion::find($id);

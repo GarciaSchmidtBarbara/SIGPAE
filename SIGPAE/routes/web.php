@@ -19,7 +19,7 @@ Route::post('/probar-post', function () {
 //Rutas Plan de Acción
 use App\Http\Controllers\PlanDeAccionController;
 Route::prefix('planes-de-accion')->group(function () {
-    Route::get('/', [PlanDeAccionController::class, 'principal'])->name('planDeAccion.principal');
+    Route::get('/', [PlanDeAccionController::class, 'vista'])->name('planDeAccion.principal');
     Route::post('/', [PlanDeAccionController::class, 'store'])->name('planDeAccion.store');
     Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
     Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
@@ -66,7 +66,7 @@ Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.princi
 Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('alumnos.crear-editar');
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::match(['POST', 'PUT'], '/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
-Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
 

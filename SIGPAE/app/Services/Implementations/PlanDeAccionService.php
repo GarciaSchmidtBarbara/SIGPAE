@@ -19,7 +19,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         $this->repository = $repository;
     }
 
-    public function listar(): \Illuminate\Support\Collection
+    public function listar(): Collection
     {
         return $this->repository->obtenerTodos();
     }
@@ -44,7 +44,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         return $this->repository->obtenerPorId($id); 
     }
     
-    public function buscar(string $q): \Illuminate\Support\Collection
+    public function buscar(string $q): Collection
     {
         return $this->repository->buscarPorCriterio($q);
     }

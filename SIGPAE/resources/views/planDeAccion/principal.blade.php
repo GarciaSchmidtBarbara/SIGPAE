@@ -18,7 +18,7 @@
     @endif
 
 <div class="p-6">
-    <form id="form-plan" method="GET" action="{{ route('planDeAccion.vista') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+    <form id="form-plan" method="GET" action="{{ route('planDeAccion.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('planDeAccion.iniciar-creacion') }}">Crear Plan de Acción</a>
 
         <input name="alumno" placeholder="Alumno (Nombre/DNI)" class="border px-2 py-1 rounded w-1/5" value="{{ request('alumno') }}">
@@ -49,7 +49,7 @@
         
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('planDeAccion.vista') }}" >Limpiar</a>
+        <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}" >Limpiar</a>
     </form>
 
     {{-- Lógica de la Tabla Dinámica --}}
@@ -117,7 +117,9 @@
 
         :acciones="fn($plan) => view('components.boton-estado', [
             'activo' => $plan->activo,
-            'route'  => route('planDeAccion.cambiarActivo', $plan->id_plan_de_accion)
+            'route'  => route('planDeAccion.cambiarActivo', $plan->id_plan_de_accion),
+            'text_activo' => 'Cerrar', 
+            'text_inactivo' => 'Abrir',
         ])->render()"
     />
 

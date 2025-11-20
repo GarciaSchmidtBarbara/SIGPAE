@@ -14,11 +14,12 @@ class PlanDeAccionFactory extends Factory
 
     public function definition(): array
     {
+        $esActivo = $this->faker->boolean();
         return [
-            'estado_plan' => $this->faker->randomElement(EstadoPlan::cases()),
+            'activo' => $esActivo,
+            'estado_plan' => $esActivo ? EstadoPlan::ABIERTO->value : EstadoPlan::CERRADO->value,
             'tipo_plan' => $this->faker->randomElement(TipoPlan::cases()),
             'objetivos' => $this->faker->paragraph(),
-            'activo' => $this->faker->boolean(),
             'acciones' => $this->faker->paragraphs(2, true),
             'observaciones' => $this->faker->paragraph(),
             'fk_id_profesional_generador' => Profesional::inRandomOrder()->first()->id_profesional,
