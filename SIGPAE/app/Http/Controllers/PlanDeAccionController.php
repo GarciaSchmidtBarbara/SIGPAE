@@ -9,35 +9,25 @@ use Illuminate\Http\RedirectResponse;
 
 class PlanDeAccionController extends Controller
 {
-    // Cambiar el tipo inyectado al de la Interfaz
     protected PlanDeAccionServiceInterface $planDeAccionService; 
 
-    // Aquí se inyecta la Interfaz
     public function __construct(PlanDeAccionServiceInterface $planDeAccionService) 
     {
         $this->planDeAccionService = $planDeAccionService;
     }
 
-    public function principal(Request $request): View
+    //vista planes filtrados
+    public function vista(Request $request): View
     {
-        $data = $this->planDeAccionService->obtenerPlanesParaPrincipal($request);
+        $planesDeAccion = $this->planDeAccionService->filtrar($request);
+        $aulas = $this->planDeAccionService->obtenerAulasParaFiltro();
         
-        return view('planDeAccion.principal', [
-            'planesDeAccion' => $data['planesDeAccion'],
-            'aulas' => $data['aulas'],
-        ]);
+        // El Blade de Alumno usa 'cursos', aquí usaremos 'aulas' y los tipos (enums).
+        $tipos = $this->planDeAccionService->obtenerTipos(); 
+
+        return view('planDeAccion.principal', compact('planesDeAccion', 'aulas', 'tipos'));
     }
     
-    public function cambiarActivo1(int $id): RedirectResponse
-    {
-        if ($this->planDeAccionService->toggleActivo($id)) {
-            return redirect()->route('planDeAccion.principal')
-                             ->with('success', 'El estado del Plan de Acción ha sido cambiado con éxito.');
-        }
-
-        return redirect()->route('planDeAccion.principal')
-                         ->with('error', 'No se pudo cambiar el estado del Plan de Acción.');
-    }
     public function cambiarActivo(int $id): RedirectResponse
     {
         $resultado = $this->planDeAccionService->cambiarActivo($id);

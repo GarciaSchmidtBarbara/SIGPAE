@@ -6,7 +6,6 @@ use App\Repositories\Interfaces\PlanDeAccionRepositoryInterface;
 use App\Models\PlanDeAccion;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator; // Importar para la paginación
 use App\Models\Aula;
 
 class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
@@ -39,17 +38,24 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         return false;
     }
 
+    // El filtro completo se manejará mejor en el Service, como en tu módulo Alumno.
+    public function filtrar(array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        // En este ejemplo, solo devolvemos la query base para que el Service aplique el resto de la lógica.
+        return PlanDeAccion::query();
+    }
+
     public function buscarPorIdPersona(int $idPersona): ?PlanDeAccion
     {
         // Lógica para buscar un plan asociado a una persona
         return $this->model->whereHas('alumnos', fn($q) => $q->where('fk_id_alumno', $idPersona))->first();
     }
 
-    public function obtenerPlanesFiltrados(Request $request): LengthAwarePaginator
+    public function obtenerPlanesFiltrados(Request $request): Collection
     {
         $query = $this->model->newQuery();
 
-        //CLAVE: Carga Eager de todas las relaciones necesarias para la vista
+        // Carga Eager de todas las relaciones necesarias para la vista
         $query->with([
             'profesionalGenerador.persona', 
             'profesionalesParticipantes.persona', 
@@ -62,9 +68,12 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             $query->where('tipo_plan', $tipo);
         }
 
-        // 2. Filtrar por Estado (estado_plan)
-        if ($estado = $request->get('estado')) {
-            $query->where('estado_plan', $estado);
+        // 2. Filtrar por Estado (activo/inactivo, adaptado del módulo Alumnos)
+        $estado = $request->get('estado', 'activos');
+        if ($estado === 'activos') {
+            $query->where('activo', true);
+        } elseif ($estado === 'inactivos') {
+            $query->where('activo', false);
         }
 
         // 3. Filtrar por Curso/Aula
@@ -74,35 +83,50 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
 
         // 4. Filtrar por Alumno (búsqueda por nombre/DNI)
         if ($alumnoQuery = $request->get('alumno')) {
+             // Lógica de filtrado de alumno... (Tu código es correcto aquí)
             $query->whereHas('alumnos.persona', function ($q) use ($alumnoQuery) {
-                // Utiliza ILIKE para búsqueda insensible a mayúsculas/minúsculas (si usas PostgreSQL)
-                $q->where('nombre', 'ILIKE', "%{$alumnoQuery}%") 
-                  ->orWhere('apellido', 'ILIKE', "%{$alumnoQuery}%")
-                  ->orWhere('dni', 'ILIKE', "%{$alumnoQuery}%");
+                 $q->where('nombre', 'ILIKE', "%{$alumnoQuery}%") 
+                   ->orWhere('apellido', 'ILIKE', "%{$alumnoQuery}%")
+                   ->orWhere('dni', 'ILIKE', "%{$alumnoQuery}%");
             });
         }
         
-        $query->orderBy('created_at', 'desc');
-        return $query->paginate(15);
+        // Obtener y ordenar (similar al AlumnoService)
+        $planes = $query->get();
+
+        // Ordenamiento por 'activo' (primero activos/abiertos) y luego por fecha.
+        return $planes->sort(function ($a, $b) {
+            $activoA = $a->activo ? 1 : 0;
+            $activoB = $b->activo ? 1 : 0;
+            
+            if ($activoA !== $activoB) {
+                return $activoA > $activoB ? -1 : 1; // Activos primero
+            }
+
+            // Si el estado es el mismo, ordenar por la fecha más reciente (desc)
+            return $b->created_at <=> $a->created_at; 
+        })->values();
     }
 
     public function obtenerAulasParaFiltro(): Collection
     {
-        return Aula::select('id_aula', 'curso', 'division')
-           ->orderBy('curso')
-           ->orderBy('division')
-           ->get();
+        return Aula::select('id_aula', 'descripcion')
+            ->orderBy('descripcion')
+            ->get()
+            ->map(fn($aula) => (object)['id' => $aula->id_aula, 'descripcion' => $aula->descripcion]);
     }
     
     
     public function obtenerPorId(int $id): ?PlanDeAccion
     {
-        return $this->model->find($id);
+        return PlanDeAccion::find($id);
     }
 
     public function obtenerTodos(): Collection
     {
-        return $this->model->all(); 
+        return PlanDeAccion::all()
+            ->sortByDesc('activo') 
+            ->values();
     }
 
     public function buscarPorIdConRelaciones(int $id)

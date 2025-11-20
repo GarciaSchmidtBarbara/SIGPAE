@@ -18,31 +18,30 @@
     @endif
 
 <div class="p-6">
-    <form id="form-plan" method="GET" action="{{ route('planDeAccion.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+    <form id="form-plan" method="GET" action="{{ route('planDeAccion.vista') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('planDeAccion.iniciar-creacion') }}">Crear Plan de Acción</a>
 
+        <input name="alumno" placeholder="Alumno (Nombre/DNI)" class="border px-2 py-1 rounded w-1/5" value="{{ request('alumno') }}">
+
         <select name="tipo" class="border px-2 py-1 rounded">
-            <option value="" {{ request('tipo') === null ? 'selected' : '' }}>Tipo</option>
-            @foreach(\App\Enums\TipoPlan::cases() as $tipo)
-                <option value="{{ $tipo->value }}" {{ request('tipo') === $tipo->value ? 'selected' : '' }}>
-                    {{ ucfirst(strtolower($tipo->value)) }}
+            <option value="" {{ request('tipo') === null ? 'selected' : '' }}>Todos los Tipos</option>
+            @foreach($tipos as $tipo)
+                <option value="{{ $tipo }}" {{ request('tipo') === $tipo ? 'selected' : '' }}>
+                    {{ ucfirst(strtolower($tipo)) }}
                 </option>
             @endforeach
         </select>
 
-        <select name="estado" class="border px-2 py-1 rounded">
-            <option value="" {{ request('estado') === null ? 'selected' : '' }}>Estado</option>
-            @foreach(\App\Enums\EstadoPlan::cases() as $estado)
-                <option value="{{ $estado->value }}" {{ request('estado') === $estado->value ? 'selected' : '' }}>
-                    {{ str_replace('_', ' ', ucfirst(strtolower($estado->value))) }}
-                </option>
-            @endforeach
+        <select name="estado" class="border px-2 py-1 rounded w-1/5">
+            <option value="" {{ request('estado')  === null ? 'selected' : '' }}>Todos</option>
+            <option value="activos" {{ request('estado', 'activos') === 'activos' ? 'selected' : '' }}>Abiertos</option>
+            <option value="inactivos" {{ request('estado', 'activos')  === 'inactivos' ? 'selected' : '' }}>Cerrados</option>
         </select>
 
         <select name="curso" class="border px-2 py-1 rounded w-1/5">
             <option value="">Todos los cursos</option>
             @foreach($aulas as $aula)
-                <option value="{{ $aula->id }}" {{ request('curso') === $aula->id ? 'selected' : '' }}>
+                <option value="{{ $aula->id }}" {{ (int)request('curso') === $aula->id ? 'selected' : '' }}>
                     {{ $aula->descripcion }}
                 </option>
             @endforeach
@@ -50,53 +49,10 @@
         
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}" >Limpiar</a>
+        <a class="btn-aceptar" href="{{ route('planDeAccion.vista') }}" >Limpiar</a>
     </form>
 
     {{-- Lógica de la Tabla Dinámica --}}
-    @php
-        // Formateadores para la tabla
-        $formatters = [
-            'estado_plan' => fn($valor) => str_replace('_', ' ', ucfirst(strtolower($valor))),
-            'tipo_plan' => fn($valor) => ucfirst(strtolower($valor)),
-        ];
-
-        // Función para obtener los destinatarios (Alumnos o Aulas)
-        $destinatariosFormatter = function (\App\Models\PlanDeAccion $plan) {
-            if ($plan->tipo_plan->value === \App\Enums\TipoPlan::INDIVIDUAL->value) {
-                // Individual: mostrar el primer alumno
-                $alumno = $plan->alumnos->first();
-                return $alumno ? $alumno->persona->nombre . ' ' . $alumno->persona->apellido : 'N/A';
-            } elseif ($plan->tipo_plan->value === \App\Enums\TipoPlan::GRUPAL->value) {
-                // Grupal: mostrar el curso/aula
-                $aula = $plan->aulas->first();
-                return $aula ? $aula->descripcion : 'Grupo';
-            } else {
-                return 'Institucional';
-            }
-        };
-
-        // Función para obtener los responsables (Profesionales)
-        $responsablesFormatter = function (\App\Models\PlanDeAccion $plan) {
-            $nombres = [];
-            // Profesional Generador (siempre hay uno)
-            if ($plan->profesionalGenerador) {
-                $nombres[] = $plan->profesionalGenerador->persona->apellido;
-            }
-            // Profesionales Participantes
-            foreach ($plan->profesionalesParticipantes as $profesional) {
-                $nombres[] = $profesional->persona->apellido;
-            }
-
-            // Devolver los apellidos únicos, limitando a 2 y añadiendo "..." si hay más
-            $responsablesUnicos = array_unique($nombres);
-            return count($responsablesUnicos) > 2 
-                ? implode(', ', array_slice($responsablesUnicos, 0, 2)) . '...' 
-                : implode(', ', $responsablesUnicos);
-        };
-    @endphp
-    
-
     <x-tabla-dinamica 
         :columnas="[
             [
@@ -113,8 +69,8 @@
                 'key' => 'destinatarios',
                 'label' => 'Destinatarios',
                 'formatter' => function ($valor, $plan) {
-                    $tipo = $plan->tipo_plan->value;
-
+                    $tipo = $plan->tipo_plan->value; // Asumo que tipo_plan es un Enum que puedes acceder
+                    
                     if ($tipo === 'INDIVIDUAL') {
                         $alumno = $plan->alumnos->first();
                         return $alumno 
@@ -136,19 +92,15 @@
                 'formatter' => function ($valor, $plan) {
                     $nombres = [];
 
-                    // Profesional generador
                     if ($plan->profesionalGenerador?->persona) {
                         $nombres[] = $plan->profesionalGenerador->persona->apellido;
                     }
-
-                    // Participantes
                     foreach ($plan->profesionalesParticipantes as $prof) {
                         if ($prof->persona) {
                             $nombres[] = $prof->persona->apellido;
                         }
                     }
 
-                    // Únicos + límite 2
                     $nombres = array_unique($nombres);
 
                     return count($nombres) > 2

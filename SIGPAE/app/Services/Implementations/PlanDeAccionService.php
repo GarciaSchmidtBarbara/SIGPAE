@@ -2,15 +2,12 @@
 
 namespace App\Services\Implementations;
 
-use App\Repositories\PlanDeAccionRepository;
 use App\Services\Interfaces\PlanDeAccionServiceInterface;
 use App\Repositories\Interfaces\PlanDeAccionRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use App\Models\PlanDeAccion;
-use App\Models\Aula;
-use App\Models\Alumno;
-use App\Models\Profesional;
+use App\Enums\TipoPlan;
 
 
 class PlanDeAccionService implements PlanDeAccionServiceInterface
@@ -52,25 +49,21 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         return $this->repository->buscarPorCriterio($q);
     }
    
-    public function obtenerPlanesParaPrincipal(Request $request): array
+    public function filtrar(Request $request): Collection
     {
-        $planes = $this->repository->obtenerPlanesFiltrados($request)
-                ->load(['alumnos', 'profesionalesParticipantes']);
-
-        return [
-            'planesDeAccion' => $planes, 
-            'aulas' => $this->obtenerAulasParaFiltro(), 
-        ];
+        // Delegamos la complejidad del filtrado y la carga de relaciones al Repository.
+        return $this->repository->obtenerPlanesFiltrados($request);
     }
 
     public function obtenerAulasParaFiltro(): Collection
     {
-        return Aula::all()->map(function ($aula) {
-            return (object)[
-                'id' => $aula->id_aula,
-                'descripcion' => $aula->descripcion,
-            ];
-        });
+        return $this->repository->obtenerAulasParaFiltro();
+    }
+
+    public function obtenerTipos(): Collection
+    {
+        // Retorna la lista de valores del Enum TipoPlan
+        return collect(TipoPlan::cases())->map(fn($tipo) => $tipo->value);
     }
 
     public function datosParaFormulario(?int $id = null): array
