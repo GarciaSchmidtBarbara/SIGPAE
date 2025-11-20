@@ -428,16 +428,75 @@
                         <input x-model="formData.domicilio" :disabled="isFilled || soloLectura" placeholder="domicilio" @input="formData.domicilio = formData.domicilio.replace(/[^a-zA-Z0-9\s]/g, '')"
                             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
-                    <div class="flex flex-col">
-                        <x-campo-requerido text="Fec. Nacimiento" required />
-                        <input x-model="formData.fecha_nacimiento" :disabled="isFilled || soloLectura" type="date" :max="new Date().toISOString().split('T')[0]" placeholder="dd/mm/aaaa"
-                            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500" @input="calcularEdad()">
+                    <x-campo-fecha-edad
+                        label="Fec. Nacimiento"
+                        name="fecha_nacimiento"
+                        edad-name="edad"
+                        required
+
+                        {{-- 1. Conectamos a las variables de ESTA vista (formData) --}}
+                        model-fecha="formData.fecha_nacimiento"
+                        model-edad="formData.edad"
+                        
+                        {{-- 2. Estado de deshabilitado --}}
+                        x-bind:disabled="isFilled || soloLectura"
+
+                        {{-- 3. Inyectamos la lógica ROBUSTA (Copiada y adaptada de Vista 1) --}}
+                        x-data="{
+                            errorFuturo: false,
+
+                            calcularEdad() {
+                                let fecha = formData.fecha_nacimiento;
+                                
+                                // Si está vacío, limpiamos y salimos
+                                if (!fecha) { 
+                                    formData.edad = ''; 
+                                    this.errorFuturo = false;
+                                    return; 
+                                }
+                                
+                                const hoy = new Date();
+                                const nacimiento = new Date(fecha);
+                                
+                                // --- VALIDACIÓN: NO FUTURO ---
+                                if (nacimiento > hoy) {
+                                    this.errorFuturo = true;
+                                    formData.fecha_nacimiento = ''; // Borramos la fecha
+                                    formData.edad = '';
+                                    return;
+                                }
+                                
+                                this.errorFuturo = false; // Apagamos error si es válida
+
+                                // Cálculo de edad
+                                let edadCalc = hoy.getFullYear() - nacimiento.getFullYear();
+                                const mes = hoy.getMonth() - nacimiento.getMonth();
+                                
+                                if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+                                    edadCalc--;
+                                }
+                                
+                                formData.edad = edadCalc >= 0 ? edadCalc : '';
+                            }
+                        }"
+                        
+                        {{-- 4. Eventos: Calculamos al iniciar, al cambiar y limpiamos errores --}}
+                        x-init="calcularEdad()"
+                        @change="calcularEdad(); limpiarError('fecha_nacimiento')"
+                        @input="calcularEdad(); limpiarError('fecha_nacimiento')"
+                    >
+
+                        {{-- 5. SLOT: MENSAJES DE ERROR (Adentro del componente) --}}
+                        
+                        {{-- Error de Backend/Validación local --}}
                         <div x-show="errors.fecha_nacimiento" x-text="errors.fecha_nacimiento" class="text-xs text-red-600 mt-1"></div>
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
-                        <input x-model="formData.edad" :disabled="isFilled || soloLectura" placeholder="edad"  class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-100 text-gray-700">
-                    </div>
+                        
+                        {{-- Error de Fecha Futura --}}
+                        <div x-show="errorFuturo" class="text-xs text-red-600 mt-1" style="display: none;">
+                            La fecha no puede ser futura.
+                        </div>
+
+                    </x-campo-fecha-edad>
                 </div>
 
                 <!-- Inputs hidden para asegurar que los datos se envíen aunque estén disabled -->
