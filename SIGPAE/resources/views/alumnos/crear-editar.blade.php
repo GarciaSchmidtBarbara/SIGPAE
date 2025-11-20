@@ -63,19 +63,25 @@
     },
 
     async validarYGuardar() {
-        this.errors = {}; // Limpiamos errores viejos visuales
-        let error = false;
+        this.errors = {}; 
+        this.dniError = '';
         
-        // A. Validación Local (Campos Vacíos)
+        // Usamos UNA sola variable para todo el proceso
+        let hayErrores = false; 
+        
+        // 1. Validación Local (Campos Vacíos)
         const requeridos = ['dni', 'nombre', 'apellido', 'aula', 'inasistencias', 'fecha_nacimiento'];
 
         requeridos.forEach(campo => {
+            // Si falta un campo, marcamos error y levantamos la bandera
             if (!this.alumnoData[campo] || String(this.alumnoData[campo]).trim() === '') {
                 this.errors[campo] = 'Este campo es requerido.';
-                error = true;
+                hayErrores = true; 
             }
         });
 
+        // 2. Validación Remota de DNI
+        // Solo validamos si el usuario escribió algo en el DNI
         if (this.alumnoData.dni) {
             try {
                 const response = await fetch('{{ route("alumnos.validar-dni") }}', {
@@ -96,26 +102,25 @@
                 const data = await response.json();
 
                 if (!data.valid) {
-                    // ¡SEMÁFORO ROJO!
-                    // Sobrescribimos cualquier error previo del DNI con este mensaje específico
+                    // Si el servidor dice que está duplicado, mostramos el mensaje
                     this.errors.dni = data.message; 
-                    hayErrores = true; // Levantamos la bandera de error
+                    hayErrores = true; // ¡Importante! Levantamos la misma bandera
                 }
 
             } catch (e) {
                 console.error(e);
-                alert('Error al validar DNI. Intente nuevamente.');
-                return; // Acá sí frenamos porque es un error técnico
+                alert('Error técnico al validar DNI.');
+                return; // Frenamos por error de sistema
             }
         }
 
         // 3. DECISIÓN FINAL
-        // Si hubo errores (ya sea por campos vacíos O por DNI duplicado), frenamos.
+        // Si la bandera está levantada (por vacío O por duplicado), no enviamos.
         if (hayErrores) {
             return;
         }
 
-        // C. Si llegamos acá, todo está verde. Enviamos manualmente.
+        // 4. ÉXITO
         this.$refs.form.submit();
     },
     
