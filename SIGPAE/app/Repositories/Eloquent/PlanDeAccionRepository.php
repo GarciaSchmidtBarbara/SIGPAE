@@ -83,10 +83,7 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         $query->orderBy('created_at', 'desc');
         return $query->paginate(15);
     }
-    
-    /**
-     * Implementa el método para obtener las aulas de filtro.
-     */
+
     public function obtenerAulasParaFiltro(): Collection
     {
         return Aula::select('id_aula', 'curso', 'division')
@@ -105,4 +102,15 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     {
         return $this->model->all(); 
     }
+
+    public function buscarPorIdConRelaciones(int $id)
+    {
+        return $this->model->with([
+            'profesionalGenerador.persona',
+            'profesionalesParticipantes.persona',
+            'alumnos.persona',
+            'aulas'
+        ])->findOrFail($id);
+    }
+
 }

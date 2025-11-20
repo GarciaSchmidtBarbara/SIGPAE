@@ -20,10 +20,13 @@ Route::post('/probar-post', function () {
 use App\Http\Controllers\PlanDeAccionController;
 Route::prefix('planes-de-accion')->group(function () {
     Route::get('/', [PlanDeAccionController::class, 'principal'])->name('planDeAccion.principal');
-    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])->name('planDeAccion.iniciar-creacion');
+    Route::post('/', [PlanDeAccionController::class, 'store'])->name('planDeAccion.store');
+    Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
     Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
     Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar');
-    Route::get('/{id}/editar', [PlanDeAccionController::class, 'editar'])->name('planDeAccion.editar');
+    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])
+    ->name('planDeAccion.iniciar-creacion');
+    Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
 });
 
 

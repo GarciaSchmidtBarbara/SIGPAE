@@ -13,4 +13,5 @@ interface PlanDeAccionRepositoryInterface
     public function obtenerPlanesFiltrados(\Illuminate\Http\Request $request): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
     public function obtenerAulasParaFiltro(): \Illuminate\Support\Collection;
     public function obtenerPorId(int $id): ?PlanDeAccion;
+    public function buscarPorIdConRelaciones(int $id);
 }

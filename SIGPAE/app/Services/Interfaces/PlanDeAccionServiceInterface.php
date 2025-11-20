@@ -14,5 +14,6 @@ interface PlanDeAccionServiceInterface
     public function buscar(string $q): \Illuminate\Support\Collection;
     public function obtenerPlanesParaPrincipal(\Illuminate\Http\Request $request): array;
     public function obtenerAulasParaFiltro(): \Illuminate\Support\Collection;
+    public function datosParaFormulario(?int $id = null): array;
 
 }

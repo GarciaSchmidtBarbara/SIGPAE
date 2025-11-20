@@ -22,7 +22,10 @@ class PlanDeAccionController extends Controller
     {
         $data = $this->planDeAccionService->obtenerPlanesParaPrincipal($request);
         
-        return view('planDeAccion.principal', $data);
+        return view('planDeAccion.principal', [
+            'planesDeAccion' => $data['planesDeAccion'],
+            'aulas' => $data['aulas'],
+        ]);
     }
     
     public function cambiarActivo(int $id): RedirectResponse
@@ -38,8 +41,45 @@ class PlanDeAccionController extends Controller
     
     public function iniciarCreacion(): View
     {
-        return view('planDeAccion.crear-editar'); 
+        $data = $this->planDeAccionService->datosParaFormulario();
+
+        return view('planDeAccion.crear-editar', $data + ['modo' => 'crear']);
     }
     
-    // ... otros métodos CRUD (store, edit, update, destroy)
+    public function store(Request $request): RedirectResponse
+    {
+        $validatedData = $request->validate([
+            'tipo_plan' => 'required|in:Institucional,Individual,Grupal',
+            'destinatario' => 'nullable|string|max:255',
+            'descripcion' => 'required|string',
+        ]);
+
+        $this->planDeAccionService->crearPlanDeAccion($validatedData);
+
+        return redirect()->route('planDeAccion.principal')
+                         ->with('success', 'Plan de Acción creado con éxito.');
+    }
+    public function iniciarEdicion(int $id): View
+    {
+        $data = $this->planDeAccionService->datosParaFormulario($id);
+
+        return view('planDeAccion.crear-editar', $data + [
+            'modo' => 'editar',
+            'planDeAccion' => $data['plan'],
+        ]);
+    }
+
+    public function actualizar(Request $request, int $id): RedirectResponse
+    {
+        $validatedData = $request->validate([
+            'tipo_plan' => 'required',
+            'descripcion' => 'required|string',
+        ]);
+
+        $this->planDeAccionService->actualizarPlanDeAccion($id, $validatedData);
+
+        return redirect()->route('planDeAccion.principal')
+            ->with('success', 'Plan actualizado');
+    }
+   
 }

@@ -8,6 +8,10 @@ use App\Repositories\Interfaces\PlanDeAccionRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use App\Models\PlanDeAccion;
+use App\Models\Aula;
+use App\Models\Alumno;
+use App\Models\Profesional;
+
 
 class PlanDeAccionService implements PlanDeAccionServiceInterface
 {
@@ -15,21 +19,16 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
 
     public function __construct(PlanDeAccionRepositoryInterface $repository)
     {
-        // El constructor debe inyectar la Interfaz del Repository
         $this->repository = $repository;
     }
-    
-    // Aquí implementas los métodos definidos en la interfaz:
+
     public function listar(): \Illuminate\Support\Collection
     {
         return $this->repository->obtenerTodos();
     }
     
-    // ... Implementa el resto de los métodos (crear, eliminar, obtener, cambiarActivo, buscar)
-    
     public function cambiarActivo(int $id): bool
     {
-        // Lógica de negocio si es necesario
         return $this->repository->cambiarActivo($id);
     }
 
@@ -55,24 +54,35 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
    
     public function obtenerPlanesParaPrincipal(Request $request): array
     {
-        $planes = $this->repository->obtenerPlanesFiltrados($request);
-        $aulas = $this->obtenerAulasParaFiltro();
-        
+        $planes = $this->repository->obtenerPlanesFiltrados($request)
+                ->load(['alumnos', 'profesionalesParticipantes']);
+
         return [
             'planesDeAccion' => $planes, 
-            'aulas' => $aulas, 
+            'aulas' => $this->obtenerAulasParaFiltro(), 
         ];
     }
 
     public function obtenerAulasParaFiltro(): Collection
     {
-        return $this->repository->obtenerAulasParaFiltro()
-            ->map(function ($aula) {
-                return (object)[
-                    'id' => $aula->id_aula,
-                    'descripcion' => $aula->descripcion, // accessor
-                ];
-            });
+        return Aula::all()->map(function ($aula) {
+            return (object)[
+                'id' => $aula->id_aula,
+                'descripcion' => $aula->descripcion,
+            ];
+        });
+    }
+
+    public function datosParaFormulario(?int $id = null): array
+    {
+        $plan = $id ? $this->repository->buscarPorIdConRelaciones($id) : null;
+
+        return [
+            'plan' => $plan,
+            'alumnos' => Alumno::with('persona')->get(),
+            'aulas' => Aula::all(),
+            'profesionales' => Profesional::with('persona')->get(),
+        ];
     }
 
 }

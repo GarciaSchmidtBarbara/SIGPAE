@@ -39,10 +39,10 @@
             @endforeach
         </select>
 
-        <select name="aula" class="border px-2 py-1 rounded w-1/5">
+        <select name="curso" class="border px-2 py-1 rounded w-1/5">
             <option value="">Todos los cursos</option>
             @foreach($aulas as $aula)
-                <option value="{{ $aula->id }}" {{ request('aula') === $aula->id ? 'selected' : '' }}>
+                <option value="{{ $aula->id }}" {{ request('curso') === $aula->id ? 'selected' : '' }}>
                     {{ $aula->descripcion }}
                 </option>
             @endforeach
@@ -99,45 +99,76 @@
 
     <x-tabla-dinamica 
         :columnas="[
-            ['key' => 'estado_plan', 'label' => 'Estado', 'formatter' => $formatters['estado_plan']],
-            ['key' => 'tipo_plan', 'label' => 'Tipo', 'formatter' => $formatters['tipo_plan']],
-            ['key' => 'destinatarios', 'label' => 'Destinatarios', 'formatter' => $destinatariosFormatter], // Usa el Closure
-            ['key' => 'responsables', 'label' => 'Responsables', 'formatter' => $responsablesFormatter], // Usa el Closure
+            [
+                'key' => 'estado_plan',
+                'label' => 'Estado',
+                'formatter' => fn($v) => ucfirst(strtolower($v)),
+            ],
+            [
+                'key' => 'tipo_plan',
+                'label' => 'Tipo',
+                'formatter' => fn($v) => ucfirst(strtolower($v)),
+            ],
+            [
+                'key' => 'destinatarios',
+                'label' => 'Destinatarios',
+                'formatter' => function ($valor, $plan) {
+                    $tipo = $plan->tipo_plan->value;
+
+                    if ($tipo === 'INDIVIDUAL') {
+                        $alumno = $plan->alumnos->first();
+                        return $alumno 
+                            ? $alumno->persona->apellido . ', ' . $alumno->persona->nombre
+                            : 'N/A';
+                    }
+
+                    if ($tipo === 'GRUPAL') {
+                        $aula = $plan->aulas->first();
+                        return $aula ? $aula->descripcion : 'Grupo';
+                    }
+
+                    return 'Institucional';
+                }
+            ],
+            [
+                'key' => 'responsables',
+                'label' => 'Responsables',
+                'formatter' => function ($valor, $plan) {
+                    $nombres = [];
+
+                    // Profesional generador
+                    if ($plan->profesionalGenerador?->persona) {
+                        $nombres[] = $plan->profesionalGenerador->persona->apellido;
+                    }
+
+                    // Participantes
+                    foreach ($plan->profesionalesParticipantes as $prof) {
+                        if ($prof->persona) {
+                            $nombres[] = $prof->persona->apellido;
+                        }
+                    }
+
+                    // Únicos + límite 2
+                    $nombres = array_unique($nombres);
+
+                    return count($nombres) > 2
+                        ? implode(', ', array_slice($nombres, 0, 2)) . '...'
+                        : implode(', ', $nombres);
+                }
+            ],
         ]"
+
         :filas="$planesDeAccion"
         idCampo="id_plan_de_accion"
-        :filaEnlace="fn($fila) => route('planDeAccion.editar', $fila->id_plan_de_accion)"
-    >
-        <x-slot:accionesPorFila>
-            @php
-                $accionesPorFila = function (\App\Models\PlanDeAccion $plan) {
-                    $html = '';
-                    
-                    // Botón de Edición/Ver (usando el enlace de la fila principal para esto)
-                    
-                    // Botón para cambiar el estado activo/inactivo del plan (si aplica)
-                    $html .= view('components.boton-estado', [
-                        'activo' => $plan->activo,
-                        'route' => route('planDeAccion.cambiarActivo', $plan->id_plan_de_accion)
-                    ])->render();
-                    
-                    // Botón de Eliminar
-                    $html .= '<form action="' . route('planDeAccion.eliminar', $plan->id_plan_de_accion) . '" method="POST" onsubmit="return confirm(\'¿Estás seguro de que quieres eliminar este plan de acción?\');" class="inline ml-2">';
-                    $html .= '  @csrf';
-                    $html .= '  @method(\'DELETE\')';
-                    $html .= '  <button type="submit" class="text-red-600 hover:text-red-900">';
-                    $html .= '      <i class="fas fa-trash-alt"></i>'; // Icono de papelera (asume que usas Font Awesome)
-                    $html .= '  </button>';
-                    $html .= '</form>';
 
-                    return $html;
-                };
-            @endphp
-            @foreach ($planesDeAccion as $plan)
-                {!! $accionesPorFila($plan) !!}
-            @endforeach
-        </x-slot:accionesPorFila>
-    </x-tabla-dinamica>
+        :filaEnlace="fn($fila) => route('planDeAccion.iniciar-edicion', $fila->id_plan_de_accion)"
+
+        :acciones="fn($plan) => view('components.boton-estado', [
+            'activo' => $plan->activo,
+            'route'  => route('planDeAccion.cambiarActivo', $plan->id_plan_de_accion)
+        ])->render()"
+    />
+
 
     <div class="fila-botones mt-8">
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>

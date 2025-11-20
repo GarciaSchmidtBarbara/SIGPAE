@@ -64,8 +64,15 @@ class PlanDeAccion extends Model
     {
         return $this->belongsToMany(Alumno::class, 'tiene_asignado', 'fk_id_plan_de_accion', 'fk_id_alumno');
     }
-    public function documentos(): HasMany
+
+    public function documentos()
     {
-        return $this->hasMany(Documento::class, 'fk_id_plan_accion', 'id_plan_de_accion');
+        return collection(); // Placeholder para evitar errores
     }
+    // TODO: implementar cuando exista la lógica de documentos
+    /**
+     * public function documentos(): HasMany{
+     * return $this->hasMany(Documento::class, 'fk_id_plan_accion', 'id_plan_de_accion');
+     * }
+       */
 }
