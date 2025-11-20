@@ -45,15 +45,25 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         return Alumno::with([
             'persona', 
             'aula', 
+            
+            // Familiares Puros (Filtrados)
             'familiares' => function ($query) {
                 $query->wherePivot('activa', true);
             },
             'familiares.persona',
             
+            // Hermanos Lado A (AHORA FILTRADOS)
+            'hermanos' => function ($query) {
+                $query->wherePivot('activa', true);
+            },
             'hermanos.persona',
             'hermanos.aula',
             
-            'esHermanoDe.persona',
+            // Hermanos Lado B (AHORA FILTRADOS)
+            'esHermanoDe' => function ($query) {
+                $query->wherePivot('activa', true);
+            },
+            'esHermanoDe.persona', 
             'esHermanoDe.aula'
 
         ])->find($id);
