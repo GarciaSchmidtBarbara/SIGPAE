@@ -50,6 +50,9 @@ return new class extends Migration
                   ->constrained('familiares', 'id_familiar')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
+            
+            $table->string('observaciones')->nullable();
+            
             $table->primary(['fk_id_alumno', 'fk_id_familiar']);
 
             $table->timestamps();
@@ -65,6 +68,9 @@ return new class extends Migration
                   ->constrained('alumnos', 'id_alumno')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
+            
+            $table->boolean('activa')->default(true);
+
             $table->primary(['fk_id_alumno', 'fk_id_alumno_hermano']);  
             $table->timestamps();
       });
