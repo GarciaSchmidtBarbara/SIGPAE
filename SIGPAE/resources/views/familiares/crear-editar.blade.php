@@ -9,6 +9,8 @@
     parentesco: '{{ $familiarData['parentesco'] ?? '' }}' || 'padre',
     editIndex: {{ json_encode($indice) }},
     soloLectura: {{ json_encode($solo_lectura) }},
+    idsEnUso: {{ json_encode($idsEnUso) }},
+    searchError: '',
 
     // 2. Variables de estado visual
     isFilled: false,
@@ -157,7 +159,25 @@
     },
 
     // Función para seleccionar un alumno y llenar el formulario
-    selectAlumno(al) { 
+    selectAlumno(al) {
+        this.searchError = ''; 
+        let idPersona = al.persona?.id_persona;
+        
+        // Si el ID está en la lista negra...
+        // Convertimos el ID del buscador a String
+        let idString = String(idPersona);
+
+        // Buscamos en la lista convirtiendo también cada elemento a String
+        let yaExiste = this.idsEnUso.some(id => String(id) === idString);
+
+        console.log('Lista Negra (PHP):', this.idsEnUso);
+        console.log('Seleccionado (JS):', idPersona);
+
+        if (idPersona && yaExiste) {
+            this.searchError = 'Este alumno ya fue agregado como familiar.';
+            this.results = []; // Ocultamos la lista
+            return; // FRENAMOS TODO. No carga nada.
+        }
         // 1. Guardamos la selección
         this.selected = al; 
         this.results = []; 
@@ -385,6 +405,7 @@
                         <label class="text-sm font-medium text-gray-700 mb-1">Buscar Alumnos</label>
                         <div class="relative">
                             <input type="text" x-model.debounce.400ms="searchQuery" @input="search()" placeholder="DNI / Nombre / Apellido" class="w-full border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <div x-show="searchError" x-text="searchError" class="text-xs text-red-600 mt-1 font-bold"></div>
                             <div x-show="results.length" class="absolute z-10 mt-1 w-full bg-white border rounded shadow">
                                 <template x-for="al in results" :key="al.id_alumno">
                                     <button type="button" @click="selectAlumno(al)" class="w-full text-left px-3 py-2 hover:bg-gray-100">

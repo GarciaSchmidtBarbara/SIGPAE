@@ -45,6 +45,12 @@ class FamiliarController extends Controller
 
     public function crear()
     {
+        // 1. Recuperamos la sesión
+        $familiares = session('asistente.familiares', []);
+
+        // 2. Sacamos la lista de IDs de personas ya uregistradas en la bbdd
+        $idsEnUso = collect($familiares)->pluck('fk_id_persona')->filter()->values()->toArray();
+
         // preparamos un array de 'familiar' vacío para el formulario
         $familiarData = [
             'id_familiar' => null,
@@ -75,24 +81,27 @@ class FamiliarController extends Controller
         return view('familiares.crear-editar', [
             'familiarData' => $familiarData,
             'indice' => null,
-            'solo_lectura' => false // por defecto va a ser false en porque se crear familiar
+            'solo_lectura' => false, // por defecto va a ser false en porque se crear familiar
+            'idsEnUso' => $idsEnUso
         ]);
     }
 
     public function editar(int $indice)
     {
-        // obtengo todos los familiares de la sesion
+        // 1. Recuperar Sesión
         $familiares = session('asistente.familiares', []);
 
-        // verifico que existe este familiar que quiero editar, aunque si existe pero por las dudas
+        // 2. Validar Índice
         if (!isset($familiares[$indice])) {
-            // Sde no existir lo mando de vuelta al usuario a la vista de crear-aditar del alumno
-            return redirect()->route('alumnos.crear')->with('error', 'Error: No se pudo encontrar el familiar para editar.');
+            return redirect()->route('alumnos.continuar')->with('error', 'Familiar no encontrado.');
         }
 
-        // paso los datos de ese familiar a la vista
         $familiarData = $familiares[$indice];
-
+        
+        // 3. NORMALIZACIÓN (Aplanado de datos)
+        // Hacemos esto PRIMERO para tener todos los IDs y datos a mano
+        
+        // A. Si viene de BBDD (Estructura anidada)
         if (isset($familiarData['persona'])) {
              $familiarData['nombre'] = $familiarData['persona']['nombre'] ?? '';
              $familiarData['apellido'] = $familiarData['persona']['apellido'] ?? '';
@@ -100,44 +109,52 @@ class FamiliarController extends Controller
              $familiarData['fecha_nacimiento'] = $familiarData['persona']['fecha_nacimiento'] ?? '';
              $familiarData['domicilio'] = $familiarData['persona']['domicilio'] ?? '';
              $familiarData['nacionalidad'] = $familiarData['persona']['nacionalidad'] ?? '';
-             
-             // La clave para saber que es vinculado:
+             // Extraemos el ID para la lógica de vinculo
              $familiarData['fk_id_persona'] = $familiarData['persona']['id_persona'] ?? null;
         }
 
+        // B. Si viene de BBDD (Aula anidada)
         if (isset($familiarData['aula'])) {
             $familiarData['curso'] = $familiarData['aula']['curso'] ?? ''; 
             $familiarData['division'] = $familiarData['aula']['division'] ?? '';
         }
+
+        // C. Si viene de BBDD (Pivot anidado)
+        if (isset($familiarData['pivot'])) {
+            $familiarData['observaciones'] = $familiarData['pivot']['observaciones'] ?? '';
+        }
         
-        // B. Si viene de SESIÓN (ya está aplanado, no hacemos nada,
-        //    pero nos aseguramos de que 'curso' y 'division' existan para que no falle la vista)
         $familiarData['curso'] = $familiarData['curso'] ?? '';
         $familiarData['division'] = $familiarData['division'] ?? '';
+        $familiarData['observaciones'] = $familiarData['observaciones'] ?? '';
 
-
-        // --- 2. LÓGICA DE SOLO LECTURA (La Definitiva) ---
+        $idsEnUso = collect($familiares)->pluck('fk_id_persona')->filter()->values()->toArray();
         
-        // ¿Es un Hermano Alumno Vinculado?
-        // Condición: Tiene un ID de persona vinculado.
-        // (No importa si parentesco es null o 'hermano', lo que importa es el vínculo).
-        $esVinculado = !empty($familiarData['fk_id_persona']);
-        
-        if ($esVinculado) {
-            $solo_lectura = true;
-            // Si venía de BBDD (parentesco null), forzamos 'hermano' para que el radio button se marque.
-            if (!isset($familiarData['parentesco'])) {
-                $familiarData['parentesco'] = 'hermano';
-            }
-        } else {
-            $solo_lectura = false;
+        // Excepción: Si me estoy editando a mí mismo, me saco de la lista negra
+        $miId = $familiarData['fk_id_persona'] ?? null;
+        if ($miId) {
+            $idsEnUso = array_diff($idsEnUso, [$miId]);
         }
 
-        // tambien le paso el indice para que el formulario de l avista alumnos/crear-editar sepa qué familiar está editando.
+        $solo_lectura = false;
+
+        // Caso A: Hermano Alumno de BBDD (No tiene 'parentesco')
+        if (!isset($familiarData['parentesco'])) {
+            $familiarData['parentesco'] = 'hermano';
+            $familiarData['asiste_a_institucion'] = true;
+            $solo_lectura = true;
+        }
+        // Caso B: Hermano Alumno de Sesión (Tiene marca 'hermano' Y vínculo ID)
+        elseif (($familiarData['parentesco'] ?? '') === 'hermano' && !empty($familiarData['fk_id_persona'])) {
+            $solo_lectura = true;
+        }
+
+        // 6. RETORNO
         return view('familiares.crear-editar', [
             'familiarData' => $familiarData,
             'indice' => $indice,
-            'solo_lectura' => $solo_lectura
+            'solo_lectura' => $solo_lectura,
+            'idsEnUso' => array_values($idsEnUso)
         ]);
     }
 
