@@ -18,10 +18,9 @@
 
 @php
     $esEdicion = isset($modo) && $modo === 'editar' && isset($planDeAccion);
-    // si "activo" en tu modelo es boolean indicando abierto (true) / cerrado (false)
     $cerrado = $esEdicion ? ($planDeAccion->activo === false) : false;
 
-    // helper para valores viejos / del modelo
+    // helper para valores viejos del modelo
     $oldOr = fn($field, $fallback = null) => old($field, $fallback);
 @endphp
 
@@ -37,7 +36,9 @@
             @if($esEdicion)
                 <x-boton-estado 
                     :activo="$planDeAccion->activo" 
-                    :route="route('planDeAccion.cambiarActivo', $planDeAccion->id_plan_de_accion)" 
+                    :route="route('planDeAccion.cambiarActivo', $planDeAccion->id_plan_de_accion)"
+                    :text_activo="'Cerrar'"
+                    :text_inactivo="'Abrir'"
                 />
             @endif
             <a class="btn-volver" href="{{ route('planDeAccion.principal') }}">Volver</a>
@@ -46,7 +47,7 @@
 
     {{-- Alpine para controlar secciones por tipo --}}
     <div x-data="{
-            tipoPlanSeleccionado: '{{ old('tipo_plan', $planDeAccion->tipo_plan->value ?? '') }}'
+            tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}'
         }">
 
         <form method="POST" action="{{ $esEdicion 
@@ -73,7 +74,7 @@
                         :items="$tipoItems"
                         name="tipo_plan"
                         layout="horizontal"
-                        :seleccion="old('tipo_plan', $planDeAccion->tipo_plan->value ?? '')"
+                        :seleccion="old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '')"
                         x-model="tipoPlanSeleccionado"
                     />
                 </div>
@@ -81,7 +82,7 @@
                 {{-- DESTINATARIO - Individual --}}
                 <div id="destinatario-individual" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="display:none;">
                     <div class="space-y-6 mb-6">
-                        <p class="separador">Destinatario (Individual)</p>
+                        <p class="separador">Destinatario</p>
 
                         <div class="fila-botones">
                             {{-- Botones para buscar/seleccionar alumno; aquí dejamos enlaces o triggers --}}
@@ -101,7 +102,7 @@
                                             $label = $al->persona->nombre . ' ' . $al->persona->apellido;
                                         @endphp
                                         <option value="{{ $alId }}"
-                                            {{ $oldOr('alumno_seleccionado', $planDeAccion->alumnos->first()->id_alumno ?? '') == $alId ? 'selected' : '' }}>
+                                            {{ $oldOr('alumno_seleccionado', $esEdicion ? ($planDeAccion->alumnos->first()->id_alumno ?? '') : '') == $alId ? 'selected' : '' }}>
                                             {{ $label }}
                                         </option>
                                     @endforeach
@@ -115,7 +116,7 @@
                 {{-- DESTINATARIO - Grupal --}}
                 <div id="destinatario-grupal" x-show="tipoPlanSeleccionado === 'GRUPAL'" style="display:none;">
                     <div class="space-y-6 mb-6">
-                        <p class="separador">Destinatarios (Grupal)</p>
+                        <p class="separador">Destinatarios</p>
 
                         <div class="fila-botones">
                             <button type="button" class="btn-aceptar" @click.prevent="/* buscar alumnos para agregar */">Buscar alumnos</button>
@@ -132,7 +133,7 @@
                                         {{-- $aula puede tener id_aula o id; soportamos ambos --}}
                                         @php $aulaId = $aula->id_aula ?? $aula->id ?? null; @endphp
                                         <option value="{{ $aulaId }}"
-                                            {{ $oldOr('aula', $planDeAccion->aulas->first()->id_aula ?? '') == $aulaId ? 'selected' : '' }}>
+                                            {{ $oldOr('aula', $esEdicion ? ($planDeAccion->aulas->first()->id_aula ?? '') : '') == $aulaId ? 'selected' : '' }}>
                                             {{ $aula->descripcion ?? ($aula->curso.'°'.$aula->division ?? $aulaId) }}
                                         </option>
                                     @endforeach
@@ -143,7 +144,7 @@
                             <div class="flex-1">
                                 <label class="text-sm font-medium">Alumnos incluidos</label>
                                 <div class="mt-2">
-                                    @if(isset($planDeAccion) && $planDeAccion->alumnos->isNotEmpty())
+                                    @if(isset($planDeAccion) && $esEdicion && $planDeAccion->alumnos->isNotEmpty())
                                         <ul class="list-disc pl-5 text-sm">
                                             @foreach($planDeAccion->alumnos as $a)
                                                 <li>{{ $a->persona->nombre }} {{ $a->persona->apellido }} ({{ $a->persona->dni ?? '' }})</li>
@@ -163,22 +164,22 @@
                 <div class="space-y-8 mb-6">
                     <p class="separador">Descripción</p>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Objetivos <span class="text-red-500">*</span></label>
-                        <textarea name="objetivos" rows="4"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('objetivos', $planDeAccion->objetivos ?? '') }}</textarea>
+                    <div class="block text-sm font-medium text-gray-700">
+                        <x-campo-requerido text="Objetivos" required />
+                        <textarea name="objetivos" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('objetivos', $esEdicion ? ($planDeAccion->objetivos ?? '') : '') }}</textarea>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Acciones</label>
+                    <div class="block text-sm font-medium text-gray-700">
+                        <x-campo-requerido text="Acciones a realizar" required />
                         <textarea name="acciones" rows="3"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('acciones', $planDeAccion->acciones ?? '') }}</textarea>
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('acciones', $esEdicion ? ($planDeAccion->acciones ?? '') : '') }}</textarea>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Observaciones</label>
+                    <div class="block text-sm font-medium text-gray-700">
+                        <label>Observaciones</label>
                         <textarea name="observaciones" rows="3"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('observaciones', $planDeAccion->observaciones ?? '') }}</textarea>
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('observaciones', $esEdicion ? ($planDeAccion->observaciones ?? '') : '') }}</textarea>
                     </div>
                 </div>
 

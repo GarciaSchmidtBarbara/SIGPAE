@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use App\Models\PlanDeAccion;
 use App\Enums\TipoPlan;
+use App\Models\Alumno;
+use App\Models\Aula;
+use App\Models\Profesional;
 
 
 class PlanDeAccionService implements PlanDeAccionServiceInterface
