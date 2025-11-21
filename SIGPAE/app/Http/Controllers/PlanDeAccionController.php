@@ -108,5 +108,27 @@ class PlanDeAccionController extends Controller
         return redirect()->route('planDeAccion.principal')
             ->with('success', 'Plan actualizado');
     }
+
+    public function eliminar(int $id): RedirectResponse
+    {
+        $plan = $this->planDeAccionService->obtener($id);
+
+        if (!$plan) {
+            return redirect()->route('planDeAccion.principal')
+                            ->with('error', 'El plan no existe.');
+        }
+
+        // Verificar si tiene intervenciones asociadas
+        if ($plan->intervenciones && $plan->intervenciones->isNotEmpty()) {
+            return redirect()->route('planDeAccion.principal')
+                            ->with('error', 'No se puede eliminar el plan: tiene intervenciones asociadas.');
+        }
+
+        $this->planDeAccionService->eliminar($id);
+
+        return redirect()->route('planDeAccion.principal')
+                        ->with('success', 'Plan eliminado correctamente.');
+    }
+
    
 }
