@@ -22,6 +22,28 @@
 
     // helper para valores viejos del modelo
     $oldOr = fn($field, $fallback = null) => old($field, $fallback);
+
+    // Preparar datos de alumnos para Alpine.js
+    $alumnosJson = collect($alumnos)->mapWithKeys(function ($al) {
+        $persona = $al->persona;
+        return [
+            $al->id_alumno => [
+                'nombre' => $persona->nombre,
+                'apellido' => $persona->apellido,
+                'dni' => $persona->dni,
+                'fecha_nacimiento' => $persona->fecha_nacimiento ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y') : 'N/A',
+                'nacionalidad' => $persona->nacionalidad ?? 'N/A',
+                'domicilio' => $persona->domicilio ?? 'N/A',
+                'edad' => $persona->fecha_nacimiento ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age : 'N/A',
+                // Asumiendo que 'curso' está en el modelo Alumno CAMBIAR ESTO
+                'curso' => $al->curso ?? 'N/A', 
+            ]
+        ];
+    });
+
+    $initialAlumnoId = $oldOr('alumno_seleccionado', $esEdicion ? ($planDeAccion->alumnos->first()->id_alumno ?? '') : '');
+    $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId) ? $alumnosJson[$initialAlumnoId] : null;
+
 @endphp
 
 <div class="p-6">
@@ -47,8 +69,14 @@
 
     {{-- Alpine para controlar secciones por tipo --}}
     <div x-data="{
-            tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}'
-        }">
+        tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}',
+        alumnosData: {{ $alumnosJson->toJson() }},
+        alumnoSeleccionadoInfo: @json($initialAlumnoInfo),
+        
+        seleccionarAlumno(id) {
+            this.alumnoSeleccionadoInfo = this.alumnosData[id] || null;
+        }
+    }">
 
         <form method="POST" action="{{ $esEdicion 
                 ? route('planDeAccion.iniciar-edicion', $planDeAccion->id_plan_de_accion)
@@ -84,17 +112,11 @@
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatario</p>
 
-                        <div class="fila-botones">
-                            {{-- Botones para buscar/seleccionar alumno; aquí dejamos enlaces o triggers --}}
-                            <button type="button" class="btn-aceptar" @click.prevent="/* abrir modal buscar alumno */">Buscar alumno</button>
-                            <button type="button" class="btn-aceptar" @click.prevent="/* crear nuevo alumno */">Crear alumno</button>
-                        </div>
-
                         {{-- Select simple para elegir UN alumno --}}
                         <div class="flex gap-4 mt-4">
                             <div class="flex flex-col w-1/3">
                                 <label class="text-sm font-medium">Seleccionar alumno</label>
-                                <select name="alumno_seleccionado" class="border px-2 py-1 rounded">
+                                <select name="alumno_seleccionado" class="border px-2 py-1 rounded" x-on:change="seleccionarAlumno($event.target.value)">
                                     <option value="">-- Seleccionar alumno --</option>
                                     @foreach($alumnos as $al)
                                         @php
@@ -109,7 +131,48 @@
                                 </select>
                             </div>
                         </div>
+                        {{-- FRAGMENTO DE INFORMACIÓN PERSONAL DEL ALUMNO --}}
+                        <div x-show="alumnoSeleccionadoInfo" class="mt-8 p-4">
+                            <h3 class="font-medium text-base text-gray-700 mb-4 border-b pb-2">Información Personal del Alumno</h3>
 
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
+                                
+                                {{-- Fila 1 --}}
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Nombre y Apellido:</span>
+                                    <p class="font-semibold text-gray-800" x-text="`${alumnoSeleccionadoInfo.apellido}, ${alumnoSeleccionadoInfo.nombre}`"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">DNI:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.dni"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Fecha de nacimiento:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.fecha_nacimiento"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Edad:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.edad"></p>
+                                </div>
+
+                                {{-- Fila 2 --}}
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Nacionalidad:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.nacionalidad"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Domicilio:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.domicilio"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Curso:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.curso"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fila-botones">
+                            <button type="button" class="btn-aceptar" @click.prevent="/* crear nuevo alumno */">Crear alumno</button>
+                        </div>
                     </div>
                 </div>
 
