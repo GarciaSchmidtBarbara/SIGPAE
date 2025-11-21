@@ -115,14 +115,11 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             ->orderBy('division')
             ->get();
             
-        // 1. Mapear a una Illuminate\Support\Collection de objetos genéricos (stdClass)
         $mappedCollection = $aulasData->map(fn($aula) => (object)[
             'id' => $aula->id_aula, 
-            'descripcion' => $aula->curso . ' ° ' . $aula->division // Ejemplo: "5to - A"
+            'descripcion' => $aula->curso . ' ° ' . $aula->division 
         ]);
 
-        // 2. FORZAR EL RETORNO: Utilizamos Collection::make() (de Illuminate\Database\Eloquent\Collection) 
-        // para envolver la colección mapeada.
         return Collection::make($mappedCollection);
     }
     

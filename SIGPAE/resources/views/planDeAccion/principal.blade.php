@@ -52,9 +52,8 @@
         <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}" >Limpiar</a>
     </form>
 
-    {{-- Lógica de la Tabla Dinámica --}}
-    <x-tabla-dinamica 
-        :columnas="[
+    @php
+    $columnas=[
             [
                 'key' => 'estado_plan',
                 'label' => 'Estado',
@@ -69,18 +68,30 @@
                 'key' => 'destinatarios',
                 'label' => 'Destinatarios',
                 'formatter' => function ($valor, $plan) {
-                    $tipo = $plan->tipo_plan->value; // Asumo que tipo_plan es un Enum que puedes acceder
+                    $tipo = $plan->tipo_plan->value; 
                     
-                    if ($tipo === 'INDIVIDUAL') {
-                        $alumno = $plan->alumnos->first();
-                        return $alumno 
-                            ? $alumno->persona->apellido . ', ' . $alumno->persona->nombre
+                    if ($tipo === 'INDIVIDUAL' || $tipo === 'GRUPAL') {
+                        $destinatarios = collect();
+                        
+                        // 1. Alumnos (para Individual y Grupal)
+                        if ($plan->alumnos->isNotEmpty()) {
+                            $alumnos_nombres = $plan->alumnos
+                                ->map(fn($alumno) => $alumno->persona->apellido . ', ' . $alumno->persona->nombre)
+                                ->all();
+                            $destinatarios = $destinatarios->merge($alumnos_nombres);
+                        }
+                        
+                        // 2. Aulas (solo para Grupal)
+                        if ($tipo === 'GRUPAL' && $plan->aulas->isNotEmpty()) {
+                            $aulas_descripcion = $plan->aulas
+                                ->map(fn($aula) => 'Aula: ' . $aula->descripcion)
+                                ->all();
+                            $destinatarios = $destinatarios->merge($aulas_descripcion);
+                        }
+                        
+                        return $destinatarios->isNotEmpty() 
+                            ? $destinatarios->implode('<br>') 
                             : 'N/A';
-                    }
-
-                    if ($tipo === 'GRUPAL') {
-                        $aula = $plan->aulas->first();
-                        return $aula ? $aula->descripcion : 'Grupo';
                     }
 
                     return 'Institucional';
@@ -90,30 +101,47 @@
                 'key' => 'responsables',
                 'label' => 'Responsables',
                 'formatter' => function ($valor, $plan) {
-                    $nombres = [];
+                    $responsables = collect();
 
                     if ($plan->profesionalGenerador?->persona) {
-                        $nombres[] = $plan->profesionalGenerador->persona->apellido;
+                        $p = $plan->profesionalGenerador->persona;
+                        $responsables->push([
+                            'nombre_completo' => $p->apellido . ', ' . $p->nombre,
+                            'es_generador' => true,
+                        ]);
                     }
+
+                    // otros Participantes
                     foreach ($plan->profesionalesParticipantes as $prof) {
-                        if ($prof->persona) {
-                            $nombres[] = $prof->persona->apellido;
+                        // Evitar duplicar el generador si está listado como participante
+                        if ($prof->id_profesional !== $plan->fk_id_profesional_generador && $prof->persona) {
+                             $p = $prof->persona;
+                             $responsables->push([
+                                'nombre_completo' => $p->apellido . ', ' . $p->nombre,
+                                'es_generador' => false,
+                            ]);
                         }
                     }
 
-                    $nombres = array_unique($nombres);
+                    // Formatear la lista final
+                    if ($responsables->isEmpty()) {
+                        return '—';
+                    }
 
-                    return count($nombres) > 2
-                        ? implode(', ', array_slice($nombres, 0, 2)) . '...'
-                        : implode(', ', $nombres);
+                    return $responsables
+                        ->unique('nombre_completo')
+                        ->map(fn($r) => $r['es_generador'] ? "<strong>{$r['nombre_completo']} (Gen.)</strong>" : $r['nombre_completo'])->implode('<br>');
                 }
             ],
-        ]"
-
+        ]
+    @endphp
+    {{-- Lógica de la Tabla Dinámica --}}
+    <x-tabla-dinamica 
+        
         :filas="$planesDeAccion"
+        :columnas="$columnas"
         idCampo="id_plan_de_accion"
 
-        :filaEnlace="fn($fila) => route('planDeAccion.iniciar-edicion', $fila->id_plan_de_accion)"
 
         :acciones="fn($plan) => view('components.boton-estado', [
             'activo' => $plan->activo,
