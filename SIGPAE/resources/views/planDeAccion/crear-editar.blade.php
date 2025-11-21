@@ -170,9 +170,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="fila-botones">
-                            <button type="button" class="btn-aceptar" @click.prevent="/* crear nuevo alumno */">Crear alumno</button>
-                        </div>
                     </div>
                 </div>
 
