@@ -27,14 +27,19 @@
                 @endif>
                 @foreach ($columnas as $col)
                     @php
-                        $key = is_array($col) ? $col['key'] : $col;
-                        $valor = data_get($fila, $key, '—');
-                        if (isset($formatters[$key]) && is_callable($formatters[$key])) {
-                            $valor = $formatters[$key]($valor, $fila);
-                        }
-                    @endphp
+                            $key = is_array($col) ? $col['key'] : $col;
+
+                            // Si hay formatter, se usa directamente con el valor (aunque no exista el key)
+                            if (isset($col['formatter']) && is_callable($col['formatter'])) {
+                                $valor = $col['formatter'](data_get($fila, $key), $fila);
+                            } elseif (isset($formatters[$key]) && is_callable($formatters[$key])) {
+                                $valor = $formatters[$key](data_get($fila, $key), $fila);
+                            } else {
+                                $valor = data_get($fila, $key, '—');
+                            }
+                        @endphp
                     <td class="px-4 py-2 text-sm text-gray-900">
-                        {{ $valor }}
+                        {!! $valor !!}
                     </td>
                 @endforeach
 

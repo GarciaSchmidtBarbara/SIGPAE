@@ -51,7 +51,6 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
    
     public function filtrar(Request $request): Collection
     {
-        // Delegamos la complejidad del filtrado y la carga de relaciones al Repository.
         return $this->repository->obtenerPlanesFiltrados($request);
     }
 
@@ -62,7 +61,6 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
 
     public function obtenerTipos(): Collection
     {
-        // Retorna la lista de valores del Enum TipoPlan
         return collect(TipoPlan::cases())->map(fn($tipo) => $tipo->value);
     }
 

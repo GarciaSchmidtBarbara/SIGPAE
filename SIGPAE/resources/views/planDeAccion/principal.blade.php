@@ -57,81 +57,51 @@
             [
                 'key' => 'estado_plan',
                 'label' => 'Estado',
-                'formatter' => fn($v) => ucfirst(strtolower($v)),
+                'formatter' => fn($v) => ucfirst(strtolower($v->value)),
             ],
             [
                 'key' => 'tipo_plan',
                 'label' => 'Tipo',
-                'formatter' => fn($v) => ucfirst(strtolower($v)),
+                'formatter' => fn($v) => ucfirst(strtolower($v->value)),
             ],
             [
                 'key' => 'destinatarios',
                 'label' => 'Destinatarios',
-                'formatter' => function ($valor, $plan) {
-                    $tipo = $plan->tipo_plan->value; 
-                    
-                    if ($tipo === 'INDIVIDUAL' || $tipo === 'GRUPAL') {
-                        $destinatarios = collect();
-                        
-                        // 1. Alumnos (para Individual y Grupal)
-                        if ($plan->alumnos->isNotEmpty()) {
-                            $alumnos_nombres = $plan->alumnos
-                                ->map(fn($alumno) => $alumno->persona->apellido . ', ' . $alumno->persona->nombre)
-                                ->all();
-                            $destinatarios = $destinatarios->merge($alumnos_nombres);
-                        }
-                        
-                        // 2. Aulas (solo para Grupal)
-                        if ($tipo === 'GRUPAL' && $plan->aulas->isNotEmpty()) {
-                            $aulas_descripcion = $plan->aulas
-                                ->map(fn($aula) => 'Aula: ' . $aula->descripcion)
-                                ->all();
-                            $destinatarios = $destinatarios->merge($aulas_descripcion);
-                        }
-                        
-                        return $destinatarios->isNotEmpty() 
-                            ? $destinatarios->implode('<br>') 
-                            : 'N/A';
+                'formatter' => function ($v, $plan) {
+                    $destinatarios = collect();
+
+                    if ($plan->alumnos->isNotEmpty()) {
+                        $destinatarios->push(...$plan->alumnos->map(fn($a) => $a->persona->apellido . ', ' . $a->persona->nombre));
                     }
 
-                    return 'Institucional';
+                    if ($plan->tipo_plan->value === 'GRUPAL' && $plan->aulas->isNotEmpty()) {
+                        $destinatarios->push(...$plan->aulas->map(fn($aula) => 'Aula: ' . $aula->descripcion));
+                    }
+
+                    return $destinatarios->isNotEmpty() ? $destinatarios->implode('<br>') : '—';
                 }
             ],
             [
                 'key' => 'responsables',
                 'label' => 'Responsables',
-                'formatter' => function ($valor, $plan) {
+                'formatter' => function ($v, $plan) {
                     $responsables = collect();
 
                     if ($plan->profesionalGenerador?->persona) {
                         $p = $plan->profesionalGenerador->persona;
-                        $responsables->push([
-                            'nombre_completo' => $p->apellido . ', ' . $p->nombre,
-                            'es_generador' => true,
-                        ]);
+                        $responsables->push("<strong>{$p->apellido}, {$p->nombre} (Gen.)</strong>");
                     }
 
-                    // otros Participantes
                     foreach ($plan->profesionalesParticipantes as $prof) {
-                        // Evitar duplicar el generador si está listado como participante
                         if ($prof->id_profesional !== $plan->fk_id_profesional_generador && $prof->persona) {
-                             $p = $prof->persona;
-                             $responsables->push([
-                                'nombre_completo' => $p->apellido . ', ' . $p->nombre,
-                                'es_generador' => false,
-                            ]);
+                            $p = $prof->persona;
+                            $responsables->push("{$p->apellido}, {$p->nombre}");
                         }
                     }
 
-                    // Formatear la lista final
-                    if ($responsables->isEmpty()) {
-                        return '—';
-                    }
-
-                    return $responsables
-                        ->unique('nombre_completo')
-                        ->map(fn($r) => $r['es_generador'] ? "<strong>{$r['nombre_completo']} (Gen.)</strong>" : $r['nombre_completo'])->implode('<br>');
+                    return $responsables->isNotEmpty() ? $responsables->unique()->implode('<br>') : '—';
                 }
+
             ],
         ]
     @endphp
@@ -142,6 +112,7 @@
         :columnas="$columnas"
         idCampo="id_plan_de_accion"
 
+        :filaEnlace="fn($plan) => route('planDeAccion.iniciar-edicion', $plan->id_plan_de_accion)"
 
         :acciones="fn($plan) => view('components.boton-estado', [
             'activo' => $plan->activo,

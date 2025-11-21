@@ -21,8 +21,6 @@ class PlanDeAccionController extends Controller
     {
         $planesDeAccion = $this->planDeAccionService->filtrar($request);
         $aulas = $this->planDeAccionService->obtenerAulasParaFiltro();
-        
-        // El Blade de Alumno usa 'cursos', aquí usaremos 'aulas' y los tipos (enums).
         $tipos = $this->planDeAccionService->obtenerTipos(); 
 
         return view('planDeAccion.principal', compact('planesDeAccion', 'aulas', 'tipos'));

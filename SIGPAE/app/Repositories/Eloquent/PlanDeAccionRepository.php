@@ -57,10 +57,10 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
 
         // Carga Eager de todas las relaciones necesarias para la vista
         $query->with([
+            'alumnos.persona',
+            'aulas', 
             'profesionalGenerador.persona', 
-            'profesionalesParticipantes.persona', 
-            'alumnos.persona', 
-            'aulas' 
+            'profesionalesParticipantes.persona',
         ]);
 
         // 1. Filtrar por Tipo (tipo_plan)
@@ -83,7 +83,6 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
 
         // 4. Filtrar por Alumno (búsqueda por nombre/DNI)
         if ($alumnoQuery = $request->get('alumno')) {
-             // Lógica de filtrado de alumno... (Tu código es correcto aquí)
             $query->whereHas('alumnos.persona', function ($q) use ($alumnoQuery) {
                  $q->where('nombre', 'ILIKE', "%{$alumnoQuery}%") 
                    ->orWhere('apellido', 'ILIKE', "%{$alumnoQuery}%")
@@ -91,7 +90,6 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             });
         }
         
-        // Obtener y ordenar (similar al AlumnoService)
         $planes = $query->get();
 
         // Ordenamiento por 'activo' (primero activos/abiertos) y luego por fecha.
@@ -100,7 +98,7 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             $activoB = $b->activo ? 1 : 0;
             
             if ($activoA !== $activoB) {
-                return $activoA > $activoB ? -1 : 1; // Activos primero
+                return $activoA > $activoB ? -1 : 1;
             }
 
             // Si el estado es el mismo, ordenar por la fecha más reciente (desc)
