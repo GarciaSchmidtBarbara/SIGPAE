@@ -76,13 +76,53 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
     {
         $plan = $id ? $this->repository->buscarPorIdConRelaciones($id) : null;
 
+        $alumnos = \App\Models\Alumno::with(['persona', 'aula'])->get();
+
+        $alumnosJson = $alumnos->mapWithKeys(function ($al) {
+            $persona = $al->persona;
+            return [
+                $al->id_alumno => [
+                    'id' => $al->id_alumno,
+                    'nombre' => $persona->nombre,
+                    'apellido' => $persona->apellido,
+                    'dni' => $persona->dni,
+                    'fecha_nacimiento' => optional($persona->fecha_nacimiento)->format('d/m/Y'),
+                    'nacionalidad' => $persona->nacionalidad ?? 'N/A',
+                    'domicilio' => $persona->domicilio ?? 'N/A',
+                    'edad' => optional($persona->fecha_nacimiento)->age,
+                    'curso' => $al->aula ? ($al->aula->curso . '° ' . $al->aula->division) : 'N/A',
+                ]
+            ];
+        });
+
+        $initialAlumnoId = $plan?->alumnos->first()?->id_alumno ?? '';
+        $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
+            ? $alumnosJson[$initialAlumnoId]
+            : null;
+
+        $alumnosSeleccionados = $plan?->alumnos->map(function ($al) {
+            $persona = $al->persona;
+            return [
+                'id_alumno' => $al->id_alumno,
+                'nombre' => $persona->nombre,
+                'apellido' => $persona->apellido,
+                'dni' => $persona->dni,
+                'curso' => $al->aula ? ($al->aula->curso . '° ' . $al->aula->division) : 'N/A',
+            ];
+        }) ?? collect();
+
         return [
             'plan' => $plan,
-            'alumnos' => Alumno::with('persona')->get(),
+            'alumnos' => $alumnos,
             'aulas' => Aula::all(),
             'profesionales' => Profesional::with('persona')->get(),
+            'alumnosJson' => $alumnosJson,
+            'initialAlumnoId' => $initialAlumnoId,
+            'initialAlumnoInfo' => $initialAlumnoInfo,
+            'alumnosSeleccionados' => $alumnosSeleccionados,
         ];
     }
+
 
 
 }

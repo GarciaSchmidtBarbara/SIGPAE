@@ -102,19 +102,24 @@
                 <div class="space-y-6 mb-6">
                     <p class="separador">Tipo de Plan</p>
 
-                    {{-- Usamos tu componente x-opcion-unica y le pasamos x-model --}}
                     @php
-                        // pasamos los valores tal cual vienen del enum
                         $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoPlan::cases());
+                        $seleccion = old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '');
                     @endphp
 
-                    <x-opcion-unica
-                        :items="$tipoItems"
-                        name="tipo_plan"
-                        layout="horizontal"
-                        :seleccion="old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '')"
-                        x-model="tipoPlanSeleccionado"
-                    />
+                    @if($esEdicion)
+                        <p class="font-semibold text-gray-700">
+                            {{ $seleccion }}
+                        </p>
+                    @else
+                        <x-opcion-unica
+                            :items="$tipoItems"
+                            name="tipo_plan"
+                            layout="horizontal"
+                            :seleccion="$seleccion"
+                            x-model="tipoPlanSeleccionado"
+                        />
+                    @endif
                 </div>
 
                 {{-- DESTINATARIO - Individual --}}
@@ -415,16 +420,16 @@
                 @else
                     <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}">Cancelar</a>
                 @endif
-
-                @if($esEdicion)
-                    <form action="{{ route('planDeAccion.eliminar', $planDeAccion->id_plan_de_accion) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('¿Seguro que querés eliminar este plan?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-eliminar">Eliminar</button>
-                    </form>
-                @endif
             </div>
         </form>
+
+            @if($esEdicion)
+                <form action="{{ route('planDeAccion.eliminar', $planDeAccion->id_plan_de_accion) }}" method="POST" class="inline-block mt-2" onsubmit="return confirm('¿Seguro que querés eliminar este plan?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-eliminar">Eliminar</button>
+                </form>
+            @endif
     </div>
 </div>
 
