@@ -19,8 +19,107 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     
     public function crear(array $data): PlanDeAccion
     {
-        return $this->model->create($data);
+        // Normalizar tipo_plan a mayúsculas (coincide con la enum de BD)
+        $tipo = strtoupper($data['tipo_plan'] ?? '');
+
+        // 1. Crear el plan base
+        $plan = $this->model->create([
+            'tipo_plan' => $tipo,
+            'objetivos' => $data['objetivos'] ?? null,
+            'acciones' => $data['acciones'] ?? null,
+            'observaciones' => $data['observaciones'] ?? null,
+            'estado_plan' => 'ABIERTO',
+            'activo' => true,
+            'fk_id_profesional_generador' => $data['fk_id_profesional_generador'],
+        ]);
+
+        // 2. Asociar alumnos (ahora el formulario envía 'alumnos' como array en todos los casos)
+        if ($tipo === 'INDIVIDUAL') {
+            if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
+                // individual: tomar el primer id
+                $plan->alumnos()->sync([ (int) $data['alumnos'][0] ]);
+            } elseif (!empty($data['alumno_seleccionado'])) {
+                $plan->alumnos()->sync([ (int) $data['alumno_seleccionado'] ]);
+            }
+        } elseif ($tipo === 'GRUPAL') {
+            if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
+                $plan->alumnos()->sync(array_map('intval', $data['alumnos']));
+            } elseif (!empty($data['alumnos_grupal']) && is_array($data['alumnos_grupal'])) {
+                $plan->alumnos()->sync(array_map('intval', $data['alumnos_grupal']));
+            }
+        }
+
+        // 3. Asociar aula
+        if (isset($data['aula']) && $data['aula']) {
+            $plan->aulas()->sync([ (int) $data['aula'] ]);
+        }
+
+        // 4. Asociar profesionales
+        if (!empty($data['profesionales']) && is_array($data['profesionales'])) {
+            $plan->profesionalesParticipantes()->sync(array_map('intval', $data['profesionales']));
+        }
+       
+        return $plan;
     }
+
+    public function actualizar(int $id, array $data): ?PlanDeAccion
+    {
+        $plan = $this->model->find($id);
+        if (!$plan) return null;
+
+        $tipo = strtoupper($data['tipo_plan'] ?? $plan->tipo_plan);
+
+        // 1. Actualizar campos base
+        $plan->update([
+            'tipo_plan' => $tipo,
+            'objetivos' => $data['objetivos'] ?? $plan->objetivos,
+            'acciones' => $data['acciones'] ?? $plan->acciones,
+            'observaciones' => $data['observaciones'] ?? $plan->observaciones,
+        ]);
+
+        // 2. Actualizar relaciones de alumnos (misma convención 'alumnos')
+        if ($tipo === 'INDIVIDUAL') {
+            if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
+                $plan->alumnos()->sync([ (int) $data['alumnos'][0] ]);
+            } elseif (!empty($data['alumno_seleccionado'])) {
+                $plan->alumnos()->sync([ (int) $data['alumno_seleccionado'] ]);
+            } else {
+                $plan->alumnos()->detach();
+            }
+        } elseif ($tipo === 'GRUPAL') {
+            if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
+                $plan->alumnos()->sync(array_map('intval', $data['alumnos']));
+            } elseif (!empty($data['alumnos_grupal']) && is_array($data['alumnos_grupal'])) {
+                $plan->alumnos()->sync(array_map('intval', $data['alumnos_grupal']));
+            } else {
+                $plan->alumnos()->detach();
+            }
+        } else {
+            // Si es INSTITUCIONAL u otro tipo, limpiar alumnos para evitar residuos
+            $plan->alumnos()->detach();
+        }
+
+        if (isset($data['aula'])) {
+            if ($data['aula']) {
+                $plan->aulas()->sync([ (int) $data['aula'] ]);
+            } else {
+                $plan->aulas()->detach();
+            }
+        }
+
+        if (isset($data['profesionales']) && is_array($data['profesionales'])) {
+            $plan->profesionalesParticipantes()->sync(array_map('intval', $data['profesionales']));
+        } else {
+            // si viene vacío, desasociar todos
+            if (array_key_exists('profesionales', $data) && empty($data['profesionales'])) {
+                $plan->profesionalesParticipantes()->detach();
+            }
+        }
+
+        // recargar relaciones si es necesario
+        return $plan->fresh();
+    }
+
 
     public function eliminar(int $id): bool
     {

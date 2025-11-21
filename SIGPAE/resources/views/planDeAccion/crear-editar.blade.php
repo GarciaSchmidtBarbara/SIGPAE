@@ -72,20 +72,30 @@
         tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}',
         alumnosData: {{ $alumnosJson->toJson() }},
         alumnoSeleccionadoInfo: @json($initialAlumnoInfo),
+        // nuevo: guardamos el id seleccionado (se envía como alumnos[] al backend)
+        alumnoSeleccionadoId: '{{ $initialAlumnoId }}',
         
         seleccionarAlumno(id) {
+            // aseguramos consistencia: actualizar info y el id seleccionado
+            id = String(id || '');
+            this.alumnoSeleccionadoId = id;
             this.alumnoSeleccionadoInfo = this.alumnosData[id] || null;
         }
     }">
 
         <form method="POST" action="{{ $esEdicion 
-                ? route('planDeAccion.iniciar-edicion', $planDeAccion->id_plan_de_accion)
+                ? route('planDeAccion.actualizar', $planDeAccion->id_plan_de_accion)
                 : route('planDeAccion.store') 
             }}">
             @csrf
+
+            {{-- Cuando se edita: método PUT --}}
             @if($esEdicion)
                 @method('PUT')
             @endif
+
+            {{-- Asegurar que el generador queda presente (fallback al usuario autenticado) --}}
+            <input type="hidden" name="fk_id_profesional_generador" value="{{ old('fk_id_profesional_generador', auth()->user()->id_profesional ?? auth()->id()) }}">
 
             <fieldset {{ $cerrado ? 'disabled' : '' }}>
                 {{-- TIPO --}}
@@ -116,7 +126,8 @@
                         <div class="flex gap-4 mt-4">
                             <div class="flex flex-col w-1/3">
                                 <label class="text-sm font-medium">Seleccionar alumno</label>
-                                <select name="alumno_seleccionado" class="border px-2 py-1 rounded" x-on:change="seleccionarAlumno($event.target.value)">
+                                <!-- vinculado al id seleccionado y actualiza la info -->
+                                <select name="alumno_seleccionado" class="border px-2 py-1 rounded" x-model="alumnoSeleccionadoId" x-on:change="seleccionarAlumno($event.target.value)">
                                     <option value="">-- Seleccionar alumno --</option>
                                     @foreach($alumnos as $al)
                                         @php
@@ -129,6 +140,9 @@
                                         </option>
                                     @endforeach
                                 </select>
+
+                                <!-- input oculto que enviará siempre alumnos[] cuando el tipo sea INDIVIDUAL -->
+                                <input type="hidden" name="alumnos[]" :value="alumnoSeleccionadoId" x-show="alumnoSeleccionadoId">
                             </div>
                         </div>
                         {{-- FRAGMENTO DE INFORMACIÓN PERSONAL DEL ALUMNO --}}
@@ -174,13 +188,27 @@
                 </div>
 
                 {{-- DESTINATARIO - Grupal --}}
-                <div id="destinatario-grupal" x-show="tipoPlanSeleccionado === 'GRUPAL'" style="display:none;">
+                <div id="destinatario-grupal" 
+                x-data="destinatarioGrupal($root.alumnosData, {{ json_encode($alumnosSeleccionados ?? []) }})" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
+                style="display:none;">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
 
-                        <div class="fila-botones">
-                            <button type="button" class="btn-aceptar" @click.prevent="/* buscar alumnos para agregar */">Buscar alumnos</button>
-                            <button type="button" class="btn-aceptar" @click.prevent="/* buscar aula */">Seleccionar aula</button>
+                        {{-- Selector de alumno--}}
+                        <div class="flex gap-4 mt-4">
+                            <div class="flex flex-col w-1/3">
+                                <label class="text-sm font-medium">Seleccionar alumno</label>
+                                <select class="border px-2 py-1 rounded"                                x-on:change="seleccionarAlumno($event.target.value); $event.target.value=''">
+                                    <option value="">-- Seleccionar alumno --</option>
+                                    @foreach($alumnos as $al)
+                                        @php
+                                            $alId = $al->id_alumno ?? $al->id ?? null;
+                                            $label = $al->persona->nombre . ' ' . $al->persona->apellido;
+                                        @endphp
+                                        <option value="{{ $alId }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
                         {{-- Selección de aula --}}
@@ -199,26 +227,106 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            {{-- Opcional: mostrar alumnos asignados al grupo (lista breve) --}}
-                            <div class="flex-1">
-                                <label class="text-sm font-medium">Alumnos incluidos</label>
-                                <div class="mt-2">
-                                    @if(isset($planDeAccion) && $esEdicion && $planDeAccion->alumnos->isNotEmpty())
-                                        <ul class="list-disc pl-5 text-sm">
-                                            @foreach($planDeAccion->alumnos as $a)
-                                                <li>{{ $a->persona->nombre }} {{ $a->persona->apellido }} ({{ $a->persona->dni ?? '' }})</li>
-                                            @endforeach
-                                        </ul>
-                                    @else
-                                        <p class="text-sm text-gray-500">No hay alumnos agregados.</p>
-                                    @endif
-                                </div>
-                            </div>
                         </div>
 
+                        {{-- TABLA DINÁMICA DE ALUMNOS SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
+                        <div class="mt-6">
+                            <h3 class="font-medium text-base text-gray-700 mb-2">Alumnos Seleccionados</h3>
+                            
+                            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Apellido</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DNI</th>
+                                            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curso</th>
+                                            <th class="px-4 py-2 w-10"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200" x-cloak>
+                                        {{-- Iteración dinámica sobre el array 'alumnos' de Alpine --}}
+                                        <template x-for="alumno in alumnos" :key="alumno.id">
+                                            <tr>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="alumno.nombre"></td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="alumno.apellido"></td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="alumno.dni"></td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="alumno.curso"></td>
+                                                <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
+                                                    <button type="button" 
+                                                            class="text-gray-400 hover:text-red-600 focus:outline-none"
+                                                            x-on:click="eliminarAlumno(alumno.id)">
+                                                        {{-- Icono de bote de basura --}}
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                        </svg>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                        <tr x-show="alumnos.length === 0">
+                                            <td colspan="5" class="px-4 py-4 text-center text-sm text-gray-500">
+                                                No hay alumnos seleccionados.
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        {{-- Inputs Ocultos (Mantener) --}}
+                        <template x-for="alumno in alumnos" :key="alumno.id">
+                            <!-- normalizamos el nombre a 'alumnos[]' para que el backend reciba un único campo consistente -->
+                            <input type="hidden" name="alumnos[]" :value="alumno.id">
+                        </template>
                     </div>
                 </div>
+                <script>
+                function destinatarioGrupal(allAlumnos, initialAlumnos) {
+                    // Aseguramos que los datos iniciales se usen si existen, 
+                    // y que cada elemento tenga un 'id' para que la función eliminarAlumno funcione.
+                    const initial = Array.isArray(initialAlumnos) ? initialAlumnos.map(a => ({
+                        id: a.id_alumno || a.id,
+                        nombre: a.nombre, // Asumiendo que el controlador mapeó estos datos
+                        apellido: a.apellido,
+                        dni: a.dni,
+                        curso: a.curso,
+                    })) : [];
+
+                    return {
+                        // Inicializamos con los alumnos ya guardados o un array vacío
+                        alumnos: initial, 
+
+                        seleccionarAlumno(alumnoId) {
+                            // Aseguramos que el ID sea un string para coincidir con las keys del JSON
+                            alumnoId = String(alumnoId);
+                            if (!alumnoId || alumnoId === '0' || !allAlumnos[alumnoId]) return;
+
+                            // 1. Evitar duplicados
+                            if (this.alumnos.find(a => String(a.id) === alumnoId)) return;
+
+                            // 2. Obtener datos del alumno
+                            const alumnoData = allAlumnos[alumnoId];
+                            
+                            // 3. Mapear al formato de la tabla
+                            const nuevoAlumno = {
+                                id: alumnoId, // Usamos el ID del select
+                                nombre: alumnoData.nombre,
+                                apellido: alumnoData.apellido,
+                                dni: alumnoData.dni,
+                                curso: alumnoData.curso
+                            };
+                            
+                            this.alumnos.push(nuevoAlumno);
+                        },
+
+                        eliminarAlumno(id) {
+                            // Filtra el array, manteniendo solo los alumnos cuyo id NO coincida con el id a eliminar
+                            this.alumnos = this.alumnos.filter(a => String(a.id) !== String(id));
+                        }
+                    }
+                }
+                </script>
 
                 {{-- CAMPOS COMUNES: Objetivos / Acciones / Observaciones --}}
                 <div class="space-y-8 mb-6">
@@ -319,5 +427,6 @@
         </form>
     </div>
 </div>
+
 
 @endsection

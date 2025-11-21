@@ -24,7 +24,10 @@ class PlanDeAccion extends Model
         'activo',
         'acciones',
         'observaciones',
+        'fk_id_profesional_generador',
     ];
+
+    public $timestamps = true;
 
     protected $casts = [
         'activo' => 'boolean',

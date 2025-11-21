@@ -40,22 +40,44 @@ class PlanDeAccionController extends Controller
     {
         $data = $this->planDeAccionService->datosParaFormulario();
 
-        return view('planDeAccion.crear-editar', $data + ['modo' => 'crear']);
+        return view('planDeAccion.crear-editar', $data + [
+            'modo' => 'crear',
+            'alumnosSeleccionados' => []
+        ]);
     }
     
     public function store(Request $request): RedirectResponse
     {
         $validatedData = $request->validate([
-            'tipo_plan' => 'required|in:Institucional,Individual,Grupal',
-            'destinatario' => 'nullable|string|max:255',
-            'descripcion' => 'required|string',
+            // ajustar a los valores del enum (mayúsculas)
+            'tipo_plan' => 'required|in:INSTITUCIONAL,INDIVIDUAL,GRUPAL',
+            'objetivos' => 'nullable|string',
+            'acciones' => 'nullable|string',
+            'observaciones' => 'nullable|string',
+            // ahora el formulario envía "alumnos[]" en todos los casos
+            'alumnos' => 'array',
+            'alumnos.*' => 'integer|exists:alumnos,id_alumno',
+            'aula' => 'nullable|integer|exists:aulas,id_aula',
+            'profesionales' => 'array',
+            'profesionales.*' => 'integer|exists:profesionales,id_profesional',
         ]);
+        // ⚠️ Validar antes de crear
+        if (!auth()->user() || !auth()->user()->id_profesional) {
+            return redirect()->back()->with(
+                'error',
+                'No se puede crear el plan: el usuario no tiene un profesional asociado.'
+            );
+        }
 
-        $this->planDeAccionService->crearPlanDeAccion($validatedData);
+        // Inyectar el profesional generador automáticamente
+        $validatedData['fk_id_profesional_generador'] = auth()->user()->id_profesional;
+
+        $this->planDeAccionService->crear($validatedData);
 
         return redirect()->route('planDeAccion.principal')
                          ->with('success', 'Plan de Acción creado con éxito.');
     }
+
     public function iniciarEdicion(int $id): View
     {
         $data = $this->planDeAccionService->datosParaFormulario($id);
@@ -63,17 +85,25 @@ class PlanDeAccionController extends Controller
         return view('planDeAccion.crear-editar', $data + [
             'modo' => 'editar',
             'planDeAccion' => $data['plan'],
+            'alumnosSeleccionados' => $data['plan']->alumnos ?? []
         ]);
     }
 
     public function actualizar(Request $request, int $id): RedirectResponse
     {
         $validatedData = $request->validate([
-            'tipo_plan' => 'required',
-            'descripcion' => 'required|string',
+            'tipo_plan' => 'required|in:INSTITUCIONAL,INDIVIDUAL,GRUPAL',
+            'objetivos' => 'nullable|string',
+            'acciones' => 'nullable|string',
+            'observaciones' => 'nullable|string',
+            'alumnos' => 'array',
+            'alumnos.*' => 'integer|exists:alumnos,id_alumno',
+            'aula' => 'nullable|integer|exists:aulas,id_aula',
+            'profesionales' => 'array',
+            'profesionales.*' => 'integer|exists:profesionales,id_profesional',
         ]);
 
-        $this->planDeAccionService->actualizarPlanDeAccion($id, $validatedData);
+        $this->planDeAccionService->actualizar($id, $validatedData);
 
         return redirect()->route('planDeAccion.principal')
             ->with('success', 'Plan actualizado');

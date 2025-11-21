@@ -37,6 +37,11 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         return $this->repository->crear($data);
     }
     
+    public function actualizar(int $id, array $data): ?PlanDeAccion
+    {
+        return $this->repository->actualizar($id, $data);
+    }
+
     public function eliminar(int $id): bool
     {
         return $this->repository->eliminar($id);
@@ -78,5 +83,6 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             'profesionales' => Profesional::with('persona')->get(),
         ];
     }
+
 
 }

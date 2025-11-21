@@ -18,7 +18,7 @@ Route::post('/probar-post', function () {
 
 //Rutas Plan de Acción
 use App\Http\Controllers\PlanDeAccionController;
-Route::prefix('planes-de-accion')->group(function () {
+Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::get('/', [PlanDeAccionController::class, 'vista'])->name('planDeAccion.principal');
     Route::post('/', [PlanDeAccionController::class, 'store'])->name('planDeAccion.store');
     Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
