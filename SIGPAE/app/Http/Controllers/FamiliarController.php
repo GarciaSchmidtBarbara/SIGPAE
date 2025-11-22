@@ -103,14 +103,17 @@ class FamiliarController extends Controller
         
         // A. Si viene de BBDD (Estructura anidada)
         if (isset($familiarData['persona'])) {
-             $familiarData['nombre'] = $familiarData['persona']['nombre'] ?? '';
-             $familiarData['apellido'] = $familiarData['persona']['apellido'] ?? '';
-             $familiarData['dni'] = $familiarData['persona']['dni'] ?? '';
-             $familiarData['fecha_nacimiento'] = $familiarData['persona']['fecha_nacimiento'] ?? '';
-             $familiarData['domicilio'] = $familiarData['persona']['domicilio'] ?? '';
-             $familiarData['nacionalidad'] = $familiarData['persona']['nacionalidad'] ?? '';
-             // Extraemos el ID para la lógica de vinculo
-             $familiarData['fk_id_persona'] = $familiarData['persona']['id_persona'] ?? null;
+            // intento usar el dato que ya está en la raíz (Sesión/Editado).
+            // si no existe, usamos el dato de la relación 'persona' (BBDD).
+            // si no existe, usamos cadena vacía.
+            $familiarData['nombre'] = $familiarData['nombre'] ?? $familiarData['persona']['nombre'] ?? '';
+            $familiarData['apellido'] = $familiarData['apellido'] ?? $familiarData['persona']['apellido'] ?? '';
+            $familiarData['dni'] = $familiarData['dni'] ?? $familiarData['persona']['dni'] ?? '';
+            $familiarData['fecha_nacimiento'] = $familiarData['fecha_nacimiento'] ?? $familiarData['persona']['fecha_nacimiento'] ?? '';
+            $familiarData['domicilio'] = $familiarData['domicilio'] ?? $familiarData['persona']['domicilio'] ?? '';
+            $familiarData['nacionalidad'] = $familiarData['nacionalidad'] ?? $familiarData['persona']['nacionalidad'] ?? '';
+            // Extraemos el ID para la lógica de vinculo
+            $familiarData['fk_id_persona'] = $familiarData['fk_id_persona'] ?? $familiarData['persona']['id_persona'] ?? null;
         }
 
         // B. Si viene de BBDD (Aula anidada)
@@ -121,7 +124,7 @@ class FamiliarController extends Controller
 
         // C. Si viene de BBDD (Pivot anidado)
         if (isset($familiarData['pivot'])) {
-            $familiarData['observaciones'] = $familiarData['pivot']['observaciones'] ?? '';
+            $familiarData['observaciones'] = $familiarData['observaciones'] ?? $familiarData['pivot']['observaciones'] ?? '';
         }
         
         $familiarData['curso'] = $familiarData['curso'] ?? '';
@@ -136,6 +139,10 @@ class FamiliarController extends Controller
             $idsEnUso = array_diff($idsEnUso, [$miId]);
         }
 
+        if (isset($familiarData['parentesco'])) {
+            $familiarData['parentesco'] = strtolower($familiarData['parentesco']);
+        }
+
         $solo_lectura = false;
 
         // Caso A: Hermano Alumno de BBDD (No tiene 'parentesco')
@@ -145,7 +152,7 @@ class FamiliarController extends Controller
             $solo_lectura = true;
         }
         // Caso B: Hermano Alumno de Sesión (Tiene marca 'hermano' Y vínculo ID)
-        elseif (($familiarData['parentesco'] ?? '') === 'hermano' && !empty($familiarData['fk_id_persona'])) {
+        elseif (($familiarData['parentesco'] ?? '') === 'hermano' && !empty($familiarData['asiste_a_institucion'])) {
             $solo_lectura = true;
         }
 
@@ -160,6 +167,8 @@ class FamiliarController extends Controller
 
     public function guardarYVolver(Request $request)
     {
+        //dd($request->all());
+        
         $fkPersona = $request->input('fk_id_persona');
         $asiste = 0; // Por defecto, asumimos que no es alumno
 
@@ -192,7 +201,6 @@ class FamiliarController extends Controller
             'lugar_de_trabajo' => 'nullable|string',
             'parentesco' => 'required|string',
             'otro_parentesco' => 'nullable|string',
-            'curso' => 'nullable|string',
             'curso' => 'nullable|string',
             'division' => 'nullable|string',
             'observaciones' => 'nullable|string',
