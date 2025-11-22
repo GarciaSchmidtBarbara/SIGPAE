@@ -19,7 +19,6 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     
     public function crear(array $data): PlanDeAccion
     {
-        // Normalizar tipo_plan a mayúsculas (coincide con la enum de BD)
         $tipo = strtoupper($data['tipo_plan'] ?? '');
 
         // 1. Crear el plan base
@@ -33,34 +32,55 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             'fk_id_profesional_generador' => $data['fk_id_profesional_generador'],
         ]);
 
-        // 2. Asociar alumnos (ahora el formulario envía 'alumnos' como array en todos los casos)
+        // ============================
+        // 2. ASOCIACIONES SEGÚN TIPO
+        // ============================
+
         if ($tipo === 'INDIVIDUAL') {
+
+            // ✔ Siempre 1 solo alumno
             if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
-                // individual: tomar el primer id
-                $plan->alumnos()->sync([ (int) $data['alumnos'][0] ]);
-            } elseif (!empty($data['alumno_seleccionado'])) {
-                $plan->alumnos()->sync([ (int) $data['alumno_seleccionado'] ]);
+                $plan->alumnos()->sync([(int) $data['alumnos'][0]]);
             }
+
+            // Aulas → vacío siempre
+            $plan->aulas()->sync([]);
+
         } elseif ($tipo === 'GRUPAL') {
+
+            // ✔ Si vienen alumnos (mínimo 2 según validación)
             if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
                 $plan->alumnos()->sync(array_map('intval', $data['alumnos']));
-            } elseif (!empty($data['alumnos_grupal']) && is_array($data['alumnos_grupal'])) {
-                $plan->alumnos()->sync(array_map('intval', $data['alumnos_grupal']));
+            } else {
+                $plan->alumnos()->sync([]);
             }
+
+            // ✔ Si viene aula (opcional)
+            if (!empty($data['aula'])) {
+                $plan->aulas()->sync([(int) $data['aula']]);
+            } else {
+                $plan->aulas()->sync([]);
+            }
+
+        } elseif ($tipo === 'INSTITUCIONAL') {
+
+            // ✔ Sin alumnos
+            $plan->alumnos()->sync([]);
+
+            // ✔ Sin aulas
+            $plan->aulas()->sync([]);
         }
 
-        // 3. Asociar aula
-        if (isset($data['aula']) && $data['aula']) {
-            $plan->aulas()->sync([ (int) $data['aula'] ]);
-        }
-
-        // 4. Asociar profesionales
+        // ============================
+        // 3. PROFESIONALES PARTICIPANTES (GENERAL)
+        // ============================
         if (!empty($data['profesionales']) && is_array($data['profesionales'])) {
             $plan->profesionalesParticipantes()->sync(array_map('intval', $data['profesionales']));
         }
-       
+
         return $plan;
     }
+
 
     public function actualizar(int $id, array $data): ?PlanDeAccion
     {

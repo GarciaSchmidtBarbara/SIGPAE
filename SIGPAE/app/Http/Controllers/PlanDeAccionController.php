@@ -48,34 +48,58 @@ class PlanDeAccionController extends Controller
     
     public function store(Request $request): RedirectResponse
     {
-        $validatedData = $request->validate([
-            // ajustar a los valores del enum (mayúsculas)
+        $baseRules = [
             'tipo_plan' => 'required|in:INSTITUCIONAL,INDIVIDUAL,GRUPAL',
-            'objetivos' => 'nullable|string',
-            'acciones' => 'nullable|string',
+            'objetivos' => 'required|string',
+            'acciones' => 'required|string',
             'observaciones' => 'nullable|string',
-            // ahora el formulario envía "alumnos[]" en todos los casos
-            'alumnos' => 'array',
-            'alumnos.*' => 'integer|exists:alumnos,id_alumno',
-            'aula' => 'nullable|integer|exists:aulas,id_aula',
             'profesionales' => 'array',
             'profesionales.*' => 'integer|exists:profesionales,id_profesional',
-        ]);
-        // ⚠️ Validar antes de crear
-        if (!auth()->user() || !auth()->user()->id_profesional) {
-            return redirect()->back()->with(
-                'error',
-                'No se puede crear el plan: el usuario no tiene un profesional asociado.'
-            );
+            'aula' => 'nullable|integer|exists:aulas,id_aula',
+            'alumnos' => 'nullable|array',
+            'alumnos.*' => 'nullable|integer|exists:alumnos,id_alumno',
+        ];
+
+        // Validación preliminar para saber el tipo
+        $validated = $request->validate($baseRules);
+        $tipo = $validated['tipo_plan'];
+
+        // ➤ VALIDACIÓN ADICIONAL SEGÚN TIPO
+        if ($tipo === 'INDIVIDUAL') {
+            if (empty($validated['alumnos']) || count($validated['alumnos']) < 1) {
+                return back()->withErrors([
+                    'alumnos' => 'Debe seleccionar un alumno para un plan individual.',
+                ])->withInput();
+            }
         }
 
-        // Inyectar el profesional generador automáticamente
-        $validatedData['fk_id_profesional_generador'] = auth()->user()->id_profesional;
+        if ($tipo === 'GRUPAL') {
+            $alumnos = $validated['alumnos'] ?? [];
+            $aula = $validated['aula'] ?? null;
 
-        $this->planDeAccionService->crear($validatedData);
+            if ((empty($alumnos) || count($alumnos) < 2) && !$aula) {
+                return back()->withErrors([
+                    'alumnos' => 'Debe seleccionar al menos dos alumnos o un aula completa para un plan grupal.',
+                ])->withInput();
+            }
+        }
+
+        if ($tipo === 'INSTITUCIONAL') {
+            // nada extra → solo los generales
+        }
+
+        // Validar profesional generador
+        if (!auth()->user()?->id_profesional) {
+            return back()->with('error', 'No se puede crear el plan sin un profesional generador');
+        }
+
+        $validated['fk_id_profesional_generador'] = auth()->user()->id_profesional;
+
+        // Crear plan
+        $this->planDeAccionService->crear($validated);
 
         return redirect()->route('planDeAccion.principal')
-                         ->with('success', 'Plan de Acción creado con éxito.');
+                        ->with('success', 'Plan creado con éxito.');
     }
 
     public function iniciarEdicion(int $id): View
