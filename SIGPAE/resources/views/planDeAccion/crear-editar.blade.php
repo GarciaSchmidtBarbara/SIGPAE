@@ -33,29 +33,39 @@
     // helper para valores viejos del modelo
     $oldOr = fn($field, $fallback = null) => old($field, $fallback);
 
-    // Preparar datos de alumnos para Alpine.js
-    $alumnosJson = collect($alumnos)->mapWithKeys(function ($al) {
-        $persona = $al->persona;
-        return [
-            $al->id_alumno => [
-                'id' => $al->id_alumno,
-                'nombre' => $persona->nombre,
-                'apellido' => $persona->apellido,
-                'dni' => $persona->dni,
-                'fecha_nacimiento' => $persona->fecha_nacimiento ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y') : 'N/A',
-                'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-                'domicilio' => $persona->domicilio ?? 'N/A',
-                'edad' => $persona->fecha_nacimiento ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age : 'N/A',
-                'curso'     => $al->aula?->descripcion,   // 3°A, 4°B, etc.
-                'aula_id'   => $al->fk_id_aula,           // ← ESTE es el dato clave
-            ]
-        ];
-    });
+    // ==============================================
+    // CREACIÓN → genera alumnosJson para Alpine
+    // ==============================================
+    if (!$esEdicion) {
+        $alumnosJson = collect($alumnos)->mapWithKeys(function ($al) {
+            $persona = $al->persona;
+            return [
+                $al->id_alumno => [
+                    'id' => $al->id_alumno,
+                    'nombre' => $persona->nombre,
+                    'apellido' => $persona->apellido,
+                    'dni' => $persona->dni,
+                    'fecha_nacimiento' => $persona->fecha_nacimiento
+                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
+                        : 'N/A',
+                    'nacionalidad' => $persona->nacionalidad ?? 'N/A',
+                    'domicilio' => $persona->domicilio ?? 'N/A',
+                    'edad' => $persona->fecha_nacimiento
+                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age
+                        : 'N/A',
+                    'curso'   => $al->aula?->descripcion,
+                    'aula_id' => $al->fk_id_aula,
+                ]
+            ];
+        });
 
-    $initialAlumnoId = $oldOr('alumno_seleccionado', $esEdicion ? ($planDeAccion->alumnos->first()->id_alumno ?? '') : '');
-    $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId) ? $alumnosJson[$initialAlumnoId] : null;
-
+        $initialAlumnoId = $oldOr('alumno_seleccionado');
+        $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
+                            ? $alumnosJson[$initialAlumnoId]
+                            : null;
+    }
 @endphp
+
 
 <div class="p-6">
     <div class="mt-4 my-4 flex justify-between items-center">
@@ -207,7 +217,7 @@
 
                 {{-- DESTINATARIO - Grupal --}}
                 <div id="destinatario-grupal" 
-                x-data="planGrupal({ alumnosData: @js($alumnosJson) })" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
+                x-data="planGrupal({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
                 style="display:none;">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
@@ -260,8 +270,7 @@
                                             <td x-text="al.dni"></td>
                                             <td x-text="al.curso"></td>
                                             <td>
-                                                <button type="button" @click="eliminarAlumno(al.id)" type="button"
-    class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                                <button type="button" @click="eliminarAlumno(al.id)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd"
                                                             d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -392,11 +401,11 @@
 </div>
 
 <script>
-    function planGrupal({ alumnosData }) {
+    function planGrupal({ alumnosData, alumnosIniciales = [] }) {
         return {
             alumnoSeleccionado: "",
             aulaSeleccionada: "",
-            alumnosSeleccionados: [],
+            alumnosSeleccionados: alumnosIniciales,
 
             agregarAlumno() {
                 if (!this.alumnoSeleccionado || this.alumnoSeleccionado === "") return;

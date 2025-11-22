@@ -95,11 +95,17 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             ];
         });
 
-        $initialAlumnoId = $plan?->alumnos->first()?->id_alumno ?? '';
-        $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
-            ? $alumnosJson[$initialAlumnoId]
-            : null;
-
+        // === Alumno individual (solo si aplica) ===
+        $initialAlumnoId = '';
+        $initialAlumnoInfo = null;
+        if ($plan && $plan->tipo_plan->value === 'INDIVIDUAL') {
+            $alumno = $plan->alumnos->first();
+            if ($alumno) {
+                $initialAlumnoId = $alumno->id_alumno;
+                $initialAlumnoInfo = $alumnosJson[$initialAlumnoId] ?? null;
+            }
+        }
+        // === Alumnos seleccionados (modo grupal) ===
         $alumnosSeleccionados = $plan?->alumnos->map(function ($al) {
             $persona = $al->persona;
             return [
@@ -110,6 +116,11 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
                 'curso' => $al->aula ? ($al->aula->curso . '° ' . $al->aula->division) : 'N/A',
             ];
         }) ?? collect();
+        // === Profesionales seleccionados ===
+        $profesionalesSeleccionados = $plan?->profesionalesParticipantes->pluck('id_profesional')->toArray() ?? [];
+
+        // === Aulas seleccionadas ===
+        $aulasSeleccionadas = $plan?->aulas->pluck('id_aula')->toArray() ?? [];
 
         return [
             'plan' => $plan,
@@ -120,6 +131,8 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             'initialAlumnoId' => $initialAlumnoId,
             'initialAlumnoInfo' => $initialAlumnoInfo,
             'alumnosSeleccionados' => $alumnosSeleccionados,
+            'profesionalesSeleccionados' => $profesionalesSeleccionados,
+            'aulasSeleccionadas' => $aulasSeleccionadas,
         ];
     }
 
