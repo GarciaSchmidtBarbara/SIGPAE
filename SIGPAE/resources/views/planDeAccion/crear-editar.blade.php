@@ -63,7 +63,50 @@
         $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
                             ? $alumnosJson[$initialAlumnoId]
                             : null;
+
+        $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
+            $persona = $prof->persona;
+            return [
+                $prof->id_profesional => [
+                    'id' => $prof->id_profesional,
+                    'nombre' => $persona->nombre,
+                    'apellido' => $persona->apellido,
+                    'profesion' => $prof->profesion ?? 'N/A',
+                ]
+            ];
+        });
     }
+
+    // Asegurar que $profesionalesJson exista también en modo edición
+    if (!isset($profesionalesJson)) {
+        $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
+            $persona = $prof->persona;
+            return [
+                $prof->id_profesional => [
+                    'id' => $prof->id_profesional,
+                    'nombre' => $persona->nombre ?? null,
+                    'apellido' => $persona->apellido ?? null,
+                    'profesion' => $prof->profesion ?? 'N/A',
+                ]
+            ];
+        });
+    }
+
+    // === Profesional generador para mostrar en la vista ===
+    $profesionalGenerador = null;
+    if ($esEdicion && isset($planDeAccion->profesionalGenerador) && $planDeAccion->profesionalGenerador?->persona) {
+        $pg = $planDeAccion->profesionalGenerador;
+        $profesionalGenerador = trim(($pg->persona->apellido ?? '') . ', ' . ($pg->persona->nombre ?? ''));
+    } else {
+        $currentProfId = old('fk_id_profesional_generador', auth()->user()->id_profesional ?? null);
+        if ($currentProfId) {
+            $found = collect($profesionales)->firstWhere('id_profesional', $currentProfId);
+            if ($found && isset($found->persona)) {
+                $profesionalGenerador = trim(($found->persona->apellido ?? '') . ', ' . ($found->persona->nombre ?? ''));
+            }
+        }
+    }
+
 @endphp
 
 
@@ -323,33 +366,83 @@
                     </div>
                 </div>
 
-                {{-- RESPONSABLES (visible para Individual/Grupal) --}}
-                <div id="responsables" x-show="tipoPlanSeleccionado === 'INDIVIDUAL' || tipoPlanSeleccionado === 'GRUPAL'" style="display:none;">
+                {{-- RESPONSABLES  --}}
+                <div id="responsables2" 
+                x-data="planGrupal({ profesionalesData: @js($profesionalesJson), profesionalesIniciales: @js($profesionalesSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'INDIVIDUAL' || tipoPlanSeleccionado === 'GRUPAL'"
+                style="display:none;">
                     <div class="space-y-6 mb-6">
-                        <p class="separador">Responsables (Profesionales)</p>
-
-                        <div class="fila-botones mb-4">
-                            <button type="button" class="btn-aceptar" @click.prevent="/* buscar profesional */">Buscar profesional</button>
-                            <button type="button" class="btn-aceptar" @click.prevent="/* agregar profesional */">Agregar profesional</button>
+                        <p class="separador">Profesionales participantes</p>
+                        <div class="selectors-row">
+                            {{-- Selector de profesional--}}
+                            <div class="selector-box" style="width: 35%;">
+                                <label class="text-sm font-medium">Seleccionar profesional</label>
+                                <select x-model="profesionalSeleccionado" @change="agregarProfesional()">
+                                    <option value="">-- Seleccionar profesional --</option>
+                                    @foreach($profesionales as $prof)
+                                        <option value="{{ $prof->id_profesional }}">
+                                            {{ $prof->persona->nombre }} {{ $prof->persona->apellido }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="space-y-2">
-                            {{-- Select múltiple para profesionales participantes --}}
-                            <label class="block text-sm font-medium">Profesionales participantes</label>
-                            <select name="profesionales[]" multiple class="border px-2 py-1 rounded w-full">
-                                @foreach($profesionales as $prof)
-                                    @php $profId = $prof->id_profesional ?? $prof->id ?? null; @endphp
-                                    @php
-                                        $selectedProfs = old('profesionales', isset($planDeAccion) ? $planDeAccion->profesionalesParticipantes->pluck('id_profesional')->toArray() : []);
-                                    @endphp
-                                    <option value="{{ $profId }}" {{ in_array($profId, (array)$selectedProfs) ? 'selected' : '' }}>
-                                        {{ $prof->persona->apellido ?? ($prof->nombre ?? $profId) }} {{ $prof->persona->nombre ?? '' }}
-                                    </option>
-                                @endforeach
-                            </select>
+                        {{-- Mostrar profesional generador (si aplica) --}}
+                        @if($profesionalGenerador)
+                            <div class="mb-2 text-sm text-gray-700">
+                                <strong>Profesional creador:</strong> {{ $profesionalGenerador }}
+                            </div>
+                        @endif
+
+                        {{-- TABLA DINÁMICA DE PROFESIONALES SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
+                        <div class="mt-6">
+                            <h3 class="font-medium text-base text-gray-700 mb-2">Otros Profesionales Participantes</h3>
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>NOMBRE</th>
+                                        <th>APELLIDO</th>
+                                        <th>PROFESION</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="prof in profesionalesSeleccionados" :key="prof.id">
+                                        <tr>
+                                            <td x-text="prof.nombre"></td>
+                                            <td x-text="prof.apellido"></td>
+                                            <td x-text="prof.profesion"></td>
+                                            <td>
+                                                <button type="button" @click="eliminarProfesional(prof.id)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+
+                                            {{-- input hidden para enviar al backend---}}
+                                            <input type="hidden" name="profesionales[]" :value="prof.id">
+                                        </tr>
+                                    </template>
+
+                                    <tr x-show="profesionalesSeleccionados.length === 0">
+                                        <td colspan="5" class="text-center">No hay profesionales seleccionados.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
                         </div>
+                        
+                        {{-- Inputs Ocultos para profesionales --}}
+                        <template x-for="p in profesionalesSeleccionados" :key="p.id">
+                            <input type="hidden" name="profesionales[]" :value="p.id">
+                        </template>
+
                     </div>
                 </div>
+
 
                 {{-- Documentos (placeholder) --}}
                 <div class="space-y-6 mb-6">
@@ -394,18 +487,24 @@
                 <form action="{{ route('planDeAccion.eliminar', $planDeAccion->id_plan_de_accion) }}" method="POST" class="inline-block mt-2" onsubmit="return confirm('¿Seguro que querés eliminar este plan?');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn-eliminar">Eliminar</button>
+                    <button type="submit" class="btn-eliminar">Eliminar Plan</button>
                 </form>
             @endif
     </div>
 </div>
 
 <script>
-    function planGrupal({ alumnosData, alumnosIniciales = [] }) {
+    function planGrupal({ alumnosData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
         return {
+            // Alumnos
             alumnoSeleccionado: "",
             aulaSeleccionada: "",
-            alumnosSeleccionados: alumnosIniciales,
+            alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
+
+            // Profesionales
+            profesionalSeleccionado: "",
+            profesionalesData: profesionalesData || {},
+            profesionalesSeleccionados: Array.isArray(profesionalesIniciales) ? profesionalesIniciales : [],
 
             agregarAlumno() {
                 if (!this.alumnoSeleccionado || this.alumnoSeleccionado === "") return;
@@ -437,8 +536,24 @@
             },
 
             eliminarAlumno(id) {
-                this.alumnosSeleccionados =
-                    this.alumnosSeleccionados.filter(a => a.id !== id);
+                this.alumnosSeleccionados = this.alumnosSeleccionados.filter(a => a.id !== id);
+            },
+
+            // Profesionales
+            agregarProfesional() {
+                if (!this.profesionalSeleccionado || this.profesionalSeleccionado === "") return;
+
+                let id = parseInt(this.profesionalSeleccionado);
+                if (!this.profesionalesData[id]) return;
+
+                // Evitar duplicados
+                if (!this.profesionalesSeleccionados.find(p => p.id === id)) {
+                    this.profesionalesSeleccionados.push(this.profesionalesData[id]);
+                }
+                this.profesionalSeleccionado = ""; // reseteo
+            },
+            eliminarProfesional(id) {
+                this.profesionalesSeleccionados = this.profesionalesSeleccionados.filter(p => p.id !== id);
             }
         };
     }

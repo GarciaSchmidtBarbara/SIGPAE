@@ -129,8 +129,16 @@ class PlanDeAccionController extends Controller
         ];
     })->toArray();
 
-    // === Profesional generador y participantes ===
-    $profesionalesSeleccionados = $plan->profesionalesParticipantes->pluck('id_profesional')->toArray();
+    // === Profesional generador y participantes (datos completos para Alpine) ===
+    $profesionalesSeleccionados = $plan->profesionalesParticipantes->map(function ($prof) {
+        $persona = $prof->persona;
+        return [
+            'id' => $prof->id_profesional,
+            'nombre' => $persona->nombre ?? null,
+            'apellido' => $persona->apellido ?? null,
+            'profesion' => $prof->profesion ?? 'N/A',
+        ];
+    })->toArray();
 
     // === Aulas seleccionadas (si aplica) ===
     $aulasSeleccionadas = $plan->aulas->pluck('id_aula')->toArray();
