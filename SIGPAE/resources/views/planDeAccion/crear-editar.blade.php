@@ -175,6 +175,8 @@
                         <p class="font-semibold text-gray-700">
                             {{ $seleccion }}
                         </p>
+                        {{-- En edición incluimos el tipo en un input hidden para que el back valide correctamente --}}
+                        <input type="hidden" name="tipo_plan" value="{{ $seleccion }}">
                     @else
                         <x-opcion-unica
                             :items="$tipoItems"
@@ -187,7 +189,7 @@
                 </div>
 
                 {{-- DESTINATARIO - Individual --}}
-                <div id="destinatario-individual" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="display:none;">
+                <div id="destinatario-individual" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'INDIVIDUAL') ? '' : 'display:none;' }}">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatario</p>
 
@@ -261,7 +263,7 @@
                 {{-- DESTINATARIO - Grupal --}}
                 <div id="destinatario-grupal" 
                 x-data="planGrupal({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
-                style="display:none;">
+                style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'GRUPAL') ? '' : 'display:none;' }}">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
@@ -366,16 +368,28 @@
                     </div>
                 </div>
 
+                {{-- Si el plan es INSTITUCIONAL en edición, mostrar el profesional creador en la sección de Profesionales --}}
+                @if($esEdicion && (($planDeAccion->tipo_plan->value ?? '') === 'INSTITUCIONAL'))
+                    <div class="space-y-6 mb-6">
+                        <p class="separador">Profesionales</p>
+                        @if($profesionalGenerador)
+                            <div class="font-medium text-base text-gray-700 mb-2">
+                                <strong>Profesional creador: {{ $profesionalGenerador }}</strong>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
                 {{-- RESPONSABLES  --}}
                 <div id="responsables2" 
                 x-data="planGrupal({ profesionalesData: @js($profesionalesJson), profesionalesIniciales: @js($profesionalesSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'INDIVIDUAL' || tipoPlanSeleccionado === 'GRUPAL'"
-                style="display:none;">
+                style="{{ ($esEdicion && in_array(($planDeAccion->tipo_plan->value ?? ''), ['INDIVIDUAL','GRUPAL'])) ? '' : 'display:none;' }}">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Profesionales participantes</p>
                         <div class="selectors-row">
                             {{-- Selector de profesional--}}
                             <div class="selector-box" style="width: 35%;">
-                                <label class="text-sm font-medium">Seleccionar profesional</label>
+                                <label class="text-sm font-medium">Agregar profesional</label>
                                 <select x-model="profesionalSeleccionado" @change="agregarProfesional()">
                                     <option value="">-- Seleccionar profesional --</option>
                                     @foreach($profesionales as $prof)
@@ -387,16 +401,16 @@
                             </div>
                         </div>
 
-                        {{-- Mostrar profesional generador (si aplica) --}}
+                        {{-- Mostrar profesional generador--}}
                         @if($profesionalGenerador)
-                            <div class="mb-2 text-sm text-gray-700">
-                                <strong>Profesional creador:</strong> {{ $profesionalGenerador }}
+                            <div class="font-medium text-base text-gray-700 mb-2">
+                                <strong>Profesional Creador: {{ $profesionalGenerador }}</strong>
                             </div>
                         @endif
 
                         {{-- TABLA DINÁMICA DE PROFESIONALES SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
                         <div class="mt-6">
-                            <h3 class="font-medium text-base text-gray-700 mb-2">Otros Profesionales Participantes</h3>
+                            <h3 class="font-medium text-base text-gray-700 mb-2">Otros profesionales participantes</h3>
                             <table class="modern-table">
                                 <thead>
                                     <tr>

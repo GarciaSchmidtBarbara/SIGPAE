@@ -89,7 +89,7 @@
 
                     if ($plan->profesionalGenerador?->persona) {
                         $p = $plan->profesionalGenerador->persona;
-                        $responsables->push("<strong>{$p->apellido}, {$p->nombre} (Gen.)</strong>");
+                        $responsables->push("<strong>{$p->apellido}, {$p->nombre}</strong>");
                     }
 
                     foreach ($plan->profesionalesParticipantes as $prof) {

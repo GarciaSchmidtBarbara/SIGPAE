@@ -169,7 +169,27 @@ class PlanDeAccionController extends Controller
         'profesionales' => $data['profesionales'],
 
         // === Alpine bindings ===
-        'alumnosJson' => collect($alumnosSeleccionados)->keyBy('id'),
+        // Proveer el mapping completo de alumnos (id => datos) para que Alpine pueda
+        // mostrar información del alumno al editar (no sólo los seleccionados)
+        'alumnosJson' => collect($data['alumnos'])->mapWithKeys(function ($al) {
+            $persona = $al->persona;
+            return [
+                $al->id_alumno => [
+                    'id' => $al->id_alumno,
+                    'nombre' => $persona->nombre,
+                    'apellido' => $persona->apellido,
+                    'dni' => $persona->dni,
+                    'fecha_nacimiento' => $persona->fecha_nacimiento
+                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
+                        : 'N/A',
+                    'nacionalidad' => $persona->nacionalidad ?? 'N/A',
+                    'domicilio' => $persona->domicilio ?? 'N/A',
+                    'edad' => $persona->fecha_nacimiento ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age : 'N/A',
+                    'curso' => $al->aula?->descripcion,
+                    'aula_id' => $al->fk_id_aula,
+                ]
+            ];
+        }),
         'initialAlumnoId' => $initialAlumnoId,
         'initialAlumnoInfo' => $initialAlumnoInfo,
     ]);
