@@ -211,10 +211,9 @@
                 style="display:none;">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
-
-                        {{-- Selector de alumno--}}
-                        <div class="flex gap-4 mt-4">
-                            <div class="flex flex-col w-1/3">
+                        <div class="selectors-row">
+                            {{-- Selector de alumno--}}
+                            <div class="selector-box" style="width: 35%;">
                                 <label class="text-sm font-medium">Seleccionar alumno</label>
                                 <select x-model="alumnoSeleccionado" @change="agregarAlumno()">
                                     <option value="">-- Seleccionar alumno --</option>
@@ -225,11 +224,9 @@
                                     @endforeach
                                 </select>
                             </div>
-                        </div>
 
-                        {{-- Selección de aula --}}
-                        <div class="flex gap-4 mt-4">
-                            <div class="flex flex-col w-1/4">
+                            {{-- Selección de aula --}}
+                            <div class="selector-box" style="width: 20%;">
                                 <label class="text-sm font-medium">Aula</label>
                                 <select x-model="aulaSeleccionada" @change="agregarAula()">
                                     <option value="">-- Seleccionar aula --</option>
@@ -245,7 +242,7 @@
                         {{-- TABLA DINÁMICA DE ALUMNOS SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
                         <div class="mt-6">
                             <h3 class="font-medium text-base text-gray-700 mb-2">Alumnos Seleccionados</h3>
-                            <table class="table">
+                            <table class="modern-table">
                                 <thead>
                                     <tr>
                                         <th>NOMBRE</th>
@@ -263,8 +260,13 @@
                                             <td x-text="al.dni"></td>
                                             <td x-text="al.curso"></td>
                                             <td>
-                                                <button type="button" @click="eliminarAlumno(al.id)">
-                                                    Quitar
+                                                <button type="button" @click="eliminarAlumno(al.id)" type="button"
+    class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
                                                 </button>
                                             </td>
 
