@@ -37,6 +37,10 @@
                             } else {
                                 $valor = data_get($fila, $key, '—');
                             }
+                            //Conversión: si el valor es un Enum, convertirlo a string
+                            if ($valor instanceof \BackedEnum) {
+                                $valor = method_exists($valor, 'label') ? $valor->label() : $valor->value;
+                            }
                         @endphp
                     <td class="px-4 py-2 text-sm text-gray-900">
                         {!! $valor !!}
