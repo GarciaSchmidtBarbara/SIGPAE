@@ -104,96 +104,93 @@ class PlanDeAccionController extends Controller
     }
 
     public function iniciarEdicion(int $id): View
-{
-    $data = $this->planDeAccionService->datosParaFormulario($id);
-    $plan = $data['plan'];
+    {
+        $data = $this->planDeAccionService->datosParaFormulario($id);
+        $plan = $data['plan'];
 
-    // === Alumnos seleccionados con datos completos para Alpine ===
-    $alumnosSeleccionados = $plan->alumnos->map(function ($al) {
-        $persona = $al->persona;
-        return [
-            'id' => $al->id_alumno,
-            'nombre' => $persona->nombre,
-            'apellido' => $persona->apellido,
-            'dni' => $persona->dni,
-            'fecha_nacimiento' => $persona->fecha_nacimiento
-                ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
-                : 'N/A',
-            'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-            'domicilio' => $persona->domicilio ?? 'N/A',
-            'edad' => $persona->fecha_nacimiento
-                ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age
-                : 'N/A',
-            'curso'   => $al->aula?->descripcion,
-            'aula_id' => $al->fk_id_aula,
-        ];
-    })->toArray();
-
-    // === Profesional generador y participantes (datos completos para Alpine) ===
-    $profesionalesSeleccionados = $plan->profesionalesParticipantes->map(function ($prof) {
-        $persona = $prof->persona;
-        return [
-            'id' => $prof->id_profesional,
-            'nombre' => $persona->nombre ?? null,
-            'apellido' => $persona->apellido ?? null,
-            'profesion' => $prof->profesion ?? 'N/A',
-        ];
-    })->toArray();
-
-    // === Aulas seleccionadas (si aplica) ===
-    $aulasSeleccionadas = $plan->aulas->pluck('id_aula')->toArray();
-
-    // === Alumno individual (solo si el plan es INDIVIDUAL) ===
-    $initialAlumnoId = null;
-    $initialAlumnoInfo = null;
-    if ($plan->tipo_plan->value === 'INDIVIDUAL') {
-        $alumno = $plan->alumnos->first();
-        if ($alumno) {
-            $initialAlumnoId = $alumno->id_alumno;
-            $initialAlumnoInfo = $alumnosSeleccionados[0] ?? null;
-        }
-    }
-
-    return view('planDeAccion.crear-editar', [
-        'modo' => 'editar',
-        'planDeAccion' => $plan,
-
-        // === Datos del plan cargado ===
-        'alumnosSeleccionados' => $alumnosSeleccionados,
-        'profesionalesSeleccionados' => $profesionalesSeleccionados,
-        'aulasSeleccionadas' => $aulasSeleccionadas,
-
-        // === Catálogos ===
-        'alumnos' => $data['alumnos'],
-        'aulas' => $data['aulas'],
-        'profesionales' => $data['profesionales'],
-
-        // === Alpine bindings ===
-        // Proveer el mapping completo de alumnos (id => datos) para que Alpine pueda
-        // mostrar información del alumno al editar (no sólo los seleccionados)
-        'alumnosJson' => collect($data['alumnos'])->mapWithKeys(function ($al) {
+        // === Alumnos seleccionados con datos completos para Alpine ===
+        $alumnosSeleccionados = $plan->alumnos->map(function ($al) {
             $persona = $al->persona;
             return [
-                $al->id_alumno => [
-                    'id' => $al->id_alumno,
-                    'nombre' => $persona->nombre,
-                    'apellido' => $persona->apellido,
-                    'dni' => $persona->dni,
-                    'fecha_nacimiento' => $persona->fecha_nacimiento
-                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
-                        : 'N/A',
-                    'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-                    'domicilio' => $persona->domicilio ?? 'N/A',
-                    'edad' => $persona->fecha_nacimiento ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age : 'N/A',
-                    'curso' => $al->aula?->descripcion,
-                    'aula_id' => $al->fk_id_aula,
-                ]
+                'id' => $al->id_alumno,
+                'nombre' => $persona->nombre,
+                'apellido' => $persona->apellido,
+                'dni' => $persona->dni,
+                'fecha_nacimiento' => $persona->fecha_nacimiento
+                    ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
+                    : 'N/A',
+                'nacionalidad' => $persona->nacionalidad ?? 'N/A',
+                'domicilio' => $persona->domicilio ?? 'N/A',
+                'edad' => $persona->fecha_nacimiento
+                    ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age
+                    : 'N/A',
+                'curso'   => $al->aula?->descripcion,
+                'aula_id' => $al->fk_id_aula,
             ];
-        }),
-        'initialAlumnoId' => $initialAlumnoId,
-        'initialAlumnoInfo' => $initialAlumnoInfo,
-    ]);
-}
+        })->toArray();
+
+        // Profesional generador y participantes (datos completos para Alpine)
+        $profesionalesSeleccionados = $plan->profesionalesParticipantes->map(function ($prof) {
+            $persona = $prof->persona;
+            return [
+                'id' => $prof->id_profesional,
+                'nombre' => $persona->nombre ?? null,
+                'apellido' => $persona->apellido ?? null,
+                'profesion' => $prof->profesion ?? 'N/A',
+            ];
+        })->toArray();
+
+        // Aulas seleccionadas
+        $aulasSeleccionadas = $plan->aulas->pluck('id_aula')->toArray();
+
+        // Alumno individual (solo si el plan es INDIVIDUAL)
+        $initialAlumnoId = null;
+        $initialAlumnoInfo = null;
+        if ($plan->tipo_plan->value === 'INDIVIDUAL') {
+            $alumno = $plan->alumnos->first();
+            if ($alumno) {
+                $initialAlumnoId = $alumno->id_alumno;
+                $initialAlumnoInfo = $alumnosJson[$initialAlumnoId] ?? null;
+            }
+        }
+
+        return view('planDeAccion.crear-editar', [
+            'modo' => 'editar',
+            'planDeAccion' => $plan,
+
+            // Datos del plan cargado
+            'alumnosSeleccionados' => $alumnosSeleccionados,
+            'profesionalesSeleccionados' => $profesionalesSeleccionados,
+            'aulasSeleccionadas' => $aulasSeleccionadas,
+            'alumnos' => $data['alumnos'],
+            'aulas' => $data['aulas'],
+            'profesionales' => $data['profesionales'],
+
+            // Proveer el mapping completo de alumnos (id => datos) para que Alpine pueda
+            // mostrar información del alumno al editar (no sólo los seleccionados)
+            'alumnosJson' => collect($data['alumnos'])->mapWithKeys(function ($al) {
+                $persona = $al->persona;
+                return [
+                    $al->id_alumno => [
+                        'id' => $al->id_alumno,
+                        'nombre' => $persona->nombre,
+                        'apellido' => $persona->apellido,
+                        'dni' => $persona->dni,
+                        'fecha_nacimiento' => $persona->fecha_nacimiento
+                            ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
+                            : 'N/A',
+                        'nacionalidad' => $persona->nacionalidad ?? 'N/A',
+                        'domicilio' => $persona->domicilio ?? 'N/A',
+                        'edad' => $persona->fecha_nacimiento ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age : 'N/A',
+                        'curso' => $al->aula?->descripcion,
+                        'aula_id' => $al->fk_id_aula,
+                    ]
+                ];
+            }),
+            'initialAlumnoId' => $initialAlumnoId,
+            'initialAlumnoInfo' => $initialAlumnoInfo,
+        ]);
+    }
 
 
 

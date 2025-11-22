@@ -33,9 +33,7 @@
     // helper para valores viejos del modelo
     $oldOr = fn($field, $fallback = null) => old($field, $fallback);
 
-    // ==============================================
     // CREACIÓN → genera alumnosJson para Alpine
-    // ==============================================
     if (!$esEdicion) {
         $alumnosJson = collect($alumnos)->mapWithKeys(function ($al) {
             $persona = $al->persona;
@@ -92,7 +90,7 @@
         });
     }
 
-    // === Profesional generador para mostrar en la vista ===
+    //Profesional generador para mostrar en la vista
     $profesionalGenerador = null;
     if ($esEdicion && isset($planDeAccion->profesionalGenerador) && $planDeAccion->profesionalGenerador?->persona) {
         $pg = $planDeAccion->profesionalGenerador;
@@ -106,7 +104,6 @@
             }
         }
     }
-
 @endphp
 
 
@@ -189,7 +186,7 @@
                 </div>
 
                 {{-- DESTINATARIO - Individual --}}
-                <div id="destinatario-individual" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'INDIVIDUAL') ? '' : 'display:none;' }}">
+                <div id="destinatario-individual" x-data="planIndividual({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []), initialAlumnoId: '{{ $initialAlumnoId ?? '' }}' })" x-init="if (initialAlumnoId) seleccionarAlumno(initialAlumnoId)" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'INDIVIDUAL') ? '' : 'display:none;' }}">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatario</p>
 
@@ -212,10 +209,7 @@
                                     @endforeach
                                 </select>
 
-                                <!-- input oculto que enviará siempre alumnos[] cuando el tipo sea INDIVIDUAL -->
-                                <template x-if="alumnoSeleccionadoId">
-                                    <input type="hidden" name="alumnos[]" :value="alumnoSeleccionadoId">
-                                </template>
+                                
                             </div>
                         </div>
                         {{-- FRAGMENTO DE INFORMACIÓN PERSONAL DEL ALUMNO --}}
@@ -257,6 +251,10 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- input oculto que enviará siempre alumnos[] cuando el tipo sea INDIVIDUAL -->
+                                <template x-if="alumnoSeleccionadoId">
+                                    <input type="hidden" name="alumnos[]" :value="alumnoSeleccionadoId">
+                                </template>
                     </div>
                 </div>
 
@@ -571,6 +569,19 @@
             }
         };
     }
+    function planIndividual({ alumnosData, alumnosIniciales, initialAlumnoId = null }) {
+        return {
+            alumnosData,
+            alumnoSeleccionadoId: initialAlumnoId,
+            alumnoSeleccionadoInfo: initialAlumnoId ? alumnosData[initialAlumnoId] : null,
+
+            seleccionarAlumno(id) {
+                this.alumnoSeleccionadoId = id;
+                this.alumnoSeleccionadoInfo = this.alumnosData[id] ?? null;
+            }
+        }
+    }
+
 </script>
 
 
