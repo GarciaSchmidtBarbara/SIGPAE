@@ -56,15 +56,15 @@ class PlanDeAccionController extends Controller
             'profesionales' => 'array',
             'profesionales.*' => 'integer|exists:profesionales,id_profesional',
             'aula' => 'nullable|integer|exists:aulas,id_aula',
-            'alumnos' => 'nullable|array',
-            'alumnos.*' => 'nullable|integer|exists:alumnos,id_alumno',
+            'alumnos' => ['nullable', 'array'],
+            'alumnos.*' => ['nullable', 'integer', 'exists:alumnos,id_alumno'],
         ];
 
         // Validación preliminar para saber el tipo
         $validated = $request->validate($baseRules);
         $tipo = $validated['tipo_plan'];
 
-        // ➤ VALIDACIÓN ADICIONAL SEGÚN TIPO
+        // VALIDACIÓN ADICIONAL SEGÚN TIPO
         if ($tipo === 'INDIVIDUAL') {
             if (empty($validated['alumnos']) || count($validated['alumnos']) < 1) {
                 return back()->withErrors([
@@ -82,6 +82,7 @@ class PlanDeAccionController extends Controller
                     'alumnos' => 'Debe seleccionar al menos dos alumnos o un aula completa para un plan grupal.',
                 ])->withInput();
             }
+            
         }
 
         if ($tipo === 'INSTITUCIONAL') {
