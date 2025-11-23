@@ -33,6 +33,11 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         return $alumno ? $alumno->delete() : false;
     }
 
+    public function buscarPorPersonaId(int $idPersona): ?Alumno
+    {
+        return Alumno::where('fk_id_persona', $idPersona)->first();
+    }
+
     public function buscarPorId(int $id): ?Alumno
     {
         return Alumno::with(['persona', 'aula'])->find($id);
@@ -78,6 +83,44 @@ class AlumnoRepository implements AlumnoRepositoryInterface
             return $alumno->persona->save();
         }
         return false;
+    }
+
+    public function vincularHermanos(int $idAlumno, int $idHermano, ?string $observaciones): void
+    {
+        // Buscamos al alumno principal para acceder a su relación
+        $alumno = $this->buscarPorId($idAlumno);
+
+        // 1. Verificar existencia en la tabla pivote
+        $existe = $alumno->hermanos()
+                         ->where('es_hermano_de.fk_id_alumno_hermano', $idHermano)
+                         ->exists();
+
+        if ($existe) {
+            // UPDATE: Si ya existe, actualizamos observación y reactivamos
+            $alumno->hermanos()->updateExistingPivot($idHermano, [
+                'observaciones' => $observaciones,
+                'activa' => true
+            ]);
+        } else {
+            // INSERT: Si no existe, creamos
+            $alumno->hermanos()->attach($idHermano, [
+                'observaciones' => $observaciones,
+                'activa' => true
+            ]);
+        }
+
+        // 2. Hacemos la inversa (B -> A) sin tocar observaciones
+        $hermano = $this->buscarPorId($idHermano);
+        
+        $existeInverso = $hermano->hermanos()
+                                 ->where('es_hermano_de.fk_id_alumno_hermano', $idAlumno)
+                                 ->exists();
+
+        if ($existeInverso) {
+            $hermano->hermanos()->updateExistingPivot($idAlumno, ['activa' => true]);
+        } else {
+            $hermano->hermanos()->attach($idAlumno, ['activa' => true]);
+        }
     }
 
 }
