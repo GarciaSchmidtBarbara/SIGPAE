@@ -322,7 +322,7 @@ class AlumnoController extends Controller
         // 1. Validación del Alumno
         // A diferencia de la vista, aquí sí validamos contra la BBDD que el DNI sea único.
         $datosAlumno = $request->validate([
-            'dni' => 'required|numeric',
+            'dni' => 'required|numeric|unique:personas,dni',
             'nombre' => 'required|string|max:191',
             'apellido' => 'required|string|max:191',
             'fecha_nacimiento' => 'required|date',
