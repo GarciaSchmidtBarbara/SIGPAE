@@ -45,7 +45,11 @@
     init() {
         this.isFilled = false;
 
-        this.formData.asiste_a_institucion = !!this.formData.asiste_a_institucion;
+        if (this.parentesco === 'hermano' && this.formData.fk_id_persona) {
+            this.formData.asiste_a_institucion = true;
+        } else {
+            this.formData.asiste_a_institucion = !!this.formData.asiste_a_institucion;
+        }
 
         if (this.soloLectura) {
             this.isFilled = true;
@@ -205,6 +209,7 @@
 
         // 3. VINCULACIÓN (Clave para el Back-End)
         this.formData.fk_id_persona = al.persona?.id_persona || null;
+        this.formData.asiste_a_institucion = true;
 
         // 4. ACTIVAMOS EL CANDADO (Bloquea los inputs)
         this.isFilled = true; 
@@ -435,7 +440,8 @@
                         <input 
                             name="dni"
                             x-model="formData.dni"
-                            x-bind:disabled="isFilled || soloLectura"
+                            x-bind:readonly="isFilled || soloLectura"
+                            :class="{ 'bg-gray-100 cursor-not-allowed': isFilled || soloLectura }"
                             placeholder="dni"
                             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             @input="formData.dni = formData.dni.replace(/[^0-9]/g, '')"
@@ -447,21 +453,24 @@
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Nombre" required />
-                        <input name="nombre" x-model="formData.nombre" x-bind:disabled="isFilled || soloLectura"
+                        <input name="nombre" x-model="formData.nombre" x-bind:readonly="isFilled || soloLectura"
+                            :class="{ 'bg-gray-100 cursor-not-allowed': isFilled || soloLectura }"
                             @input="formData.nombre = formData.nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Apellido" required />
-                        <input name="apellido" x-model="formData.apellido" x-bind:disabled="isFilled || soloLectura"
+                        <input name="apellido" x-model="formData.apellido" x-bind:readonly="isFilled || soloLectura"
+                            :class="{ 'bg-gray-100 cursor-not-allowed': isFilled || soloLectura }"
                             @input="formData.apellido = formData.apellido.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
-                        <input name="nacionalidad" x-model="formData.nacionalidad" x-bind:disabled="isFilled || soloLectura"
+                        <input name="nacionalidad" x-model="formData.nacionalidad" x-bind:readonly="isFilled || soloLectura"
+                            :class="{ 'bg-gray-100 cursor-not-allowed': isFilled || soloLectura }"
                             @input="formData.nacionalidad = formData.nacionalidad.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
@@ -470,7 +479,8 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">Domicilio</label>
-                        <input name="domicilio" x-model="formData.domicilio" x-bind:disabled="isFilled || soloLectura"
+                        <input name="domicilio" x-model="formData.domicilio" x-bind:readonly="isFilled || soloLectura"
+                            :class="{ 'bg-gray-100 cursor-not-allowed': isFilled || soloLectura }"
                             @input="formData.domicilio = formData.domicilio.replace(/[^a-zA-Z0-9\s]/g, '')"
                             placeholder="domicilio" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
@@ -482,7 +492,7 @@
                         model-fecha="formData.fecha_nacimiento"
                         model-edad="formData.edad"
                         
-                        x-bind:disabled="isFilled || soloLectura"
+                        condicion-readonly="isFilled || soloLectura"
 
                         {{-- Lógica mejorada con Watcher --}}
                         x-data="{
@@ -550,6 +560,7 @@
                             name="asiste_a_institucion" 
                             type="checkbox" 
                             x-model="formData.asiste_a_institucion"
+                            :class="{ 'bg-gray-100 cursor-not-allowed': isFilled || soloLectura }"
                             @click.prevent
                             class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-not-allowed"
                         >
