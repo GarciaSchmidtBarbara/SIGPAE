@@ -17,13 +17,19 @@ Route::post('/probar-post', function () {
 
 
 //Rutas Plan de Acción
-Route::get('/planDeAccion', function () {
-    return view('planDeAccion.principal');
-})->middleware('auth')->name('planDeAccion.principal');
+use App\Http\Controllers\PlanDeAccionController;
+Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
+    Route::get('/', [PlanDeAccionController::class, 'vista'])->name('planDeAccion.principal');
+    Route::post('/', [PlanDeAccionController::class, 'store'])->name('planDeAccion.store');
+    Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
+    Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
+    Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar');
+    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])
+    ->name('planDeAccion.iniciar-creacion');
+    Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
 
-Route::get('/planDeAccion/crear', function () {
-    return view('planDeAccion.crear-editar');
-})->middleware('auth')->name('planDeAccion.crear-editar');
+});
+
 
 //Rutas Planillas
 Route::get('/planillas', function () {
@@ -61,7 +67,7 @@ Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.princi
 Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('alumnos.crear-editar');
 Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
 Route::match(['POST', 'PUT'], '/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
-Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
 

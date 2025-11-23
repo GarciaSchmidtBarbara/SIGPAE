@@ -1,243 +1,588 @@
-
-
 @extends('layouts.base')
-@section('encabezado', 'Plan de acción N°')
 
+@section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Plan de Acción' : 'Crear Plan de Acción')
 
 @section('contenido')
-{{-- 1. CONTENEDOR PRINCIPAL x-data --}}
-{{-- Inicializamos la variable que contendrá el valor seleccionado --}}
-<div x-data="{ tipoPlanSeleccionado: 'Institucional' }" class="space-y-6">
 
-    <div class="space-y-8">
-        <p>Estado: Abierto </p>
+{{-- Mensajes de estado --}}
+@if (session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        {{ session('success') }}
     </div>
+@endif
+@if (session('error'))
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        {{ session('error') }}
+    </div>
+@endif
+@if ($errors->any())
+    <div class="bg-red-100 text-red-800 p-4 rounded mb-4">
+        <ul class="list-disc pl-5">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
-    <div class="space-y-8">
-        <p class="separador">Tipo</p>
-        @php
-            $tipoPlan = ['Institucional', 'Individual', 'Grupal'];
-        @endphp
 
-        <div class="space-y-4">
-            {{-- 2. LLAMADA AL COMPONENTE --}}
-            <x-opcion-unica
-                :items="$tipoPlan"
-                name="tipo_plan" 
-                layout="horizontal"
-                
-                {{-- PASAMOS EL MODELO DE ALPINE AL COMPONENTE --}}
-                x-model="tipoPlanSeleccionado"
-            />
+@php
+    $esEdicion = isset($modo) && $modo === 'editar' && isset($planDeAccion);
+    $cerrado = $esEdicion ? ($planDeAccion->activo === false) : false;
+
+    // helper para valores viejos del modelo
+    $oldOr = fn($field, $fallback = null) => old($field, $fallback);
+
+    // CREACIÓN → genera alumnosJson para Alpine
+    if (!$esEdicion) {
+        $alumnosJson = collect($alumnos)->mapWithKeys(function ($al) {
+            $persona = $al->persona;
+            return [
+                $al->id_alumno => [
+                    'id' => $al->id_alumno,
+                    'nombre' => $persona->nombre,
+                    'apellido' => $persona->apellido,
+                    'dni' => $persona->dni,
+                    'fecha_nacimiento' => $persona->fecha_nacimiento
+                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
+                        : 'N/A',
+                    'nacionalidad' => $persona->nacionalidad ?? 'N/A',
+                    'domicilio' => $persona->domicilio ?? 'N/A',
+                    'edad' => $persona->fecha_nacimiento
+                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age
+                        : 'N/A',
+                    'curso'   => $al->aula?->descripcion,
+                    'aula_id' => $al->fk_id_aula,
+                ]
+            ];
+        });
+
+        $initialAlumnoId = $oldOr('alumno_seleccionado');
+        $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
+                            ? $alumnosJson[$initialAlumnoId]
+                            : null;
+
+        $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
+            $persona = $prof->persona;
+            return [
+                $prof->id_profesional => [
+                    'id' => $prof->id_profesional,
+                    'nombre' => $persona->nombre,
+                    'apellido' => $persona->apellido,
+                    'profesion' => $prof->profesion ?? 'N/A',
+                ]
+            ];
+        });
+    }
+
+    // Asegurar que $profesionalesJson exista también en modo edición
+    if (!isset($profesionalesJson)) {
+        $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
+            $persona = $prof->persona;
+            return [
+                $prof->id_profesional => [
+                    'id' => $prof->id_profesional,
+                    'nombre' => $persona->nombre ?? null,
+                    'apellido' => $persona->apellido ?? null,
+                    'profesion' => $prof->profesion ?? 'N/A',
+                ]
+            ];
+        });
+    }
+
+    //Profesional generador para mostrar en la vista
+    $profesionalGenerador = null;
+    if ($esEdicion && isset($planDeAccion->profesionalGenerador) && $planDeAccion->profesionalGenerador?->persona) {
+        $pg = $planDeAccion->profesionalGenerador;
+        $profesionalGenerador = trim(($pg->persona->apellido ?? '') . ', ' . ($pg->persona->nombre ?? ''));
+    } else {
+        $currentProfId = old('fk_id_profesional_generador', auth()->user()->id_profesional ?? null);
+        if ($currentProfId) {
+            $found = collect($profesionales)->firstWhere('id_profesional', $currentProfId);
+            if ($found && isset($found->persona)) {
+                $profesionalGenerador = trim(($found->persona->apellido ?? '') . ', ' . ($found->persona->nombre ?? ''));
+            }
+        }
+    }
+@endphp
+
+
+<div class="p-6">
+    <div class="mt-4 my-4 flex justify-between items-center">
+        <div class="text-sm text-red-600 min-h-[1.5rem]">
+            @if($esEdicion && $cerrado)
+                <p>Este plan de acción está cerrado. No se permiten modificaciones.</p>
+            @endif
         </div>
 
-    </div>
-
-    {{-- 3. BLOQUES DEPENDIENTES CON x-show --}}
-
-    <!-- DESTINATARIO (Visible solo si es 'Individual') -->
-    {{-- AÑADIDO: style="display: none;" para prevenir que se muestre antes de que Alpine cargue --}}
-    <div id="destinatario" 
-         x-show="tipoPlanSeleccionado === 'Individual'" 
-         style="display: none;">
-        <div class="space-y-10 mb-6">
-            <p class="separador">Destinatario</p>
-            <div class="fila-botones">
-                <button class="btn-aceptar">Alumno busqueda</button>
-                <button class="btn-aceptar">Documento busqueda</button>
-            </div>
-            <div class="space-y-2">
-                <p class="font-semibold">Información personal del alumno</p>
-                <div class="grid grid-cols-4 gap-4">
-                    <div>
-                      <p><span class="font-semibold">Nombre y Apellido:</span> Juan Pérez</p>
-                      <p><span class="font-semibold">Nacionalidad:</span> Argentina</p>
-                    </div>
-                    <div>
-                      <p><span class="font-semibold">DNI:</span> 12345678</p>
-                      <p><span class="font-semibold">Domicilio:</span> Calle Falsa 123</p>
-                    </div>
-                    <div>
-                      <p><span class="font-semibold">Fecha de nacimiento:</span> 01/01/2000</p>
-                      <p><span class="font-semibold">Edad:</span> 10</p>
-                    </div>
-                    <div>
-                      <p><span class="font-semibold">Curso:</span> 3°A</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-     <!-- DESTINATARIOS (Visible solo si es 'Grupal') -->
-    {{-- AÑADIDO: style="display: none;" para prevenir que se muestre antes de que Alpine cargue --}}
-    <div id="destinatarios" 
-         x-show="tipoPlanSeleccionado === 'Grupal'" 
-         style="display: none;">
-        <div class="space-y-10 mb-6">
-            <p class="separador">Destinatario</p>
-            <div class="fila-botones">
-                <button class="btn-aceptar">Alumno busqueda</button>
-                <button class="btn-aceptar">Documento busqueda</button>
-            </div>
-            <div class="space-y-2">
-                <p class="font-semibold">Información personal de los alumnos</p>
-                <div class="overflow-x-auto border border-gray-200 rounded-lg">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Nombre y Apellido
-                        </th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            DNI
-                        </th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Fecha nacimiento
-                        </th>
-                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Curso
-                        </th>
-                        <th class="px-4 py-2 w-10">
-                            {{-- Columna para el ícono de eliminar --}}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {{-- 
-                       Aquí iría un bucle @foreach para listar los alumnos ya cargados.
-                       Por ahora, dejamos filas de ejemplo.
-                    --}}
-                    
-                    {{-- Fila de ejemplo 1 --}}
-                    <tr>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">Juan Pérez</td>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">12345678</td>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">01/01/2000</td>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">3°A</td>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
-                            <button class="text-gray-400 hover:text-red-600 focus:outline-none">
-                                {{-- Icono de bote de basura (Tailwind Heroicons) --}}
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </td>
-                    </tr>
-                    
-                    {{-- Fila de ejemplo 2 (Puedes duplicar la estructura para más filas) --}}
-                    <tr>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">Ana Gómez</td>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">98765432</td>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">15/05/2001</td>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">3°A</td>
-                        <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
-                            <button class="text-gray-400 hover:text-red-600 focus:outline-none">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-            </div>
+        <div class="flex justify-end space-x-4">
+            @if($esEdicion)
+                <x-boton-estado 
+                    :activo="$planDeAccion->activo" 
+                    :route="route('planDeAccion.cambiarActivo', $planDeAccion->id_plan_de_accion)"
+                    :text_activo="'Cerrar'"
+                    :text_inactivo="'Abrir'"
+                />
+            @endif
+            <a class="btn-volver" href="{{ route('planDeAccion.principal') }}">Volver</a>
         </div>
     </div>
 
-    
-    
-    <!-- Campo de texto (Común/Always) -->
-    {{-- NO necesita display: none. Se muestra siempre. --}}
-    <div id="campo-texto" x-show="true">
-        <p class="separador">Descripcion</p>
-        <div class="space-y-2 mb-6">
-            {{-- Contenido del campo-texto --}}
-            <label class="block text-sm font-medium text-gray-700">Objetivos <span class="text-red-500">*</span></label>
-            <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="objetivos" rows="4"></textarea>
-            <label class="block text-sm font-medium text-gray-700">Acciones a realizar <span class="text-red-500">*</span></label>
-            <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="acciones" rows="2"></textarea>
-            <label class="block text-sm font-medium text-gray-700">Observaciones <span class="text-red-500">*</span></label>
-            <textarea class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none" name="observaciones" rows="2"></textarea>
+    {{-- Alpine para controlar secciones por tipo --}}
+    <div x-data="{
+        tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}',
+        alumnosData: {{ $alumnosJson->toJson() }},
+        alumnoSeleccionadoInfo: @json($initialAlumnoInfo),
+        // nuevo: guardamos el id seleccionado (se envía como alumnos[] al backend)
+        alumnoSeleccionadoId: '{{ $initialAlumnoId }}',
+        
+        seleccionarAlumno(id) {
+            // aseguramos consistencia: actualizar info y el id seleccionado
+            id = String(id || '');
+            this.alumnoSeleccionadoId = id;
+            this.alumnoSeleccionadoInfo = this.alumnosData[id] || null;
+        }
+    }">
 
-            {{-- Bloque de Documentos --}}
-            <label class="block text-base font-medium text-gray-700">Documentos</label>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <button class="btn-subir">Examinar</button>
-                    <span class="text-sm text-gray-500">Solo archivos en formato pdf, jpeg, png o doc con menos de 100Kb</span>
+        <form method="POST" action="{{ $esEdicion 
+                ? route('planDeAccion.actualizar', $planDeAccion->id_plan_de_accion)
+                : route('planDeAccion.store') 
+            }}">
+            @csrf
+
+            {{-- Cuando se edita: método PUT --}}
+            @if($esEdicion)
+                @method('PUT')
+            @endif
+
+            {{-- Asegurar que el generador queda presente (fallback al usuario autenticado) --}}
+            <input type="hidden" name="fk_id_profesional_generador" value="{{ old('fk_id_profesional_generador', auth()->user()->id_profesional ?? auth()->id()) }}">
+
+            <fieldset {{ $cerrado ? 'disabled' : '' }}>
+                {{-- TIPO --}}
+                <div class="space-y-6 mb-6">
+                    <p class="separador">Tipo de Plan</p>
+
+                    @php
+                        $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoPlan::cases());
+                        $seleccion = old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '');
+                    @endphp
+
+                    @if($esEdicion)
+                        <p class="font-semibold text-gray-700">
+                            {{ $seleccion }}
+                        </p>
+                        {{-- En edición incluimos el tipo en un input hidden para que el back valide correctamente --}}
+                        <input type="hidden" name="tipo_plan" value="{{ $seleccion }}">
+                    @else
+                        <x-opcion-unica
+                            :items="$tipoItems"
+                            name="tipo_plan"
+                            layout="horizontal"
+                            :seleccion="$seleccion"
+                            x-model="tipoPlanSeleccionado"
+                        />
+                    @endif
                 </div>
-            </div>
-            <div class="space-y-2">
-                <p class="text-sm font-medium text-gray-700">Cargados:</p>
-                <div class="space-y-2">
-                    {{-- Placeholder para archivos cargados --}}
-                    <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                        <span class="text-sm text-gray-600">Documento1.pdf</span>
-                        <button class="text-gray-500 hover:text-red-500">
-                            {{-- SVG Icon --}}
-                        </button>
+
+                {{-- DESTINATARIO - Individual --}}
+                <div id="destinatario-individual" x-data="planIndividual({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []), initialAlumnoId: '{{ $initialAlumnoId ?? '' }}' })" x-init="if (initialAlumnoId) seleccionarAlumno(initialAlumnoId)" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'INDIVIDUAL') ? '' : 'display:none;' }}">
+                    <div class="space-y-6 mb-6">
+                        <p class="separador">Destinatario</p>
+
+                        {{-- Select simple para elegir UN alumno --}}
+                        <div class="flex gap-4 mt-4">
+                            <div class="flex flex-col w-1/3">
+                                <label class="text-sm font-medium">Seleccionar alumno</label>
+                                <!-- vinculado al id seleccionado y actualiza la info -->
+                                <select name="alumno_seleccionado" class="border px-2 py-1 rounded" x-model="alumnoSeleccionadoId" x-on:change="seleccionarAlumno($event.target.value)">
+                                    <option value="">-- Seleccionar alumno --</option>
+                                    @foreach($alumnos as $al)
+                                        @php
+                                            $alId = $al->id_alumno ?? $al->id ?? null;
+                                            $label = $al->persona->nombre . ' ' . $al->persona->apellido;
+                                        @endphp
+                                        <option value="{{ $alId }}"
+                                            {{ $oldOr('alumno_seleccionado', $esEdicion ? ($planDeAccion->alumnos->first()->id_alumno ?? '') : '') == $alId ? 'selected' : '' }}>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                
+                            </div>
+                        </div>
+                        {{-- FRAGMENTO DE INFORMACIÓN PERSONAL DEL ALUMNO --}}
+                        <div x-show="alumnoSeleccionadoInfo" class="mt-8 p-4">
+                            <h3 class="font-medium text-base text-gray-700 mb-4 border-b pb-2">Información Personal del Alumno</h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
+                                
+                                {{-- Fila 1 --}}
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Nombre y Apellido:</span>
+                                    <p class="font-semibold text-gray-800" x-text="`${alumnoSeleccionadoInfo.apellido}, ${alumnoSeleccionadoInfo.nombre}`"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">DNI:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.dni"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Fecha de nacimiento:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.fecha_nacimiento"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Edad:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.edad"></p>
+                                </div>
+
+                                {{-- Fila 2 --}}
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Nacionalidad:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.nacionalidad"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Domicilio:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.domicilio"></p>
+                                </div>
+                                <div class="col-span-1">
+                                    <span class="font-medium text-gray-600">Curso:</span>
+                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.curso"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- input oculto que enviará siempre alumnos[] cuando el tipo sea INDIVIDUAL -->
+                                <template x-if="alumnoSeleccionadoId">
+                                    <input type="hidden" name="alumnos[]" :value="alumnoSeleccionadoId">
+                                </template>
                     </div>
-                    <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                        <span class="text-sm text-gray-600">Documento2.pdf</span>
-                        <button class="text-gray-500 hover:text-red-500">
-                            {{-- SVG Icon --}}
-                        </button>
+                </div>
+
+                {{-- DESTINATARIO - Grupal --}}
+                <div id="destinatario-grupal" 
+                x-data="planGrupal({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
+                style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'GRUPAL') ? '' : 'display:none;' }}">
+                    <div class="space-y-6 mb-6">
+                        <p class="separador">Destinatarios</p>
+                        <div class="selectors-row">
+                            {{-- Selector de alumno--}}
+                            <div class="selector-box" style="width: 35%;">
+                                <label class="text-sm font-medium">Seleccionar alumno</label>
+                                <select x-model="alumnoSeleccionado" @change="agregarAlumno()">
+                                    <option value="">-- Seleccionar alumno --</option>
+                                    @foreach($alumnos as $al)
+                                        <option value="{{ $al->id_alumno }}">
+                                            {{ $al->persona->nombre }} {{ $al->persona->apellido }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            {{-- Selección de aula --}}
+                            <div class="selector-box" style="width: 20%;">
+                                <label class="text-sm font-medium">Aula</label>
+                                <select x-model="aulaSeleccionada" @change="agregarAula()">
+                                    <option value="">-- Seleccionar aula --</option>
+                                    @foreach($aulas as $a)
+                                        <option value="{{ $a->id_aula }}">
+                                            {{ $a->curso }}°{{ $a->division }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- TABLA DINÁMICA DE ALUMNOS SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
+                        <div class="mt-6">
+                            <h3 class="font-medium text-base text-gray-700 mb-2">Alumnos Seleccionados</h3>
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>NOMBRE</th>
+                                        <th>APELLIDO</th>
+                                        <th>DNI</th>
+                                        <th>CURSO</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="al in alumnosSeleccionados" :key="al.id">
+                                        <tr>
+                                            <td x-text="al.nombre"></td>
+                                            <td x-text="al.apellido"></td>
+                                            <td x-text="al.dni"></td>
+                                            <td x-text="al.curso"></td>
+                                            <td>
+                                                <button type="button" @click="eliminarAlumno(al.id)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+
+                                            {{-- input hidden para enviar al backend---}}
+                                            <input type="hidden" name="alumnos[]" :value="al.id">
+                                        </tr>
+                                    </template>
+
+                                    <tr x-show="alumnosSeleccionados.length === 0">
+                                        <td colspan="5" class="text-center">No hay alumnos seleccionados.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                        </div>
+                        
+                        {{-- Inputs Ocultos (Mantener) --}}
+                        <template x-for="al in alumnosSeleccionados" :key="al.id">
+                            <input type="hidden" name="alumnos[]" :value="al.id">
+                        </template>
+
                     </div>
                 </div>
-            </div>
-            
-        </div>
-    </div>
 
-    <!-- RESPONSABLES (Visible si es 'Individual' O 'Grupal') -->
-    {{-- AÑADIDO: style="display: none;" --}}
-    <div id="responsables" 
-         x-show="tipoPlanSeleccionado === 'Individual' || tipoPlanSeleccionado === 'Grupal'"
-         style="display: none;">
-        <div class="space-y-10 mb-6">
-            <p class="separador">Responsables</p>
-            <div class="space-y-4">
-                <label class="block text-sm font-medium text-gray-700">Profesionales <span class="text-red-500">*</span></label>
-                <div class="fila-botones">
-                    <button class="btn-aceptar">Buscar profesional</button>
-                    <button class="btn-aceptar">Agregar profesional</button>
-                </div>
-                <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                  <span class="text-sm text-gray-600">Profesional 1</span>
-                  <button class="text-gray-500 hover:text-red-500">
-                      {{-- SVG Icon --}}
-                  </button>
-                </div>
-                <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                  <span class="text-sm text-gray-600">Profesional 2</span>
-                  <button class="text-gray-500 hover:text-red-500">
-                      {{-- SVG Icon --}}
-                  </button>
-                </div>
-            </div>
-        </div>
-    </div>
+                {{-- CAMPOS COMUNES: Objetivos / Acciones / Observaciones --}}
+                <div class="space-y-8 mb-6">
+                    <p class="separador">Descripción</p>
 
-    <!-- Botones de Acción (Común/Always) -->
-    <div class="fila-botones mt-8" x-show="true">
-        <button class="btn-aceptar">Marcar como cerrado</button>
-        <button class="btn-aceptar">Guardar</button>
-        <button class="btn-eliminar" >Eliminar</button>
-        <a class="btn-volver" href="{{ route('planDeAccion.principal') }}" >Volver</a>
+                    <div class="block text-sm font-medium text-gray-700">
+                        <x-campo-requerido text="Objetivos" required />
+                        <textarea name="objetivos" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('objetivos', $esEdicion ? ($planDeAccion->objetivos ?? '') : '') }}</textarea>
+                    </div>
+
+                    <div class="block text-sm font-medium text-gray-700">
+                        <x-campo-requerido text="Acciones a realizar" required />
+                        <textarea name="acciones" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('acciones', $esEdicion ? ($planDeAccion->acciones ?? '') : '') }}</textarea>
+                    </div>
+
+                    <div class="block text-sm font-medium text-gray-700">
+                        <label>Observaciones</label>
+                        <textarea name="observaciones" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('observaciones', $esEdicion ? ($planDeAccion->observaciones ?? '') : '') }}</textarea>
+                    </div>
+                </div>
+
+                {{-- Si el plan es INSTITUCIONAL en edición, mostrar el profesional creador en la sección de Profesionales --}}
+                @if($esEdicion && (($planDeAccion->tipo_plan->value ?? '') === 'INSTITUCIONAL'))
+                    <div class="space-y-6 mb-6">
+                        <p class="separador">Profesionales</p>
+                        @if($profesionalGenerador)
+                            <div class="font-medium text-base text-gray-700 mb-2">
+                                <strong>Profesional creador: {{ $profesionalGenerador }}</strong>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
+                {{-- RESPONSABLES  --}}
+                <div id="responsables2" 
+                x-data="planGrupal({ profesionalesData: @js($profesionalesJson), profesionalesIniciales: @js($profesionalesSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'INDIVIDUAL' || tipoPlanSeleccionado === 'GRUPAL'"
+                style="{{ ($esEdicion && in_array(($planDeAccion->tipo_plan->value ?? ''), ['INDIVIDUAL','GRUPAL'])) ? '' : 'display:none;' }}">
+                    <div class="space-y-6 mb-6">
+                        <p class="separador">Profesionales participantes</p>
+                        <div class="selectors-row">
+                            {{-- Selector de profesional--}}
+                            <div class="selector-box" style="width: 35%;">
+                                <label class="text-sm font-medium">Agregar profesional</label>
+                                <select x-model="profesionalSeleccionado" @change="agregarProfesional()">
+                                    <option value="">-- Seleccionar profesional --</option>
+                                    @foreach($profesionales as $prof)
+                                        <option value="{{ $prof->id_profesional }}">
+                                            {{ $prof->persona->nombre }} {{ $prof->persona->apellido }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        {{-- Mostrar profesional generador--}}
+                        @if($profesionalGenerador)
+                            <div class="font-medium text-base text-gray-700 mb-2">
+                                <strong>Profesional Creador: {{ $profesionalGenerador }}</strong>
+                            </div>
+                        @endif
+
+                        {{-- TABLA DINÁMICA DE PROFESIONALES SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
+                        <div class="mt-6">
+                            <h3 class="font-medium text-base text-gray-700 mb-2">Otros profesionales participantes</h3>
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>NOMBRE</th>
+                                        <th>APELLIDO</th>
+                                        <th>PROFESION</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="prof in profesionalesSeleccionados" :key="prof.id">
+                                        <tr>
+                                            <td x-text="prof.nombre"></td>
+                                            <td x-text="prof.apellido"></td>
+                                            <td x-text="prof.profesion"></td>
+                                            <td>
+                                                <button type="button" @click="eliminarProfesional(prof.id)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+
+                                            {{-- input hidden para enviar al backend---}}
+                                            <input type="hidden" name="profesionales[]" :value="prof.id">
+                                        </tr>
+                                    </template>
+
+                                    <tr x-show="profesionalesSeleccionados.length === 0">
+                                        <td colspan="5" class="text-center">No hay profesionales seleccionados.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            
+                        </div>
+                        
+                        {{-- Inputs Ocultos para profesionales --}}
+                        <template x-for="p in profesionalesSeleccionados" :key="p.id">
+                            <input type="hidden" name="profesionales[]" :value="p.id">
+                        </template>
+
+                    </div>
+                </div>
+
+
+                {{-- Documentos (placeholder) --}}
+                <div class="space-y-6 mb-6">
+                    <p class="separador">Documentos</p>
+                    <div class="flex items-center gap-2">
+                        <button type="button" class="btn-subir">Examinar</button>
+                        <span class="text-sm text-gray-500">Formato: pdf, jpeg, png, doc. Máx 100Kb (placeholder)</span>
+                    </div>
+
+                    {{-- TODO: activar cuando exista la lógica de documentos --}}
+                    @if(false)
+                    @if($esEdicion && isset($planDeAccion->documentos) && $planDeAccion->documentos->isNotEmpty())
+                        <div class="space-y-2 mt-2">
+                            @foreach($planDeAccion->documentos as $doc)
+                                <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
+                                    <span class="text-sm text-gray-600">{{ $doc->nombre ?? 'Documento' }}</span>
+                                    <a href="{{ route('planDeAccion.descargarDocumento', $doc->id ?? $doc->id_documento) }}" class="text-indigo-600">Descargar</a>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                    @endif
+                </div>
+
+            </fieldset>
+
+            {{-- BOTONES --}}
+            <div class="fila-botones mt-8">
+                @if(!$cerrado)
+                    <button type="submit" class="btn-aceptar">{{ $esEdicion ? 'Actualizar' : 'Crear' }}</button>
+                @endif
+
+                @if($esEdicion)
+                    <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}">Volver</a>
+                @else
+                    <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}">Cancelar</a>
+                @endif
+            </div>
+        </form>
+
+            @if($esEdicion)
+                <form action="{{ route('planDeAccion.eliminar', $planDeAccion->id_plan_de_accion) }}" method="POST" class="inline-block mt-2" onsubmit="return confirm('¿Seguro que querés eliminar este plan?');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-eliminar">Eliminar Plan</button>
+                </form>
+            @endif
     </div>
 </div>
-@endsection
 
-{{-- IGNORE ESTO
- PARA CUANDO ESTE EL MODELO Y CONTROLADOR
-  Determinar si el plan de acción está cerrado 
- <button class="btn-aceptar" {{ $esCerrado ? 'disabled' : '' }}>Guardar</button>
-    <button class="btn-eliminar" {{ $esCerrado ? 'disabled' : '' }}>Eliminar</button>
-    
-    Mantener visible solo botones de acción final si aplica
-    @if ($planDeAccion->estado === 'Cerrado')
-        <a class="btn-volver" href="...">Imprimir</a>
-    @endif
---}}
+<script>
+    function planGrupal({ alumnosData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
+        return {
+            // Alumnos
+            alumnoSeleccionado: "",
+            aulaSeleccionada: "",
+            alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
+
+            // Profesionales
+            profesionalSeleccionado: "",
+            profesionalesData: profesionalesData || {},
+            profesionalesSeleccionados: Array.isArray(profesionalesIniciales) ? profesionalesIniciales : [],
+
+            agregarAlumno() {
+                if (!this.alumnoSeleccionado || this.alumnoSeleccionado === "") return;
+
+                let id = parseInt(this.alumnoSeleccionado);
+                if (!alumnosData[id]) return;
+
+                // Evitar duplicados
+                if (!this.alumnosSeleccionados.find(a => a.id === id)) {
+                    this.alumnosSeleccionados.push(alumnosData[id]);
+                }
+                this.alumnoSeleccionado = ""; // reseteo
+            },
+
+            agregarAula() {
+                if (!this.aulaSeleccionada) return;
+
+                // Buscar alumnos por aula
+                let aulaId = parseInt(this.aulaSeleccionada);
+
+                let alumnos = Object.values(alumnosData)
+                    .filter(a => a.aula_id == aulaId);
+
+                alumnos.forEach(a => {
+                    if (!this.alumnosSeleccionados.find(x => x.id === a.id)) {
+                        this.alumnosSeleccionados.push(a);
+                    }
+                });
+            },
+
+            eliminarAlumno(id) {
+                this.alumnosSeleccionados = this.alumnosSeleccionados.filter(a => a.id !== id);
+            },
+
+            // Profesionales
+            agregarProfesional() {
+                if (!this.profesionalSeleccionado || this.profesionalSeleccionado === "") return;
+
+                let id = parseInt(this.profesionalSeleccionado);
+                if (!this.profesionalesData[id]) return;
+
+                // Evitar duplicados
+                if (!this.profesionalesSeleccionados.find(p => p.id === id)) {
+                    this.profesionalesSeleccionados.push(this.profesionalesData[id]);
+                }
+                this.profesionalSeleccionado = ""; // reseteo
+            },
+            eliminarProfesional(id) {
+                this.profesionalesSeleccionados = this.profesionalesSeleccionados.filter(p => p.id !== id);
+            }
+        };
+    }
+    function planIndividual({ alumnosData, alumnosIniciales, initialAlumnoId = null }) {
+        return {
+            alumnosData,
+            alumnoSeleccionadoId: initialAlumnoId,
+            alumnoSeleccionadoInfo: initialAlumnoId ? alumnosData[initialAlumnoId] : null,
+
+            seleccionarAlumno(id) {
+                this.alumnoSeleccionadoId = id;
+                this.alumnoSeleccionadoInfo = this.alumnosData[id] ?? null;
+            }
+        }
+    }
+
+</script>
+
+
+@endsection

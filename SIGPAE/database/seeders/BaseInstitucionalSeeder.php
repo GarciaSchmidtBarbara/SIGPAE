@@ -7,6 +7,7 @@ use App\Models\Persona;
 use App\Models\Profesional;
 use App\Models\Aula;
 use App\Models\Alumno;
+use App\Models\PlanDeAccion;
 use Illuminate\Support\Facades\Hash;
 
 
@@ -34,41 +35,22 @@ class BaseInstitucionalSeeder extends Seeder
             'fk_id_persona' => $persona->id_persona,
         ]);
 
+        Profesional::factory()->count(3)->create();
+
         
         \App\Models\Aula::factory()->count(10)->create();
-        $aula = Aula::firstOrCreate(
-            ['curso' => '2', 'division' => 'B'], 
-            [] 
-        );
-
-        $persona = Persona::firstOrCreate(
-            ['dni' => '87654321'],
-            [
-                'nombre' => 'Mateo',
-                'apellido' => 'Ramírez',
-                'fecha_nacimiento' => '2008-03-25',
-                'domicilio' => 'Calle Falsa 456',
-                'nacionalidad' => 'Argentina',
-            ]
-        );
-        Alumno::firstOrCreate(
-            ['fk_id_persona' => $persona->id_persona],
-            [
-                'cud' => false,
-                'inasistencias' => 5,
-                'observaciones' => 'Participa activamente en clase',
-                'antecedentes' => 'Retraso madurativo leve',
-                'intervenciones_externas' => 'Apoyo psicopedagógico semanal',
-                'actividades_extraescolares' => 'Fútbol y taller de robótica',
-                'situacion_escolar' => 'Promovido con acompañamiento',
-                'situacion_medica' => 'Sin patologías relevantes',
-                'situacion_familiar' => 'Convive con madre y hermanos',
-                'situacion_socioeconomica' => 'Ingreso familiar bajo, recibe ayuda escolar',
-                'fk_id_aula' => $aula->id_aula,
-            ]
-        );
+        
 
         \App\Models\Alumno::factory()->count(10)->create();
+        
+        // Crear Planes Individuales (con 1 Alumno y 1 profesional participante)
+        PlanDeAccion::factory()->count(5)->individual()->create();
+
+        // Crear Planes Grupales (con Aulas y múltiples Alumnos/Responsables)
+        PlanDeAccion::factory()->count(6)->grupal()->create();
+
+        // Crear Planes Institucionales (con múltiples responsables)
+        PlanDeAccion::factory()->count(2)->institucional()->create();
 
     }
 }
