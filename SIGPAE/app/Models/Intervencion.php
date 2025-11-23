@@ -22,6 +22,10 @@ class Intervencion extends Model
         'compromisos',
         'observaciones',
         'activo',
+        'tipo_intervencion',
+        'fk_id_plan_de_accion',
+        'fk_id_profesional_genera',
+        'fk_id_evaluacion_intervencion_espontanea',
     ];
 
     protected $casts = [

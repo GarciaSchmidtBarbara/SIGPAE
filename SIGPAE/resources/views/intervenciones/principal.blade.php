@@ -1,37 +1,104 @@
 @extends('layouts.base')
 
-@section('encabezado', 'Intervenciones')
+@section('encabezado', 'Todas las Intervenciones')
 
 @section('contenido')
-    <div class="fila-componentes">
-      <a class="btn-aceptar" href="#">Crear</a>
-      <button class="btn-desplegable">Tipo</button>
-      <button class="btn-desplegable">Estado</button>
-      <button class="btn-desplegable">Curso</button>
-      <button class="desplegable">Buscar</button>
+
+    {{-- Mensajes de estado --}}
+    @if (session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
+
+<div class="p-6">
+    <form id="form-intervencion" method="GET" action="{{ route('intervenciones.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+        <a class="btn-aceptar" href="{{ route('intervenciones.crear-editar') }}">Crear Intervención</a>
+        
+        <select name="tipo_intervencion" class="border px-2 py-1 rounded w-1/5">
+            <option value="">Todos los tipos</option>
+            @foreach($tiposIntervencion as $tipo)
+                <option value="{{ $tipo }}" {{ request('tipo_intervencion') === $tipo ? 'selected' : '' }}>
+                    {{ $tipo }}
+                </option>
+            @endforeach
+        </select>
+
+        <input name="nombre" placeholder="Nombre/DNI" class="border px-2 py-1 rounded w-1/5">
+
+        <select name="aula" class="border px-2 py-1 rounded w-1/5">
+            <option value="">Todos los cursos</option>
+            @foreach($cursos as $curso)
+                <option value="{{ $curso->descripcion }}" {{ request('aula') === $curso->descripcion ? 'selected' : '' }}>
+                    {{ $curso->descripcion }}
+                </option>
+            @endforeach
+        </select>
+
+        <p>Desde</p>
+        <input type="date" name="fecha_desde" class="border px-2 py-1 rounded" value="{{ request('fecha_desde') }}">
+        <p>Hasta</p>
+        <input type="date" name="fecha_hasta" class="border px-2 py-1 rounded" value="{{ request('fecha_hasta') }}">
+
+        <button type="submit" class="btn-aceptar">Filtrar</button>
+        <a class="btn-aceptar" href="{{ route('alumnos.principal') }}" >Limpiar</a>
+    </form>
+
+    @php
+        $accionesPorFila = function ($fila) {
+            $activo = data_get($fila, 'intervencion.activo');
+            $ruta = route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'));
+            return view('components.boton-estado', [
+                'activo' => $activo,
+                'route' => $ruta
+            ])->render();
+        };
+    @endphp
+    
+
+    <x-tabla-dinamica 
+        :columnas="[
+            ['key' => 'intervencion.fecha', 'label' => 'Fecha'],
+            ['key' => 'intervencion.tipo', 'label' => 'Tipo'],
+            ['key' => 'persona.dni', 'label' => 'Destinatarios'],
+            ['key' => 'profesional', 'label' => 'Intervinientes'],
+        ]"
+        :filas="$intervenciones"
+        :acciones="fn($fila) => view('components.boton-estado', [
+            'activo' => data_get($fila, 'intervencion.activo'),
+            'route' => route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'))
+        ])->render()"
+
+        idCampo="id_intervencion"
+        :filaEnlace="fn($fila) => route('intervenciones.editar', data_get($fila, 'id_intervencion'))"
+    >
+        <x-slot:accionesPorFila>
+            @php
+                // función anónima que recibirá $fila
+            @endphp
+            @once
+                @php
+                    $accionesPorFila = function ($fila) {
+                        $activo = data_get($fila, 'intervencion.activo');
+                        $ruta = route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'));
+                        return view('components.boton-estado', [
+                            'activo' => $activo,
+                            'route' => $ruta
+                        ])->render();
+                    };
+                @endphp
+            @endonce
+        </x-slot:accionesPorFila>
+    </x-tabla-dinamica>
+
+    <div class="fila-botones mt-8">
+        <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
-    <p>Aquí va la tabla de intervenciones.</p>
-    <table>
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Alumno</th>
-                <th>Profesional</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Aquí van las filas de la tabla -->
-            <tr>
-                <td>01/11/2025</td>
-                <td>Espontánea</td>
-                <td>Juan Pérez</td>
-                <td>PS. María García</td>
-                <td><boton>Ver</boton> <boton>Editar</boton></td>
-            </tr>
-            <!-- Más filas según sea necesario -->
-        </tbody>
-    </table>
-    <boton>Volver</boton>
+</div>
 @endsection

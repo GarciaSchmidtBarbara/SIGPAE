@@ -7,6 +7,7 @@ use App\Models\Persona;
 use App\Models\Profesional;
 use App\Models\Aula;
 use App\Models\Alumno;
+use App\Models\Intervencion;
 use Illuminate\Support\Facades\Hash;
 
 
@@ -69,6 +70,7 @@ class BaseInstitucionalSeeder extends Seeder
         );
 
         \App\Models\Alumno::factory()->count(10)->create();
+        \App\Models\Intervencion::factory()->count(10)->create();
 
     }
 }
