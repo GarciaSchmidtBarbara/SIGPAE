@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
+use Carbon\Carbon;
 use App\Services\Interfaces\IntervencionServiceInterface;
 
 use App\Models\Intervencion;
@@ -21,12 +22,34 @@ class IntervencionController extends Controller
 
     public function vista()
     {
-        $intervenciones = $this->service->obtenerTodos();
+        $intervencionesRaw = $this->service->obtenerTodos();
         $tiposIntervencion = $this->service->obtenerTipos(); 
         $cursos = $this->service->obtenerAulasParaFiltro();
-        $alumnos = []; 
 
-        return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'cursos', 'alumnos'));
+        $intervenciones = $intervencionesRaw->map(function ($intervencion) {
+            $profesional = $intervencion->profesionalGenerador?->persona;
+
+            // Concatenar todos los alumnos con nombre y apellido
+            $alumnos = $intervencion->alumnos->map(function ($alumno) {
+                $persona = $alumno->persona;
+                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
+            })->implode(', ');
+
+            return [
+                'id_intervencion' => $intervencion->id_intervencion,
+                'fecha_hora_intervencion' => $intervencion->fecha_hora_intervencion
+                    ? Carbon::parse($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i')
+                    : 'Sin fecha',
+                'tipo_intervencion' => $intervencion->tipo_intervencion,
+                'alumnos' => $alumnos ?: 'Sin alumnos',
+                'profesional' => $profesional
+                    ? $profesional->apellido . ', ' . $profesional->nombre
+                    : 'Sin profesional',
+                'activo' => $intervencion->activo,
+            ];
+        });
+
+        return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'cursos'));
     }
 
     public function crear()

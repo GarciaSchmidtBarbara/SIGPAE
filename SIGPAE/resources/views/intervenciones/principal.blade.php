@@ -53,7 +53,7 @@
     @php
         $accionesPorFila = function ($fila) {
             $activo = data_get($fila, 'intervencion.activo');
-            $ruta = route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'));
+            $ruta = route('intervenciones.eliminar', data_get($fila, 'id_intervencion'));
             return view('components.boton-estado', [
                 'activo' => $activo,
                 'route' => $ruta
@@ -64,37 +64,37 @@
 
     <x-tabla-dinamica 
         :columnas="[
-            ['key' => 'intervencion.fecha', 'label' => 'Fecha'],
-            ['key' => 'intervencion.tipo', 'label' => 'Tipo'],
-            ['key' => 'persona.dni', 'label' => 'Destinatarios'],
-            ['key' => 'profesional', 'label' => 'Intervinientes'],
+            ['key' => 'fecha_hora_intervencion', 'label' => 'Fecha y Hora'],
+            ['key' => 'tipo_intervencion', 'label' => 'Tipo'],
+            ['key' => 'alumnos', 'label' => 'Destinatarios'],
+            ['key' => 'profesionales', 'label' => 'Intervinientes'],
         ]"
         :filas="$intervenciones"
         :acciones="fn($fila) => view('components.boton-estado', [
-            'activo' => data_get($fila, 'intervencion.activo'),
-            'route' => route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'))
+            'activo' => $fila['activo'],
+            'route' => route('intervenciones.eliminar', $fila['id_intervencion']),
+            'text_activo' => 'Cerrar',
+            'text_inactivo' => 'Activar'
         ])->render()"
 
+
         idCampo="id_intervencion"
-        :filaEnlace="fn($fila) => route('intervenciones.editar', data_get($fila, 'id_intervencion'))"
+        :filaEnlace="fn($fila) => route('intervenciones.crear-editar', data_get($fila, 'id_intervencion'))"
     >
         <x-slot:accionesPorFila>
-            @php
-                // función anónima que recibirá $fila
-            @endphp
             @once
                 @php
                     $accionesPorFila = function ($fila) {
-                        $activo = data_get($fila, 'intervencion.activo');
-                        $ruta = route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'));
+                        $ruta = route('intervenciones.eliminar', data_get($fila, 'id_intervencion'));
                         return view('components.boton-estado', [
-                            'activo' => $activo,
-                            'route' => $ruta
+                            'route' => $ruta,
+                            'texto' => 'Eliminar'
                         ])->render();
                     };
                 @endphp
             @endonce
         </x-slot:accionesPorFila>
+
     </x-tabla-dinamica>
 
     <div class="fila-botones mt-8">

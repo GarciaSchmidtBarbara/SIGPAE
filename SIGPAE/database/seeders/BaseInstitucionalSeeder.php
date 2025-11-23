@@ -43,7 +43,7 @@ class BaseInstitucionalSeeder extends Seeder
         
 
         \App\Models\Alumno::factory()->count(10)->create();
-        \App\Models\Intervencion::factory()->count(10)->create();
+        
         
         // Crear Planes Individuales (con 1 Alumno y 1 profesional participante)
         PlanDeAccion::factory()->count(5)->individual()->create();
@@ -54,5 +54,7 @@ class BaseInstitucionalSeeder extends Seeder
         // Crear Planes Institucionales (con múltiples responsables)
         PlanDeAccion::factory()->count(2)->institucional()->create();
 
+        // Crear Intervenciones
+        Intervencion::factory()->count(10)->create();
     }
 }
