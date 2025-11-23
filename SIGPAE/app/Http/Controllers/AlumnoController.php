@@ -41,49 +41,6 @@ class AlumnoController extends Controller
         return response()->json($alumno);
     }
 
-    public function guardar(Request $request)
-    {
-        request->validate([
-            'dni' => 'required|numeric',
-            'nombre' => 'required|string|max:191',
-            'apellido' => 'required|string|max:191',
-            'fecha_nacimiento' => 'required|date',
-            'nacionalidad' => 'required|string|max:191',
-            'aula' => 'required|string',
-        ], [
-            'required' => 'Este campo es obligatorio.',
-            'date' => 'Debe ingresar una fecha válida.',
-            'numeric' => 'Debe ingresar un número válido.',
-        ]);
-        try {
-            $familiaresTemp = Session::get('familiares_temp', []);
-            $alumno = $this->alumnoService->crearAlumnoConFamiliares($request->all(), $familiaresTemp);
-            
-            // Limpiar las sesiones temporales
-            Session::forget('familiares_temp');
-            Session::forget('alumno_temp');
-            
-            //Si es una petición AJAX, retornar JSON
-            if ($request->expectsJson()) {
-                return response()->json($alumno, 201);
-            }
-            
-            //Si es una petición normal del formulario, redirigir
-            return redirect()->route('alumnos.principal')->with('success', 'Alumno creado correctamente');
-            
-        } catch (\Exception $e) {
-            //Si es una petición AJAX, retornar JSON error
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $e->getMessage()], 400);
-            }
-            
-            //Si es una petición normal, redirigir con error
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error al crear el alumno: ' . $e->getMessage());
-        }
-    }
-
     public function cambiarActivo(int $id): RedirectResponse
     {
         $resultado = $this->alumnoService->cambiarActivo($id);
@@ -183,12 +140,58 @@ class AlumnoController extends Controller
         $hermanos_que_lo_apuntan = $alumno->esHermanoDe;
         $hermanos_alumnos = $hermanos_que_el_apunta->merge($hermanos_que_lo_apuntan);
 
-        $familiares_unificados = $familiares_puros->merge($hermanos_alumnos)->toArray();
+        $coleccionUnificada = $familiares_puros->merge($hermanos_alumnos);
 
-        // Poblamos la sesión con los datos del alumno y sus familiares
+        // 3. [NUEVO] Normalización / Aplanado de Datos
+        // Transformamos la estructura anidada de BBDD a la estructura plana que espera la Vista
+        $familiares_array = $coleccionUnificada->map(function ($item) {
+            $data = $item->toArray();
+
+            // A. Aplanar datos de PERSONA (nombre, apellido, dni...)
+            if (isset($data['persona'])) {
+                $data['nombre'] = $data['persona']['nombre'] ?? '';
+                $data['apellido'] = $data['persona']['apellido'] ?? '';
+                $data['dni'] = $data['persona']['dni'] ?? '';
+                
+                $data['fecha_nacimiento'] = $item->persona->fecha_nacimiento ?? '';
+                    
+                $data['domicilio'] = $data['persona']['domicilio'] ?? '';
+                $data['nacionalidad'] = $data['persona']['nacionalidad'] ?? '';
+                
+                // Importante para la lógica de Hermano Alumno
+                $data['fk_id_persona'] = $data['persona']['id_persona'] ?? null;
+            }
+
+            // B. Aplanar datos de AULA (Para Hermanos)
+            if (isset($data['aula'])) {
+                $data['curso'] = $data['aula']['curso'] ?? '';
+                $data['division'] = $data['aula']['division'] ?? '';
+            }
+
+            // C. Aplanar datos PIVOTE (Observaciones y Activa)
+            // Eloquent pone los datos de la tabla intermedia en 'pivot'
+            if (isset($data['pivot'])) {
+                $data['observaciones'] = $data['pivot']['observaciones'] ?? '';
+                // Nota: id_familiar o id_alumno ya vienen en el array base
+            }
+            
+            // D. Corrección de Parentesco para Hermanos BBDD
+            if (!isset($data['parentesco'])) {
+                // Si no tiene parentesco, es un Hermano Alumno
+                $data['parentesco'] = null; // La marca de "hermano alumno de BBDD"
+                $data['asiste_a_institucion'] = 1;
+            } else {
+                // Si tiene parentesco, lo pasamos a minúscula para el radio button
+                $data['parentesco'] = strtolower($data['parentesco']);
+            }
+
+            return $data;
+        })->toArray();
+
+        // 4. Guardamos en sesión
         session([
             'asistente.alumno' => $alumnoData,
-            'asistente.familiares' => $familiares_unificados,
+            'asistente.familiares' => $familiares_array, // Array limpio y plano
             'asistente.familiares_a_eliminar' => [],
             'asistente.hermanos_alumnos_a_eliminar' => []
         ]);
@@ -315,17 +318,95 @@ class AlumnoController extends Controller
         return response()->json(['valid' => true]);
     }
 
-    public function actualizar(Request $request, int $id): RedirectResponse
+    public function guardar(Request $request)
     {
+        // 1. Validación del Alumno
+        // A diferencia de la vista, aquí sí validamos contra la BBDD que el DNI sea único.
+        $datosAlumno = $request->validate([
+            'dni' => 'required|numeric',
+            'nombre' => 'required|string|max:191',
+            'apellido' => 'required|string|max:191',
+            'fecha_nacimiento' => 'required|date',
+            'nacionalidad' => 'nullable|string|max:191',
+            'aula' => 'required', 
+            'inasistencias' => 'nullable|integer',
+            'cud' => 'required|string',
+            // Campos de situación y observaciones
+            'situacion_socioeconomica' => 'nullable|string',
+            'situacion_familiar' => 'nullable|string',
+            'situacion_medica' => 'nullable|string',
+            'situacion_escolar' => 'nullable|string',
+            'actividades_extraescolares' => 'nullable|string',
+            'intervenciones_externas' => 'nullable|string',
+            'antecedentes' => 'nullable|string',
+            'observaciones' => 'nullable|string'
+        ]);
+
         try {
-            $this->alumnoService->actualizar($id, $request->all());
-            return redirect()->route('alumnos.principal')->with('success', 'Alumno actualizado correctamente.');
-        } catch (\Throwable $e) {
+            $familiares = session('asistente.familiares', []);
+            $this->alumnoService->crearAlumnoConFamiliares($datosAlumno, $familiares);
+            session()->forget('asistente');
+            
+            return redirect()->route('alumnos.principal')
+                             ->with('success', 'Alumno y familiares registrados correctamente.');
+            
+        } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', $e->getMessage());
+                ->with('error', 'Error al guardar: ' . $e->getMessage());
         }
     }
 
+    public function actualizar(Request $request, int $id)
+    {
+        // 1. Validación del Alumno
+        $datosAlumno = $request->validate([
+            'dni' => 'required|numeric', 
+            'nombre' => 'required|string|max:191',
+            'apellido' => 'required|string|max:191',
+            'fecha_nacimiento' => 'required|date',
+            'nacionalidad' => 'nullable|string|max:191',
+            'aula' => 'required|string',
+            'inasistencias' => 'nullable|integer',
+            'cud' => 'required|string',
+            
+            // Campos opcionales
+            'situacion_socioeconomica' => 'nullable|string',
+            'situacion_familiar' => 'nullable|string',
+            'situacion_medica' => 'nullable|string',
+            'situacion_escolar' => 'nullable|string',
+            'actividades_extraescolares' => 'nullable|string',
+            'intervenciones_externas' => 'nullable|string',
+            'antecedentes' => 'nullable|string',
+            'observaciones' => 'nullable|string',
+        ]);
+
+        try {
+            $familiares = session('asistente.familiares', []);
+            $familiares_a_eliminar = session('asistente.familiares_a_eliminar', []);
+            $hermanos_a_eliminar = session('asistente.hermanos_alumnos_a_eliminar', []);
+
+            // 3. Delegamos al Servicio la lógica pesada
+            // (El servicio orquestará la transacción de BBDD)
+            $this->alumnoService->actualizarAlumno(
+                $id, 
+                $datosAlumno, 
+                $familiares, 
+                $familiares_a_eliminar, 
+                $hermanos_a_eliminar
+            );
+
+            // 4. Limpieza y Éxito
+            session()->forget('asistente');
+
+            return redirect()->route('alumnos.principal')
+                             ->with('success', 'Alumno actualizado correctamente.');
+
+        } catch (\Throwable $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al actualizar: ' . $e->getMessage());
+        }
+    }
 
 }
