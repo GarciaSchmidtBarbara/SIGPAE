@@ -27,13 +27,31 @@ class IntervencionController extends Controller
         $cursos = $this->service->obtenerAulasParaFiltro();
 
         $intervenciones = $intervencionesRaw->map(function ($intervencion) {
-            $profesional = $intervencion->profesionalGenerador?->persona;
-
             // Concatenar todos los alumnos con nombre y apellido
             $alumnos = $intervencion->alumnos->map(function ($alumno) {
                 $persona = $alumno->persona;
                 return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
             })->implode(', ');
+
+            // Concatenar todos los profesionales con nombre y apellido
+            $profesional = $intervencion->profesionalGenerador?->persona;
+
+            $profesionalesReune = $intervencion->profesionales->map(function ($profesional) {
+                $persona = $profesional->persona;
+                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
+            });
+
+            $otrosProfesionales = $intervencion->otros_asistentes_i->map(function ($asistente) {
+                $profesional = $asistente->profesional;
+                $persona = $profesional?->persona;
+                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
+            });
+
+            $todosProfesionales = $profesionalesReune
+                ->merge($otrosProfesionales)
+                ->merge($profesional ? collect([$profesional->nombre . ' ' . $profesional->apellido]) : collect())
+                ->unique()
+                ->implode(', ');
 
             return [
                 'id_intervencion' => $intervencion->id_intervencion,
@@ -42,9 +60,7 @@ class IntervencionController extends Controller
                     : 'Sin fecha',
                 'tipo_intervencion' => $intervencion->tipo_intervencion,
                 'alumnos' => $alumnos ?: 'Sin alumnos',
-                'profesional' => $profesional
-                    ? $profesional->apellido . ', ' . $profesional->nombre
-                    : 'Sin profesional',
+                'profesionales' => $todosProfesionales ?: 'Sin participantes',
                 'activo' => $intervencion->activo,
             ];
         });
