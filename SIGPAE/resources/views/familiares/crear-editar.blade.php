@@ -234,11 +234,7 @@
         <input type="hidden" name="division" :value="formData.division">
         <input type="hidden" name="fk_id_persona" :value="formData.fk_id_persona">
         <input type="hidden" name="asiste_a_institucion" :value="formData.asiste_a_institucion ? 1 : 0">
-
-        <div class="bg-yellow-200 p-2 mb-4">
-            DEBUG ID: <span x-text="formData.fk_id_persona"></span>
-        </div>
-
+        
         <p class="separador">Relación</p>
         <div class="flex flex-wrap items-center gap-4 mt-2">
             @php($parentescos = ['padre'=>'Padre','madre'=>'Madre','tutor'=>'Tutor','hermano'=>'Hermano','otro'=>'Otro'])
