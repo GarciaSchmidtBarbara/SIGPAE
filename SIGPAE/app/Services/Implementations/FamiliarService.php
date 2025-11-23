@@ -93,4 +93,105 @@ class FamiliarService implements FamiliarServiceInterface
 
         return $familiar;
     }
+
+
+    public function getAllFamiliares(): Collection
+    {
+        return $this->familiarRepository->all();
+    }
+
+    public function getFamiliarById(int $id): ?Familiar
+    {
+        return $this->familiarRepository->find($id);
+    }
+
+    public function getFamiliarWithPersona(int $id): ?Familiar
+    {
+        return $this->familiarRepository->findWithPersona($id);
+    }
+
+    public function getAllFamiliaresWithPersona(): Collection
+    {
+        return $this->familiarRepository->allWithPersona();
+    }
+
+    public function deleteFamiliar(int $id): bool
+    {
+        return $this->familiarRepository->delete($id);
+    }
+
+    // Método Legacy: Crea usando transacción y separando campos (usado por otras vistas)
+    public function createFamiliar(array $data): Familiar
+    {
+        // Filtramos campos para Persona
+        $personaFields = array_intersect_key($data, array_flip([
+            'nombre', 'apellido', 'dni', 'fecha_nacimiento', 'domicilio', 'nacionalidad'
+        ]));
+
+        // Filtramos campos para Familiar
+        $familiarFields = array_intersect_key($data, array_flip([
+            'fk_id_persona', 'lugar_de_trabajo', 'observaciones', 'telefono_personal', 'telefono_laboral', 'lugar_de_trabajo', 'otro_parentesco', 'parentesco'
+        ]));
+
+        try {
+            DB::beginTransaction();
+
+            if (!empty($data['fk_id_persona'])) {
+                $familiarFields['fk_id_persona'] = $data['fk_id_persona'];
+            }
+            else if (!empty($personaFields)) {
+                $persona = $this->personaService->createPersona($personaFields);
+                $familiarFields['fk_id_persona'] = $persona->id_persona;
+            } 
+            else {
+                throw new InvalidArgumentException('Se requiere fk_id_persona o datos de persona');
+            }
+
+            $familiar = $this->familiarRepository->create($familiarFields);
+
+            DB::commit();
+            return $familiar;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    // Método Legacy: Actualiza usando transacción
+    public function updateFamiliar(int $id, array $data): Familiar
+    {
+        $familiar = $this->getFamiliarById($id);
+        if (!$familiar) {
+            throw new InvalidArgumentException('Familiar no encontrado');
+        }
+        
+        $personaFields = array_intersect_key($data, array_flip([
+            'nombre', 'apellido', 'dni', 'fecha_nacimiento', 'domicilio', 'nacionalidad'
+        ]));
+
+        $familiarFields = array_intersect_key($data, array_flip([
+            'lugar_de_trabajo', 'observaciones', 'telefono_personal', 'telefono_laboral', 'lugar_de_trabajo', 'otro_parentesco', 'parentesco'
+        ]));
+
+        try {
+            DB::beginTransaction();
+            
+            if (!empty($personaFields)) {
+                $personaId = $familiar->fk_id_persona ?? null;
+                if ($personaId) {
+                    $this->personaService->updatePersona($personaId, $personaFields);
+                }
+            }
+            
+            if (!empty($familiarFields)) {
+                $familiar = $this->familiarRepository->update($id, $familiarFields);
+            }
+
+            DB::commit();
+            return $familiar;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
 }
