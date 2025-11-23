@@ -22,6 +22,11 @@ use App\Repositories\Interfaces\FamiliarRepositoryInterface;
 use App\Services\Interfaces\FamiliarServiceInterface;
 use App\Services\Implementations\FamiliarService;
 use App\Repositories\Eloquent\FamiliarRepository;
+// PlanDeAccion
+use App\Repositories\Interfaces\PlanDeAccionRepositoryInterface;
+use App\Services\Interfaces\PlanDeAccionServiceInterface;
+use App\Services\Implementations\PlanDeAccionService;
+use App\Repositories\Eloquent\PlanDeAccionRepository;
 // Support
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
@@ -47,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProfesionalRepositoryInterface::class, ProfesionalRepository::class);
         $this->app->bind(IntervencionRepositoryInterface::class,IntervencionRepository::class
     );
+        $this->app->bind(PlanDeAccionRepositoryInterface::class, PlanDeAccionRepository::class);
 
         // Services
         $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
@@ -55,6 +61,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProfesionalServiceInterface::class, ProfesionalService::class);
         $this->app->bind(IntervencionServiceInterface::class,IntervencionService::class
     );
+        $this->app->bind(PlanDeAccionServiceInterface::class, PlanDeAccionService::class);
     }
 
     /**
