@@ -138,7 +138,7 @@ class AlumnoController extends Controller
 
         $hermanos_que_el_apunta = $alumno->hermanos;
         $hermanos_que_lo_apuntan = $alumno->esHermanoDe;
-        $hermanos_alumnos = $hermanos_que_el_apunta->merge($hermanos_que_lo_apuntan);
+        $hermanos_alumnos = $hermanos_que_lo_apuntan->merge($hermanos_que_el_apunta);
 
         $coleccionUnificada = $familiares_puros->merge($hermanos_alumnos);
 
@@ -207,7 +207,6 @@ class AlumnoController extends Controller
     public function continuar()
     {
         // 1. Obtenemos dependencias básicas para la vista (selects)
-        // (Idealmente usarías tu servicio, aquí replico lo que tienes en crear/editar)
         $cursos = $this->alumnoService->obtenerCursos();
 
         // leo los datos del alumno de la sesión para saber en qué modo estamos
