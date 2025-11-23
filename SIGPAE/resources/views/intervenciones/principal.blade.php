@@ -50,18 +50,6 @@
         <a class="btn-aceptar" href="{{ route('alumnos.principal') }}" >Limpiar</a>
     </form>
 
-    @php
-        $accionesPorFila = function ($fila) {
-            $activo = data_get($fila, 'intervencion.activo');
-            $ruta = route('intervenciones.eliminar', data_get($fila, 'id_intervencion'));
-            return view('components.boton-estado', [
-                'activo' => $activo,
-                'route' => $ruta
-            ])->render();
-        };
-    @endphp
-    
-
     <x-tabla-dinamica 
         :columnas="[
             ['key' => 'fecha_hora_intervencion', 'label' => 'Fecha y Hora'],
@@ -70,25 +58,25 @@
             ['key' => 'profesionales', 'label' => 'Intervinientes'],
         ]"
         :filas="$intervenciones"
-        :acciones="fn($fila) => view('components.boton-estado', [
-            'activo' => $fila['activo'],
+        :acciones="fn($fila) => view('components.boton-eliminar', [
             'route' => route('intervenciones.eliminar', $fila['id_intervencion']),
-            'text_activo' => 'Cerrar',
-            'text_inactivo' => 'Activar'
+            'texto' => 'Eliminar'
         ])->render()"
-
-
         idCampo="id_intervencion"
         :filaEnlace="fn($fila) => route('intervenciones.crear-editar', data_get($fila, 'id_intervencion'))"
     >
         <x-slot:accionesPorFila>
+            @php
+                // función anónima que recibirá $fila
+            @endphp
             @once
                 @php
                     $accionesPorFila = function ($fila) {
-                        $ruta = route('intervenciones.eliminar', data_get($fila, 'id_intervencion'));
+                        $activo = data_get($fila, 'intervencion.activo');
+                        $ruta = route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'));
                         return view('components.boton-estado', [
-                            'route' => $ruta,
-                            'texto' => 'Eliminar'
+                            'activo' => $activo,
+                            'route' => $ruta
                         ])->render();
                     };
                 @endphp

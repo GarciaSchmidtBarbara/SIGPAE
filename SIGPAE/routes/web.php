@@ -108,4 +108,6 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::get('/{id}/editar', [IntervencionController::class, 'editar'])->name('crear-editar');
     Route::put('/{id}/actualizar', [IntervencionController::class, 'actualizar'])->name('actualizar');
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
+    Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
+
 });

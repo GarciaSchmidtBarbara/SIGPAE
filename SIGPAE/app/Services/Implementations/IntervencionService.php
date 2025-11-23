@@ -73,10 +73,16 @@ class IntervencionService implements IntervencionServiceInterface
         return $this->repo->eliminar($id);
     }
 
+    public function cambiarActivo(int $id): bool
+    {
+        return $this->repo->cambiarActivo($id);
+    }
+
     public function obtenerTipos(): Collection
     {
         return collect(TipoIntervencion::cases())->map(fn($tipo) => $tipo->value);
     }
+
     public function obtenerAulasParaFiltro(): Collection
     {
         return $this->repo->obtenerAulasParaFiltro();

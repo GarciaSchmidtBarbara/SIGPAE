@@ -64,10 +64,15 @@ class IntervencionRepository implements IntervencionRepositoryInterface
     public function eliminar(int $id): bool
     {
         $intervencion = $this->buscarPorId($id);
+        if (!$intervencion) return false;
 
-        if (!$intervencion) {
-            return false;
-        }
+        return $intervencion->delete();
+    }
+
+    public function cambiarActivo(int $id): bool
+    {
+        $intervencion = $this->buscarPorId($id);
+        if (!$intervencion) return false;
 
         return $intervencion->update(['activo' => false]);
     }

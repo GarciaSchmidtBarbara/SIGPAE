@@ -10,6 +10,7 @@ interface IntervencionServiceInterface
     public function crear(array $data);
     public function actualizar(int $id, array $data): bool;
     public function eliminar(int $id): bool;
+    public function cambiarActivo(int $id): bool;
     public function obtenerTodos();
     public function buscar(int $id);
     public function obtenerTipos(): Collection;

@@ -131,10 +131,18 @@ class IntervencionController extends Controller
 
     public function eliminar(int $id)
     {
-        $this->service->eliminar($id);
+        $ok = $this->service->eliminar($id);
 
-        return redirect()
-            ->route('intervenciones.principal')
-            ->with('success', 'Intervención eliminada.');
+        return redirect()->route('intervenciones.principal')
+                        ->with($ok ? 'success' : 'error', $ok ? 'Intervención eliminada.' : 'No se pudo eliminar.');
     }
+
+    public function cambiarActivo(int $id)
+    {
+        $ok = $this->service->cambiarActivo($id);
+
+        return redirect()->route('intervenciones.principal')
+                        ->with($ok ? 'success' : 'error', $ok ? 'Intervención actualizada.' : 'No se pudo actualizar.');
+    }
+
 }
