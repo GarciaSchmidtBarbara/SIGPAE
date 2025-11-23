@@ -219,39 +219,26 @@ class AlumnoService implements AlumnoServiceInterface
     private function procesarRelaciones(Alumno $alumno, array $listaFamiliares)
     {
         foreach ($listaFamiliares as $datos) {
-            // DETECCIÓN DE TIPO (Tu lógica segura)
-            // Si tiene 'fk_id_persona' Y 'asiste_a_institucion' es true -> Es Hermano Alumno
-            // Si no, es Familiar Puro.
+            
             $esHermanoAlumno = !empty($datos['fk_id_persona']) && !empty($datos['asiste_a_institucion']);
 
             // Extraemos la observación para la tabla PIVOTE
             $observacionPivot = $datos['observaciones'] ?? null;
 
             if ($esHermanoAlumno) {
-                // --- CAMINO A: HERMANO ALUMNO ---
-                
-                // Buscamos el Alumno Hermano usando el ID de Persona que vino del buscador
-                $hermano = Alumno::where('fk_id_persona', $datos['fk_id_persona'])->first();
-                
-                // Validamos que exista y que no sea yo mismo
+                // 1. Buscamos al hermano
+                $hermano = $this->repo->buscarPorPersonaId($datos['fk_id_persona']);
+                // (O usá Alumno::where si no querés crear método en repo para esto solo)
+
                 if ($hermano && $hermano->id_alumno !== $alumno->id_alumno) {
                     
-                    // Vinculamos en tabla 'es_hermano_de'
-                    // syncWithoutDetaching evita duplicados si ya existía, y actualiza los datos pivot
-                    $alumno->hermanos()->syncWithoutDetaching([
-                        $hermano->id_alumno => [
-                            'observaciones' => $observacionPivot,
-                            'activa' => true
-                        ]
-                    ]);
-                    
-                    // Vinculación Inversa: Que el hermano también apunte al alumno.
-                    // Solo ponemos 'activa' => true. NO pasamos observaciones para no sobrescribir las suyas.
-                    $hermano->hermanos()->syncWithoutDetaching([
-                        $alumno->id_alumno => [
-                            'activa' => true
-                        ]
-                    ]);
+                    // 2. DELEGAMOS LA VINCULACIÓN AL REPOSITORIO
+                    // Le decimos: "Vinculá A con B de forma segura y guardá la observación"
+                    $this->repo->vincularHermanos(
+                        $alumno->id_alumno, 
+                        $hermano->id_alumno, 
+                        $observacionPivot
+                    );
                 }
 
             } else {
