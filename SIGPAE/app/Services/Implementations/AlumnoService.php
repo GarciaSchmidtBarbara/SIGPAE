@@ -219,7 +219,6 @@ class AlumnoService implements AlumnoServiceInterface
     private function procesarRelaciones(Alumno $alumno, array $listaFamiliares)
     {
         foreach ($listaFamiliares as $datos) {
-            
             // DETECCIÓN DE TIPO (Tu lógica segura)
             // Si tiene 'fk_id_persona' Y 'asiste_a_institucion' es true -> Es Hermano Alumno
             // Si no, es Familiar Puro.
@@ -242,12 +241,17 @@ class AlumnoService implements AlumnoServiceInterface
                     $alumno->hermanos()->syncWithoutDetaching([
                         $hermano->id_alumno => [
                             'observaciones' => $observacionPivot,
-                             // 'activa' => true (si tuvieras soft delete acá también)
+                            'activa' => true
                         ]
                     ]);
                     
-                    // Opcional: Vincular en la dirección inversa también si querés bidireccionalidad explícita en BBDD
-                    // $hermano->hermanos()->syncWithoutDetaching([$alumno->id_alumno ...]);
+                    // Vinculación Inversa: Que el hermano también apunte al alumno.
+                    // Solo ponemos 'activa' => true. NO pasamos observaciones para no sobrescribir las suyas.
+                    $hermano->hermanos()->syncWithoutDetaching([
+                        $alumno->id_alumno => [
+                            'activa' => true
+                        ]
+                    ]);
                 }
 
             } else {
