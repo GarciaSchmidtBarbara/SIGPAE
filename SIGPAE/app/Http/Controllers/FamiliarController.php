@@ -20,29 +20,6 @@ class FamiliarController extends Controller
         $this->familiarService = $familiarService;
     }
 
-    public function index(): JsonResponse
-    {
-        $familiares = $this->familiarService->getAllFamiliaresWithPersona();
-        return response()->json($familiares);
-    }
-
-    public function show(int $id): JsonResponse
-    {
-        $familiar = $this->familiarService->getFamiliarWithPersona($id); 
-        if (!$familiar) {
-            return response()->json(['message' => 'Familiar no encontrado'], 404);
-        }
-        return response()->json($familiar);
-    }
-
-    public function destroy(int $id): JsonResponse
-    {
-        if ($this->familiarService->deleteFamiliar($id)) {
-            return response()->json(null, 204);
-        }
-        return response()->json(['message' => 'Familiar no encontrado'], 404);
-    }
-
     public function crear()
     {
         // 1. Recuperamos la sesión
@@ -280,28 +257,4 @@ class FamiliarController extends Controller
 
         return response()->json(['valid' => true]);
     }
-
-    public function guardar(Request $request): JsonResponse
-    {
-        try {
-            $payload = $request->all();
-
-            $familiar = $this->familiarService->createFamiliar($payload);
-            return response()->json($familiar, 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-        }
-    }
-
-    public function actualizar(Request $request, int $id): JsonResponse
-    {
-        try {
-            $data = $request->all();
-            $familiar = $this->familiarService->updateFamiliar($id, $data);
-            return response()->json($familiar);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
-        }
-    }
-
 }
