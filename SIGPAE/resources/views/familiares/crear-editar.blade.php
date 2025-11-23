@@ -43,6 +43,10 @@
     },
     
     init() {
+        this.isFilled = false;
+
+        this.formData.asiste_a_institucion = !!this.formData.asiste_a_institucion;
+
         if (this.soloLectura) {
             this.isFilled = true;
         }
@@ -221,9 +225,14 @@
 
         <input type="hidden" name="indice" :value="editIndex">
         <input type="hidden" name="id_familiar" :value="formData.id_familiar">
-        <input type="hidden" name="fk_id_persona" :value="formData.fk_id_persona">
         <input type="hidden" name="curso" :value="formData.curso">
         <input type="hidden" name="division" :value="formData.division">
+        <input type="hidden" name="fk_id_persona" :value="formData.fk_id_persona">
+        <input type="hidden" name="asiste_a_institucion" :value="formData.asiste_a_institucion ? 1 : 0">
+
+        <div class="bg-yellow-200 p-2 mb-4">
+            DEBUG ID: <span x-text="formData.fk_id_persona"></span>
+        </div>
 
         <p class="separador">Relación</p>
         <div class="flex flex-wrap items-center gap-4 mt-2">
@@ -420,15 +429,13 @@
                     <button type="button" class="btn-aceptar" @click="search()">Buscar</button>
                 </div>
 
-                <input type="hidden" name="fk_id_persona" :value="selected?.persona?.id_persona || ''">
-                <input type="hidden" name="asiste_a_institucion" :value="selected ? 1 : 0">
-
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex flex-col">
                         <x-campo-requerido text="DNI" required />
                         <input 
+                            name="dni"
                             x-model="formData.dni"
-                            :disabled="isFilled || soloLectura"
+                            x-bind:disabled="isFilled || soloLectura"
                             placeholder="dni"
                             class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             @input="formData.dni = formData.dni.replace(/[^0-9]/g, '')"
@@ -440,19 +447,22 @@
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Nombre" required />
-                        <input x-model="formData.nombre" :disabled="isFilled || soloLectura" @input="formData.nombre = formData.nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        <input name="nombre" x-model="formData.nombre" x-bind:disabled="isFilled || soloLectura"
+                            @input="formData.nombre = formData.nombre.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="nombre_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <x-campo-requerido text="Apellido" required />
-                        <input x-model="formData.apellido" :disabled="isFilled || soloLectura" @input="formData.apellido = formData.apellido.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        <input name="apellido" x-model="formData.apellido" x-bind:disabled="isFilled || soloLectura"
+                            @input="formData.apellido = formData.apellido.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="apellido_hermano" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <div x-show="errors.apellido" x-text="errors.apellido" class="text-xs text-red-600 mt-1"></div>
                     </div>
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</label>
-                        <input x-model="formData.nacionalidad" :disabled="isFilled || soloLectura"  @input="formData.nacionalidad = formData.nacionalidad.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
+                        <input name="nacionalidad" x-model="formData.nacionalidad" x-bind:disabled="isFilled || soloLectura"
+                            @input="formData.nacionalidad = formData.nacionalidad.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"
                             placeholder="nacionalidad" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
@@ -460,8 +470,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex flex-col">
                         <label class="text-sm font-medium text-gray-700 mb-1">Domicilio</label>
-                        <input x-model="formData.domicilio" :disabled="isFilled || soloLectura" placeholder="domicilio" @input="formData.domicilio = formData.domicilio.replace(/[^a-zA-Z0-9\s]/g, '')"
-                            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input name="domicilio" x-model="formData.domicilio" x-bind:disabled="isFilled || soloLectura"
+                            @input="formData.domicilio = formData.domicilio.replace(/[^a-zA-Z0-9\s]/g, '')"
+                            placeholder="domicilio" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                     <x-campo-fecha-edad
                         label="Fec. Nacimiento"
@@ -531,28 +542,14 @@
                         </div>
                     </x-campo-fecha-edad>
                 </div>
-
-                <!-- Inputs hidden para asegurar que los datos se envíen aunque estén disabled -->
-                <template x-if="parentesco==='hermano'">
-                    <div>
-                        <input type="hidden" name="nombre" :value="formData.nombre">
-                        <input type="hidden" name="apellido" :value="formData.apellido">
-                        <input type="hidden" name="dni" :value="formData.dni">
-                        <input type="hidden" name="fecha_nacimiento" :value="formData.fecha_nacimiento">
-                        <input type="hidden" name="edad" :value="formData.edad">
-                        <input type="hidden" name="domicilio" :value="formData.domicilio">
-                        <input type="hidden" name="nacionalidad" :value="formData.nacionalidad">
-                    </div>
-                </template>
-
+                
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex items-center gap-2 col-span-2">
                         <input 
-                            id="asiste"
-                            name="asiste_a_institucion"
-                            type="checkbox"
-                            :checked="isFilled"
-                            :readonly="true"
+                            id="asiste" 
+                            name="asiste_a_institucion" 
+                            type="checkbox" 
+                            x-model="formData.asiste_a_institucion"
                             @click.prevent
                             class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-not-allowed"
                         >
