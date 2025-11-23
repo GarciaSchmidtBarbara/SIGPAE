@@ -8,6 +8,7 @@
     // NUEVOS PROPS: Permiten cambiar qué variable de Alpine usan los inputs
     'modelFecha' => 'fechaNacimiento', 
     'modelEdad' => 'edad',
+    'condicionReadonly' => 'false',
 ])
 
 <fieldset 
@@ -50,7 +51,8 @@
             type="date"
             name="{{ $name }}"
             {{-- USAMOS LA VARIABLE DINÁMICA --}}
-            x-model="{{ $modelFecha }}" 
+            x-model="{{ $modelFecha }}"
+            x-bind:readonly="{{ $condicionReadonly }}"
 
             {{-- Esto establece la fecha máxima a "HOY" usando JS --}}
             :max="new Date().toISOString().split('T')[0]"
@@ -60,7 +62,8 @@
                 @change="calcularEdad"
             @endif
 
-            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500
+                disabled:bg-gray-100 disabled:cursor-not-allowed read-only:bg-gray-100 read-only:cursor-not-allowed"
             {{ $required ? 'required' : '' }}
         >
         <div class="mt-1">
@@ -77,7 +80,8 @@
             {{-- USAMOS LA VARIABLE DINÁMICA --}}
             x-model="{{ $modelEdad }}"
             readonly
-            class="border px-2 py-1 rounded bg-gray-100 text-gray-700"
+            class="border px-2 py-1 rounded bg-gray-100 text-gray-700
+                disabled:bg-gray-100 disabled:cursor-not-allowed read-only:bg-gray-100 read-only:cursor-not-allowed"
         >
     </div>
 </fieldset>
