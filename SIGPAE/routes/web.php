@@ -76,9 +76,6 @@ Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])
 Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardarYVolver'])->name('familiares.guardarYVolver');
 Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
 
-Route::post('/alumnos/guardar', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
-Route::put('/alumnos/actualizar/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
-
 
 // Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;
