@@ -104,7 +104,7 @@ use App\Http\Controllers\IntervencionController;
 Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::get('/', [IntervencionController::class, 'vista'])->name('principal');
     Route::get('/crear', [IntervencionController::class, 'crear'])->name('crear');
-    Route::get('/{id}/editar', [IntervencionController::class, 'editar'])->name('editar');
+    Route::get('/{id}/editar', [IntervencionController::class, 'iniciarEdicion'])->name('editar');
     Route::post('/guardar', [IntervencionController::class, 'guardar'])->name('guardar');
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');

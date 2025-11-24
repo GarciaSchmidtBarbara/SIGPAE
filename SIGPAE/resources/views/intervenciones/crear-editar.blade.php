@@ -49,11 +49,6 @@
             ];
         });
 
-        $initialAlumnoId = $oldOr('alumno_seleccionado');
-        $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
-                            ? $alumnosJson[$initialAlumnoId]
-                            : null;
-
         $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
             $persona = $prof->persona;
             return [
@@ -124,19 +119,10 @@
     <div x-data="{
         tipoSeleccionado: '{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}',
         alumnoData: {{ $alumnosJson->toJson() }},
-        alumnoSeleccionadoInfo: @json($initialAlumnoInfo),
-        alumnoSeleccionadoId: '{{ $initialAlumnoId }}',
-        
-        seleccionarAlumno(id) {
-            // aseguramos consistencia: actualizar info y el id seleccionado
-            id = String(id || '');
-            this.alumnoSeleccionadoId = id;
-            this.alumnoSeleccionadoInfo = this.alumnoData[id] || null;
-        }
     }">
 
         <form method="POST" action="{{ $esEdicion 
-                ? route('intervenciones.actualizar', $intervencion->id_intervencion)
+                ? route('intervenciones.editar', $intervencion->id_intervencion)
                 : route('intervenciones.guardar') 
             }}">
             @csrf
@@ -209,7 +195,7 @@
 
                 {{-- DESTINATARIOS --}}
                 <div id="destinatarios" 
-                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" 
+                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })"> 
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
@@ -269,9 +255,6 @@
                                                     </svg>
                                                 </button>
                                             </td>
-
-                                            {{-- input hidden para enviar al backend---}}
-                                            <input type="hidden" name="alumnos[]" :value="al.id">
                                         </tr>
                                     </template>
 
@@ -480,9 +463,10 @@
     function datosPersonas({ alumnoData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
         return {
             // Alumnos
+            alumnoData: alumnoData || {},
+            alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
             alumnoSeleccionado: "",
             aulaSeleccionada: "",
-            alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
 
             // Profesionales
             profesionalSeleccionado: "",

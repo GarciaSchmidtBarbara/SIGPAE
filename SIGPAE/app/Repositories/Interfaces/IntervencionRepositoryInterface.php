@@ -12,7 +12,7 @@ interface IntervencionRepositoryInterface
     public function buscarPorId (int $id): ?Intervencion;
     public function filtrar (array $filters = []);
     public function crear (array $data): Intervencion;
-    public function actualizar (int $id, array $data): bool;
+    public function editar (int $id, array $data): bool;
     public function eliminar (int $id): bool;
     public function cambiarActivo (int $id): bool;
     public function obtenerAulasParaFiltro(): Collection;

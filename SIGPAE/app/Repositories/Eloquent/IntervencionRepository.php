@@ -130,7 +130,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         return $intervencion;
     }
 
-    public function actualizar(int $id, array $data): bool
+    public function editar(int $id, array $data): bool
     {
         $intervencion = $this->buscarPorId($id);
 

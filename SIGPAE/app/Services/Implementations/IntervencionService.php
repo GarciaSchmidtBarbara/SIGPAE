@@ -47,11 +47,11 @@ class IntervencionService implements IntervencionServiceInterface
         }
     }
 
-    public function actualizar(int $id, array $data): bool
+    public function editar(int $id, array $data): bool
     {
         DB::beginTransaction();
         try {
-            $ok = $this->repo->actualizar($id, $data);
+            $ok = $this->repo->editar($id, $data);
 
             if (!$ok) {
                 throw new Exception('Intervención no encontrada.');
