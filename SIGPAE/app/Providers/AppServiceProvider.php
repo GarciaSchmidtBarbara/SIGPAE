@@ -33,6 +33,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
 // Models
 use App\Models\Profesional; 
+//Intervencion
+use App\Services\Interfaces\IntervencionServiceInterface;
+use App\Services\Implementations\IntervencionService;
+use App\Repositories\Interfaces\IntervencionRepositoryInterface;
+use App\Repositories\Eloquent\IntervencionRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -45,6 +50,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FamiliarRepositoryInterface::class, FamiliarRepository::class);
         $this->app->bind(PersonaRepositoryInterface::class, PersonaRepository::class);
         $this->app->bind(ProfesionalRepositoryInterface::class, ProfesionalRepository::class);
+        $this->app->bind(IntervencionRepositoryInterface::class,IntervencionRepository::class
+    );
         $this->app->bind(PlanDeAccionRepositoryInterface::class, PlanDeAccionRepository::class);
 
         // Services
@@ -52,6 +59,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FamiliarServiceInterface::class, FamiliarService::class);
         $this->app->bind(PersonaServiceInterface::class, PersonaService::class);
         $this->app->bind(ProfesionalServiceInterface::class, ProfesionalService::class);
+        $this->app->bind(IntervencionServiceInterface::class,IntervencionService::class
+    );
         $this->app->bind(PlanDeAccionServiceInterface::class, PlanDeAccionService::class);
     }
 

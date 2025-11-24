@@ -21,22 +21,20 @@ return new class extends Migration
             $table->text('compromisos')->nullable();
             $table->text('observaciones')->nullable();
             $table->boolean('activo')->default(true);
+            $table->enum('tipo_intervencion', ['ESPONTANEA', 'PROGRAMADA']);
             $table->timestamps();
-            
-            //revisado
-            $table->foreignId('fk_id_profesional_genera')
+
+            $table->foreignId('fk_id_profesional_generador')
                   ->constrained('profesionales', 'id_profesional')
                   ->onUpdate('cascade')
                   ->onDelete('set null');
             
-            //revisado
             $table->foreignId('fk_id_plan_de_accion')
                   ->nullable()
                   ->constrained('planes_de_accion', 'id_plan_de_accion')
                   ->onUpdate('cascade') 
                   ->onDelete('restrict');
 
-            //revisado
             $table->foreignId('fk_id_evaluacion_intervencion_espontanea')
                   ->nullable()
                   ->constrained('evaluaciones_intervenciones_espontaneas', 'id_evaluacion_intervencion_espontanea')
