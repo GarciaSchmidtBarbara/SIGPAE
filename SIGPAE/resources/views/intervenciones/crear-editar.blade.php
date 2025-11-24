@@ -157,7 +157,7 @@
                     <p class="separador">Datos de la intervención</p>
 
                     {{-- Selector de plan--}}
-                    <div class="selector-box" w-1/3>">
+                    <div class="selector-box" w-1/3">
                         <label class="text-sm font-medium">Seleccionar Plan de Acción</label>
                         <select name="fk_id_plan_de_accion" x-model="planSeleccionado" @change="seleccionarPlan()" class="border px-2 py-1 rounded w-full">
                             <option value="">-- Seleccionar plan --</option>
@@ -378,19 +378,29 @@
                     @endphp
 
                     @if($esEdicion)
-                        <p class="font-semibold text-gray-700">
-                            {{ $seleccionTipo }}
-                        </p>
-                        {{-- En edición incluimos el tipo en un input hidden para que el back valide correctamente --}}
+                        <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
                         <input type="hidden" name="modalidad" value="{{ $seleccionTipo }}">
                     @else
-                        <x-opcion-unica
-                            :items="$tipoItems"
-                            name="modalidad"
-                            layout="horizontal"
-                            :seleccionTipo="$seleccionTipo"
-                            x-model="modalidadSeleccionada"
-                        />
+                        <div id="modalidad" x-data="{ modalidadSeleccionada: '{{ old('modalidad', $seleccionTipo) }}' }" x-show="true">
+                            <div class="flex items-center space-x-4">
+                                <x-opcion-unica
+                                    :items="$tipoItems"
+                                    name="modalidad"
+                                    layout="horizontal"
+                                    :seleccionTipo="$seleccionTipo"
+                                    x-model="modalidadSeleccionada"
+                                />
+
+                                <template x-if="modalidadSeleccionada === 'OTRA'">
+                                    <input
+                                        name="otra_modalidad"
+                                        value="{{ old('otra_modalidad') }}"
+                                        placeholder="Especificar"
+                                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 w-1/3"
+                                    >
+                                </template>
+                            </div>
+                        </div>
                     @endif
                 </div>
 
