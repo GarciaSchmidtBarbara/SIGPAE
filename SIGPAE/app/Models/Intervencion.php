@@ -29,7 +29,7 @@ class Intervencion extends Model
         'activo',
         'tipo_intervencion',
         'fk_id_plan_de_accion',
-        'fk_id_profesional_genera',
+        'fk_id_profesional_generador',
         'fk_id_evaluacion_intervencion_espontanea',
     ];
 
@@ -51,7 +51,7 @@ class Intervencion extends Model
     }
 
     public function profesionalGenerador(): BelongsTo {
-        return $this->belongsTo(Profesional::class, 'fk_id_profesional_genera', 'id_profesional');
+        return $this->belongsTo(Profesional::class, 'fk_id_profesional_generador', 'id_profesional');
     }
     public function profesionales(): BelongsToMany {
         return $this->belongsToMany(Profesional::class, 'reune', 'fk_id_intervencion', 'fk_id_profesional');

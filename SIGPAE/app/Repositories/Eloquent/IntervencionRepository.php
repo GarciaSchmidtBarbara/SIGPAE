@@ -3,9 +3,10 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Intervencion;
+use App\Models\Aula;
 use App\Repositories\Interfaces\IntervencionRepositoryInterface;
 use Illuminate\Support\Collection;
-use App\Models\Aula;
+
 
 class IntervencionRepository implements IntervencionRepositoryInterface
 {
@@ -77,7 +78,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         $tipo = strtoupper($data['tipo_intervencion'] ?? '');
 
         // 1. Crear la intervencion base
-        $intervencion = $this->model->create([
+        $intervencion = Intervencion::create([
             'fecha_hora_intervencion' => $data['fecha_hora_intervencion'],
             'lugar' => $data['lugar'] ?? null, 
             'modalidad' => $data['modalidad'] ?? null,
@@ -87,7 +88,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
             'observaciones' => $data['observaciones'] ?? null,
             'activo' => true,
             'tipo_intervencion' => $tipo,
-            'fk_id_profesional_genera' => $data['fk_id_profesional_genera'],
+            'fk_id_profesional_generador' => $data['fk_id_profesional_generador'],
         ]);
 
         // 2. ASOCIACIONES SEGÚN TIPO DE INTERVENCIÓN

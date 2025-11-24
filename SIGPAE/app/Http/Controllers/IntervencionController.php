@@ -13,6 +13,7 @@ use App\Models\Intervencion;
 use App\Models\Alumno;
 use App\Models\Profesional;
 use App\Models\Aula;
+use App\Models\PlanDeAccion;
 
 
 class IntervencionController extends Controller
@@ -24,58 +25,62 @@ class IntervencionController extends Controller
     }
 
    public function vista(Request $request)
-{
-    $filters = [
-        'tipo_intervencion' => $request->input('tipo_intervencion'),
-        'nombre'            => $request->input('nombre'),
-        'aula_id'           => $request->input('aula_id'),
-        'fecha_desde'       => $request->input('fecha_desde'),
-        'fecha_hasta'       => $request->input('fecha_hasta'),
-    ];
-
-    $intervencionesRaw = $this->service->obtenerIntervenciones($filters);
-    $tiposIntervencion = $this->service->obtenerTipos(); 
-    $cursos = $this->service->obtenerAulasParaFiltro();
-
-    $intervenciones = $intervencionesRaw->map(function ($intervencion) {
-        $alumnos = $intervencion->alumnos->map(function ($alumno) {
-            $persona = $alumno->persona;
-            return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-        })->implode(', ');
-
-        $profesional = $intervencion->profesionalGenerador?->persona;
-
-        $profesionalesReune = $intervencion->profesionales->map(function ($profesional) {
-            $persona = $profesional->persona;
-            return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-        });
-
-        $otrosProfesionales = $intervencion->otros_asistentes_i->map(function ($asistente) {
-            $profesional = $asistente->profesional;
-            $persona = $profesional?->persona;
-            return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-        });
-
-        $todosProfesionales = $profesionalesReune
-            ->merge($otrosProfesionales)
-            ->merge($profesional ? collect([$profesional->nombre . ' ' . $profesional->apellido]) : collect())
-            ->unique()
-            ->implode(', ');
-
-        return [
-            'id_intervencion' => $intervencion->id_intervencion,
-            'fecha_hora_intervencion' => $intervencion->fecha_hora_intervencion
-                ? Carbon::parse($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i')
-                : 'Sin fecha',
-            'tipo_intervencion' => $intervencion->tipo_intervencion,
-            'alumnos' => $alumnos ?: 'Sin alumnos',
-            'profesionales' => $todosProfesionales ?: 'Sin participantes',
-            'activo' => $intervencion->activo,
+    {
+        $filters = [
+            'tipo_intervencion' => $request->input('tipo_intervencion'),
+            'nombre'            => $request->input('nombre'),
+            'aula_id'           => $request->input('aula_id'),
+            'fecha_desde'       => $request->input('fecha_desde'),
+            'fecha_hasta'       => $request->input('fecha_hasta'),
         ];
-    });
 
-    return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'cursos'));
-}
+        $intervencionesRaw = $this->service->obtenerIntervenciones($filters);
+        $tiposIntervencion = $this->service->obtenerTipos(); 
+        $cursos = $this->service->obtenerAulasParaFiltro();
+
+        $intervenciones = $intervencionesRaw->map(function ($intervencion) {
+            $alumnos = $intervencion->alumnos->map(function ($alumno) {
+                $persona = $alumno->persona;
+                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
+            })->implode(', ');
+
+            $profesionalesReune = $intervencion->profesionales->map(function ($profesional) {
+                $persona = $profesional->persona;
+                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
+            });
+
+            $otrosProfesionales = $intervencion->otros_asistentes_i->map(function ($asistente) {
+                $profesional = $asistente->profesional;
+                $persona = $profesional?->persona;
+                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
+            });
+
+            $profesionalGenerador = $intervencion->profesionalGenerador?->persona;
+            $profGeneradorString = $profesionalGenerador
+                ? ($profesionalGenerador->nombre . ' ' . $profesionalGenerador->apellido)
+                : null;
+
+            $todosProfesionales = collect()
+                ->merge($profesionalesReune)
+                ->merge($otrosProfesionales)
+                ->when($profGeneradorString, fn($c) => $c->push($profGeneradorString))
+                ->unique()
+                ->implode(', ');
+
+            return [
+                'id_intervencion' => $intervencion->id_intervencion,
+                'fecha_hora_intervencion' => $intervencion->fecha_hora_intervencion
+                    ? Carbon::parse($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i')
+                    : 'Sin fecha',
+                'tipo_intervencion' => $intervencion->tipo_intervencion,
+                'alumnos' => $alumnos ?: 'Sin alumnos',
+                'profesionales' => $todosProfesionales ?: 'Sin participantes',
+                'activo' => $intervencion->activo,
+            ];
+        });
+
+        return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'cursos'));
+    }
 
 
     public function crear()
@@ -83,17 +88,24 @@ class IntervencionController extends Controller
         $alumnos = Alumno::with('persona', 'aula')->get();
         $profesionales = Profesional::with('persona')->get();
         $aulas = Aula::all();
+        $planes = PlanDeAccion::all();
 
         return view('intervenciones.crear-editar', [
             'modo' => 'crear',
             'alumnos' => $alumnos,
             'profesionales' => $profesionales,
             'aulas' => $aulas,
+            'planes' => $planes,
         ]);
     }
 
     public function guardar(Request $request)
     {
+        // 1. Asegurar que el ID del generador esté en el Request (siempre antes de la validación)
+        $request->merge([
+            'fk_id_profesional_generador' => auth()->user()->id_profesional ?? auth()->id(),
+        ]);
+
         $data = $request->validate([
             'fecha_hora_intervencion' => 'required|date',
             'lugar' => 'required|string|max:255',
@@ -103,6 +115,10 @@ class IntervencionController extends Controller
             'compromisos' => 'nullable|string',
             'observaciones' => 'nullable|string',
             'activo' => 'boolean',
+            'tipo_intervencion' => 'required|string',
+            'fk_id_profesional_generador' => 'required|integer|exists:profesionales,id_profesional',
+            'plan_de_accion' => 'nullable|integer|exists:plan_de_accion,id_plan_de_accion',
+    
         ]);
 
         try {
@@ -133,14 +149,6 @@ class IntervencionController extends Controller
                 'nombre' => $persona->nombre,
                 'apellido' => $persona->apellido,
                 'dni' => $persona->dni,
-                'fecha_nacimiento' => $persona->fecha_nacimiento
-                    ? Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
-                    : 'N/A',
-                'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-                'domicilio' => $persona->domicilio ?? 'N/A',
-                'edad' => $persona->fecha_nacimiento
-                    ? Carbon::parse($persona->fecha_nacimiento)->age
-                    : 'N/A',
                 'curso'   => $al->aula?->descripcion,
                 'aula_id' => $al->fk_id_aula,
             ];
@@ -197,6 +205,7 @@ class IntervencionController extends Controller
         $alumnos = Alumno::with('persona', 'aula')->get();
         $profesionales = Profesional::with('persona')->get();
         $aulas = Aula::all();
+        $planes = PlanDeAccion::all();
 
         return view('intervenciones.crear-editar', [
             'modo' => 'editar',
@@ -207,6 +216,7 @@ class IntervencionController extends Controller
             'alumnos' => $alumnos,
             'aulas' => $aulas,
             'profesionales' => $profesionales,
+            'planes' => $planes,
             'alumnosJson' => $alumnosJson,
             'initialAlumnoId' => $initialAlumnoId,
             'initialAlumnoInfo' => $initialAlumnoInfo,

@@ -24,7 +24,7 @@ return new class extends Migration
             $table->enum('tipo_intervencion', ['ESPONTANEA', 'PROGRAMADA']);
             $table->timestamps();
 
-            $table->foreignId('fk_id_profesional_genera')
+            $table->foreignId('fk_id_profesional_generador')
                   ->constrained('profesionales', 'id_profesional')
                   ->onUpdate('cascade')
                   ->onDelete('set null');

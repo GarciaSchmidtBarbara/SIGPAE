@@ -82,7 +82,7 @@
         });
     }
 
-    //Profesional generador para mostrar en la vista
+    // Profesional generador para mostrar en la vista
     $profesionalGenerador = null;
     if ($esEdicion && isset($intervencion->profesionalGenerador) && $intervencion->profesionalGenerador?->persona) {
         $pg = $intervencion->profesionalGenerador;
@@ -123,7 +123,7 @@
     {{-- Alpine para controlar secciones por tipo --}}
     <div x-data="{
         tipoSeleccionado: '{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}',
-        alumnosData: {{ $alumnosJson->toJson() }},
+        alumnoData: {{ $alumnosJson->toJson() }},
         alumnoSeleccionadoInfo: @json($initialAlumnoInfo),
         alumnoSeleccionadoId: '{{ $initialAlumnoId }}',
         
@@ -131,7 +131,7 @@
             // aseguramos consistencia: actualizar info y el id seleccionado
             id = String(id || '');
             this.alumnoSeleccionadoId = id;
-            this.alumnoSeleccionadoInfo = this.alumnosData[id] || null;
+            this.alumnoSeleccionadoInfo = this.alumnoData[id] || null;
         }
     }">
 
@@ -147,30 +147,60 @@
             @endif
 
             {{-- Asegurar que el generador queda presente (fallback al usuario autenticado) --}}
-            <input type="hidden" name="fk_id_profesional_generador" value="{{ old('fk_id_profesional_generador', auth()->user()->id_profesional ?? auth()->id()) }}">
+            <input type="hidden" name="fk_id_profesional_generador" 
+                value="{{ old('fk_id_profesional_generador', auth()->user()->id_profesional ?? auth()->id()) }}">
+
 
             <fieldset {{ $cerrado ? 'disabled' : '' }}>
-                {{-- TIPO --}}
+                {{-- DATOS DE LA INTERVENCION --}}
                 <div class="space-y-6 mb-6">
                     <p class="separador">Datos de la intervención</p>
 
+                    {{-- Selector de plan--}}
+                    <div class="selector-box" w-1/3>">
+                        <label class="text-sm font-medium">Seleccionar Plan de Acción</label>
+                        <select name="fk_id_plan_de_accion" x-model="planSeleccionado" @change="seleccionarPlan()" class="border px-2 py-1 rounded w-full">
+                            <option value="">-- Seleccionar plan --</option>
+                            @foreach($planes as $plan)
+                                <option value="{{ $plan->id_plan }}" {{ old('fk_id_plan_de_accion', $esEdicion ? $intervencion->fk_id_plan_de_accion : '') == $plan->id_plan ? 'selected' : '' }}>
+                                    {{ $plan->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    {{-- Fecha, hora y lugar --}}
+                    <div class="flex space-x-4">
+                        <div class="flex flex-col w-1/4">
+                            <x-campo-requerido text="Fecha" required />
+                            <input type="date" name="fecha_hora_intervencion" value="{{ old('fecha_hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('Y-m-d') : '') }}" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="flex flex-col w-1/4">
+                            <x-campo-requerido text="Hora" required />
+                            <input type="time" name="hora_intervencion" value="{{ old('hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('H:i') : '') }}" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+
+                        <div class="flex flex-col w-1/3">
+                            <x-campo-requerido text="Lugar" required />
+                            <input name="lugar" value="{{ old('lugar', $esEdicion ? $intervencion->lugar : '') }}" placeholder="Lugar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
                     @php
                         $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
-                        $seleccion = old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '');
+                        $seleccionTipo = old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '');
                     @endphp
 
                     @if($esEdicion)
-                        <p class="font-semibold text-gray-700">
-                            {{ $seleccion }}
-                        </p>
-                        {{-- En edición incluimos el tipo en un input hidden para que el back valide correctamente --}}
-                        <input type="hidden" name="tipo_intervencion" value="{{ $seleccion }}">
+                        <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
+                        <input type="hidden" name="tipo_intervencion" value="{{ $seleccionTipo }}">
                     @else
                         <x-opcion-unica
                             :items="$tipoItems"
                             name="tipo_intervencion"
                             layout="horizontal"
-                            :seleccion="$seleccion"
+                            :seleccionTipo="$seleccionTipo"
                             x-model="tipoSeleccionado"
                         />
                     @endif
@@ -179,7 +209,7 @@
 
                 {{-- DESTINATARIOS --}}
                 <div id="destinatarios" 
-                x-data="datosPersonas({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" 
+                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" 
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
@@ -344,21 +374,21 @@
 
                     @php
                         $tipoItems = array_map(fn($t) => $t->value, \App\Enums\Modalidad::cases());
-                        $seleccion = old('modalidad', $esEdicion ? ($intervencion->modalidad->value ?? '') : '');
+                        $seleccionTipo = old('modalidad', $esEdicion ? ($intervencion->modalidad->value ?? '') : '');
                     @endphp
 
                     @if($esEdicion)
                         <p class="font-semibold text-gray-700">
-                            {{ $seleccion }}
+                            {{ $seleccionTipo }}
                         </p>
                         {{-- En edición incluimos el tipo en un input hidden para que el back valide correctamente --}}
-                        <input type="hidden" name="modalidad" value="{{ $seleccion }}">
+                        <input type="hidden" name="modalidad" value="{{ $seleccionTipo }}">
                     @else
                         <x-opcion-unica
                             :items="$tipoItems"
                             name="modalidad"
                             layout="horizontal"
-                            :seleccion="$seleccion"
+                            :seleccionTipo="$seleccionTipo"
                             x-model="modalidadSeleccionada"
                         />
                     @endif
@@ -370,14 +400,14 @@
 
                     <div class="block text-sm font-medium text-gray-700">
                         <x-campo-requerido text="Objetivos" required />
-                        <textarea name="temasTratados" rows="3"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('temasTratados', $esEdicion ? ($intervencion->temasTratados ?? '') : '') }}</textarea>
+                        <textarea name="temas_tratados" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('temas_tratados', $esEdicion ? ($intervencion->temas_tratados ?? '') : '') }}</textarea>
                     </div>
 
                     <div class="block text-sm font-medium text-gray-700">
                         <x-campo-requerido text="Compromisos asumidos" required />
-                        <textarea name="compromisosAsumidos" rows="3"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('compromisosAsumidos', $esEdicion ? ($intervencion->compromisosAsumidos ?? '') : '') }}</textarea>
+                        <textarea name="compromisos_asumidos" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('compromisos_asumidos', $esEdicion ? ($intervencion->compromisos_asumidos ?? '') : '') }}</textarea>
                     </div>
 
                     <div class="block text-sm font-medium text-gray-700">
@@ -437,7 +467,7 @@
 </div>
 
 <script>
-    function datosPersonas({ alumnosData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
+    function datosPersonas({ alumnoData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
         return {
             // Alumnos
             alumnoSeleccionado: "",
@@ -453,11 +483,11 @@
                 if (!this.alumnoSeleccionado || this.alumnoSeleccionado === "") return;
 
                 let id = parseInt(this.alumnoSeleccionado);
-                if (!alumnosData[id]) return;
+                if (!alumnoData[id]) return;
 
                 // Evitar duplicados
                 if (!this.alumnosSeleccionados.find(a => a.id === id)) {
-                    this.alumnosSeleccionados.push(alumnosData[id]);
+                    this.alumnosSeleccionados.push(alumnoData[id]);
                 }
                 this.alumnoSeleccionado = ""; // reseteo
             },
@@ -468,7 +498,7 @@
                 // Buscar alumnos por aula
                 let aulaId = parseInt(this.aulaSeleccionada);
 
-                let alumnos = Object.values(alumnosData)
+                let alumnos = Object.values(alumnoData)
                     .filter(a => a.aula_id == aulaId);
 
                 alumnos.forEach(a => {
@@ -500,15 +530,15 @@
             }
         };
     }
-    function planIndividual({ alumnosData, alumnosIniciales, initialAlumnoId = null }) {
+    function planIndividual({ alumnoData, alumnosIniciales, initialAlumnoId = null }) {
         return {
-            alumnosData,
+            alumnoData,
             alumnoSeleccionadoId: initialAlumnoId,
-            alumnoSeleccionadoInfo: initialAlumnoId ? alumnosData[initialAlumnoId] : null,
+            alumnoSeleccionadoInfo: initialAlumnoId ? alumnoData[initialAlumnoId] : null,
 
             seleccionarAlumno(id) {
                 this.alumnoSeleccionadoId = id;
-                this.alumnoSeleccionadoInfo = this.alumnosData[id] ?? null;
+                this.alumnoSeleccionadoInfo = this.alumnoData[id] ?? null;
             }
         }
     }

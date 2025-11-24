@@ -28,7 +28,7 @@ class IntervencionFactory extends Factory
             'observaciones' => $this->faker->optional()->sentence(),
             'activo' => $this->faker->boolean(90),
             'tipo_intervencion' => $tipo,
-            'fk_id_profesional_genera' => Profesional::inRandomOrder()->first()->id_profesional,
+            'fk_id_profesional_generador' => Profesional::inRandomOrder()->first()->id_profesional,
             'fk_id_plan_de_accion' => $tipo === 'PROGRAMADA'
                 ? PlanDeAccion::inRandomOrder()->first()->id_plan_de_accion
                 : null,
