@@ -150,24 +150,10 @@
             <input type="hidden" name="fk_id_profesional_generador" 
                 value="{{ old('fk_id_profesional_generador', auth()->user()->id_profesional ?? auth()->id()) }}">
 
-
             <fieldset {{ $cerrado ? 'disabled' : '' }}>
                 {{-- DATOS DE LA INTERVENCION --}}
                 <div class="space-y-6 mb-6">
                     <p class="separador">Datos de la intervención</p>
-
-                    {{-- Selector de plan--}}
-                    <div class="selector-box" w-1/3">
-                        <label class="text-sm font-medium">Seleccionar Plan de Acción</label>
-                        <select name="fk_id_plan_de_accion" x-model="planSeleccionado" @change="seleccionarPlan()" class="border px-2 py-1 rounded w-full">
-                            <option value="">-- Seleccionar plan --</option>
-                            @foreach($planes as $plan)
-                                <option value="{{ $plan->id_plan }}" {{ old('fk_id_plan_de_accion', $esEdicion ? $intervencion->fk_id_plan_de_accion : '') == $plan->id_plan ? 'selected' : '' }}>
-                                    {{ $plan->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
                     
                     {{-- Fecha, hora y lugar --}}
                     <div class="flex space-x-4">
@@ -187,23 +173,37 @@
                         </div>
                     </div>
 
-                    @php
-                        $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
-                        $seleccionTipo = old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '');
-                    @endphp
+                    <div class="flex space-x-4">
+                        {{-- Selector de plan--}}
+                        <div class="selector-box" style="width: 50%;">
+                            <label class="text-sm font-medium">Seleccionar Plan de Acción</label>
+                            <select name="fk_id_plan_de_accion" x-model="planSeleccionado" @change="seleccionarPlan()" class="border px-2 py-1 rounded w-full">
+                                <option value="">-- Seleccionar plan --</option>
+                                @foreach($planes as $plan)
+                                    <option value="{{ $plan->id_plan_de_accion }}" {{ old('fk_id_plan_de_accion', $esEdicion ? $intervencion->fk_id_plan_de_accion : '') == $plan->id_plan_de_accion ? 'selected' : '' }}>
+                                        {{ $plan->descripcion }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @php
+                            $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
+                            $seleccionTipo = old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '');
+                        @endphp
 
-                    @if($esEdicion)
-                        <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
-                        <input type="hidden" name="tipo_intervencion" value="{{ $seleccionTipo }}">
-                    @else
-                        <x-opcion-unica
-                            :items="$tipoItems"
-                            name="tipo_intervencion"
-                            layout="horizontal"
-                            :seleccionTipo="$seleccionTipo"
-                            x-model="tipoSeleccionado"
-                        />
-                    @endif
+                        @if($esEdicion)
+                            <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
+                            <input type="hidden" name="tipo_intervencion" value="{{ $seleccionTipo }}">
+                        @else
+                            <x-opcion-unica
+                                :items="$tipoItems"
+                                name="tipo_intervencion"
+                                layout="horizontal"
+                                :seleccionTipo="$seleccionTipo"
+                                x-model="tipoSeleccionado"
+                            />
+                        @endif
+                    </div>
                 </div>
 
 
@@ -540,19 +540,6 @@
             }
         };
     }
-    function planIndividual({ alumnoData, alumnosIniciales, initialAlumnoId = null }) {
-        return {
-            alumnoData,
-            alumnoSeleccionadoId: initialAlumnoId,
-            alumnoSeleccionadoInfo: initialAlumnoId ? alumnoData[initialAlumnoId] : null,
-
-            seleccionarAlumno(id) {
-                this.alumnoSeleccionadoId = id;
-                this.alumnoSeleccionadoInfo = this.alumnoData[id] ?? null;
-            }
-        }
-    }
-
 </script>
 
 
