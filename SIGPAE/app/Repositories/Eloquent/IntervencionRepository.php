@@ -72,11 +72,55 @@ class IntervencionRepository implements IntervencionRepositoryInterface
                     ->get();
     }
 
-
-
     public function crear(array $data): Intervencion
     {
-        return Intervencion::create($data);
+        $tipo = strtoupper($data['tipo_intervencion'] ?? '');
+
+        // 1. Crear la intervencion base
+        $intervencion = $this->model->create([
+            'fecha_hora_intervencion' => $data['fecha_hora_intervencion'],
+            'lugar' => $data['lugar'] ?? null, 
+            'modalidad' => $data['modalidad'] ?? null,
+            'otra_modalidad' => $data['otra_modalidad'] ?? null,
+            'temas_tratados' => $data['temas_tratados'] ?? null,
+            'compromisos' => $data['compromisos'] ?? null,
+            'observaciones' => $data['observaciones'] ?? null,
+            'activo' => true,
+            'tipo_intervencion' => $tipo,
+            'fk_id_profesional_genera' => $data['fk_id_profesional_genera'],
+        ]);
+
+        // 2. ASOCIACIONES SEGÚN TIPO DE INTERVENCIÓN
+
+        //Si es programada tiene un plan de accion asociado
+        if ($tipo === 'PROGRAMADA' && !empty($data['plan_de_accion'])) {
+            $intervencion->fk_id_plan_de_accion = (int) $data['plan_de_accion'];
+            $intervencion->save();
+        }
+
+        //alumnos destinatarios
+        if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
+            $intervencion->alumnos()->sync(array_map('intval', $data['alumnos']));
+        }
+
+        //aulas destinatarias
+        if (!empty($data['aulas']) && is_array($data['aulas'])) {
+            $intervencion->aulas()->sync(array_map('intval', $data['aulas']));
+        }
+
+        //profesionales participantes
+        if (!empty($data['profesionales']) && is_array($data['profesionales'])) {
+            $intervencion->profesionales()->sync(array_map('intval', $data['profesionales']));
+        }
+
+        //otros asistentes
+        if (!empty($data['otros_asistentes_i'])) {
+            $intervencion->otros_asistentes_i()->createMany(
+                collect($data['otros_asistentes_i'])->map(fn($id) => ['fk_id_profesional' => (int) $id])->toArray()
+            );
+        }
+
+        return $intervencion;
     }
 
     public function actualizar(int $id, array $data): bool

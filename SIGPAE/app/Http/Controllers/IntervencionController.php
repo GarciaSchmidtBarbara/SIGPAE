@@ -10,6 +10,9 @@ use Carbon\Carbon;
 use App\Services\Interfaces\IntervencionServiceInterface;
 
 use App\Models\Intervencion;
+use App\Models\Alumno;
+use App\Models\Profesional;
+use App\Models\Aula;
 
 
 class IntervencionController extends Controller
@@ -77,7 +80,16 @@ class IntervencionController extends Controller
 
     public function crear()
     {
-        return view('intervenciones.crear-editar');
+        $alumnos = Alumno::with('persona', 'aula')->get();
+        $profesionales = Profesional::with('persona')->get();
+        $aulas = Aula::all();
+
+        return view('intervenciones.crear-editar', [
+            'modo' => 'crear',
+            'alumnos' => $alumnos,
+            'profesionales' => $profesionales,
+            'aulas' => $aulas,
+        ]);
     }
 
     public function guardar(Request $request)
@@ -103,15 +115,124 @@ class IntervencionController extends Controller
         }
     }
 
+    public function iniciarEdicion(int $id): View
+    {
+        $intervencion = $this->service->buscar($id);
+
+        if (!$intervencion) {
+            return redirect()
+                ->route('intervenciones.principal')
+                ->with('error', 'Intervención no encontrada.');
+        }
+
+        // === Alumnos seleccionados con datos completos para Alpine ===
+        $alumnosSeleccionados = $intervencion->alumnos->map(function ($al) {
+            $persona = $al->persona;
+            return [
+                'id' => $al->id_alumno,
+                'nombre' => $persona->nombre,
+                'apellido' => $persona->apellido,
+                'dni' => $persona->dni,
+                'fecha_nacimiento' => $persona->fecha_nacimiento
+                    ? Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
+                    : 'N/A',
+                'nacionalidad' => $persona->nacionalidad ?? 'N/A',
+                'domicilio' => $persona->domicilio ?? 'N/A',
+                'edad' => $persona->fecha_nacimiento
+                    ? Carbon::parse($persona->fecha_nacimiento)->age
+                    : 'N/A',
+                'curso'   => $al->aula?->descripcion,
+                'aula_id' => $al->fk_id_aula,
+            ];
+        })->toArray();
+
+        // Profesionales participantes
+        $profesionalesSeleccionados = $intervencion->profesionales->map(function ($prof) {
+            $persona = $prof->persona;
+            return [
+                'id' => $prof->id_profesional,
+                'nombre' => $persona->nombre ?? null,
+                'apellido' => $persona->apellido ?? null,
+                'profesion' => $prof->profesion ?? 'N/A',
+            ];
+        })->toArray();
+
+        // Aulas seleccionadas
+        $aulasSeleccionadas = $intervencion->aulas->pluck('id_aula')->toArray();
+
+        // Alumno individual (si aplica)
+        $initialAlumnoId = null;
+        $initialAlumnoInfo = null;
+        if ($intervencion->tipo_intervencion === 'INDIVIDUAL') {
+            $alumno = $intervencion->alumnos->first();
+            if ($alumno) {
+                $initialAlumnoId = $alumno->id_alumno;
+                $initialAlumnoInfo = [
+                    'id' => $alumno->id_alumno,
+                    'nombre' => $alumno->persona->nombre,
+                    'apellido' => $alumno->persona->apellido,
+                    'dni' => $alumno->persona->dni,
+                    'curso' => $alumno->aula?->descripcion,
+                    'aula_id' => $alumno->fk_id_aula,
+                ];
+            }
+        }
+
+        // Mapping completo de alumnos para Alpine
+        $alumnosJson = $intervencion->alumnos->mapWithKeys(function ($al) {
+            $persona = $al->persona;
+            return [
+                $al->id_alumno => [
+                    'id' => $al->id_alumno,
+                    'nombre' => $persona->nombre,
+                    'apellido' => $persona->apellido,
+                    'dni' => $persona->dni,
+                    'curso' => $al->aula?->descripcion,
+                    'aula_id' => $al->fk_id_aula,
+                ]
+            ];
+        });
+
+        // Colecciones completas para selects
+        $alumnos = Alumno::with('persona', 'aula')->get();
+        $profesionales = Profesional::with('persona')->get();
+        $aulas = Aula::all();
+
+        return view('intervenciones.crear-editar', [
+            'modo' => 'editar',
+            'intervencion' => $intervencion,
+            'alumnosSeleccionados' => $alumnosSeleccionados,
+            'profesionalesSeleccionados' => $profesionalesSeleccionados,
+            'aulasSeleccionadas' => $aulasSeleccionadas,
+            'alumnos' => $alumnos,
+            'aulas' => $aulas,
+            'profesionales' => $profesionales,
+            'alumnosJson' => $alumnosJson,
+            'initialAlumnoId' => $initialAlumnoId,
+            'initialAlumnoInfo' => $initialAlumnoInfo,
+        ]);
+    }
+
     public function editar(int $id)
     {
         $intervencion = $this->service->buscar($id);
 
         if (!$intervencion) {
-            return redirect()->route('intervenciones.principal')->with('error', 'Intervención no encontrada.');
+            return redirect()->route('intervenciones.principal')
+                            ->with('error', 'Intervención no encontrada.');
         }
 
-        return view('intervenciones.crear-editar', compact('intervencion'));
+        $alumnos = Alumno::with('persona', 'aula')->get();
+        $profesionales = Profesional::with('persona')->get();
+        $aulas = Aula::all();
+
+        return view('intervenciones.crear-editar', [
+            'modo' => 'editar',
+            'intervencion' => $intervencion,
+            'alumnos' => $alumnos,
+            'profesionales' => $profesionales,
+            'aulas' => $aulas,
+        ]);
     }
 
     public function actualizar(Request $request, int $id)
