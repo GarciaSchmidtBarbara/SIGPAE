@@ -20,53 +20,60 @@ class IntervencionController extends Controller
 
     }
 
-    public function vista()
-    {
-        $intervencionesRaw = $this->service->obtenerTodos();
-        $tiposIntervencion = $this->service->obtenerTipos(); 
-        $cursos = $this->service->obtenerAulasParaFiltro();
+   public function vista(Request $request)
+{
+    $filters = [
+        'tipo_intervencion' => $request->input('tipo_intervencion'),
+        'nombre'            => $request->input('nombre'),
+        'aula_id'           => $request->input('aula_id'),
+        'fecha_desde'       => $request->input('fecha_desde'),
+        'fecha_hasta'       => $request->input('fecha_hasta'),
+    ];
 
-        $intervenciones = $intervencionesRaw->map(function ($intervencion) {
-            // Concatenar todos los alumnos con nombre y apellido
-            $alumnos = $intervencion->alumnos->map(function ($alumno) {
-                $persona = $alumno->persona;
-                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-            })->implode(', ');
+    $intervencionesRaw = $this->service->obtenerIntervenciones($filters);
+    $tiposIntervencion = $this->service->obtenerTipos(); 
+    $cursos = $this->service->obtenerAulasParaFiltro();
 
-            // Concatenar todos los profesionales con nombre y apellido
-            $profesional = $intervencion->profesionalGenerador?->persona;
+    $intervenciones = $intervencionesRaw->map(function ($intervencion) {
+        $alumnos = $intervencion->alumnos->map(function ($alumno) {
+            $persona = $alumno->persona;
+            return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
+        })->implode(', ');
 
-            $profesionalesReune = $intervencion->profesionales->map(function ($profesional) {
-                $persona = $profesional->persona;
-                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-            });
+        $profesional = $intervencion->profesionalGenerador?->persona;
 
-            $otrosProfesionales = $intervencion->otros_asistentes_i->map(function ($asistente) {
-                $profesional = $asistente->profesional;
-                $persona = $profesional?->persona;
-                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-            });
-
-            $todosProfesionales = $profesionalesReune
-                ->merge($otrosProfesionales)
-                ->merge($profesional ? collect([$profesional->nombre . ' ' . $profesional->apellido]) : collect())
-                ->unique()
-                ->implode(', ');
-
-            return [
-                'id_intervencion' => $intervencion->id_intervencion,
-                'fecha_hora_intervencion' => $intervencion->fecha_hora_intervencion
-                    ? Carbon::parse($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i')
-                    : 'Sin fecha',
-                'tipo_intervencion' => $intervencion->tipo_intervencion,
-                'alumnos' => $alumnos ?: 'Sin alumnos',
-                'profesionales' => $todosProfesionales ?: 'Sin participantes',
-                'activo' => $intervencion->activo,
-            ];
+        $profesionalesReune = $intervencion->profesionales->map(function ($profesional) {
+            $persona = $profesional->persona;
+            return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
         });
 
-        return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'cursos'));
-    }
+        $otrosProfesionales = $intervencion->otros_asistentes_i->map(function ($asistente) {
+            $profesional = $asistente->profesional;
+            $persona = $profesional?->persona;
+            return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
+        });
+
+        $todosProfesionales = $profesionalesReune
+            ->merge($otrosProfesionales)
+            ->merge($profesional ? collect([$profesional->nombre . ' ' . $profesional->apellido]) : collect())
+            ->unique()
+            ->implode(', ');
+
+        return [
+            'id_intervencion' => $intervencion->id_intervencion,
+            'fecha_hora_intervencion' => $intervencion->fecha_hora_intervencion
+                ? Carbon::parse($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i')
+                : 'Sin fecha',
+            'tipo_intervencion' => $intervencion->tipo_intervencion,
+            'alumnos' => $alumnos ?: 'Sin alumnos',
+            'profesionales' => $todosProfesionales ?: 'Sin participantes',
+            'activo' => $intervencion->activo,
+        ];
+    });
+
+    return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'cursos'));
+}
+
 
     public function crear()
     {

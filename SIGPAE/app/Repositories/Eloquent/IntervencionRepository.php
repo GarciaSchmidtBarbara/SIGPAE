@@ -9,20 +9,24 @@ use App\Models\Aula;
 
 class IntervencionRepository implements IntervencionRepositoryInterface
 {
+    private function withRelations()
+    {
+        return [
+            'planDeAccion',
+            'profesionalGenerador',
+            'profesionales',
+            'aulas',
+            'alumnos',
+            'evaluacionDeIntervencionEspontanea',
+            'documentos',
+            'otros_asistentes_i',
+            'planillas',
+        ];
+    }
     public function obtenerTodos()
     {
         return Intervencion::query()
-            ->with([
-                'planDeAccion',
-                'profesionalGenerador',
-                'profesionales',
-                'aulas',
-                'alumnos',
-                'evaluacionDeIntervencionEspontanea',
-                'documentos',
-                'otros_asistentes_i',
-                'planillas',
-            ])
+            ->with($this->withRelations())
             ->where('activo', true)
             ->orderBy('fecha_hora_intervencion', 'desc')
             ->get();
@@ -31,19 +35,44 @@ class IntervencionRepository implements IntervencionRepositoryInterface
     public function buscarPorId(int $id): ?Intervencion
     {
         return Intervencion::query()
-            ->with([
-                'planDeAccion',
-                'profesionalGenerador',
-                'profesionales',
-                'aulas',
-                'alumnos',
-                'evaluacionDeIntervencionEspontanea',
-                'documentos',
-                'otros_asistentes_i',
-                'planillas',
-            ])
+            ->with($this->withRelations())
             ->find($id);
     }
+
+    public function filtrar(array $filters = [])
+    {
+        $query = Intervencion::query()->with($this->withRelations());
+
+        if (!empty($filters['tipo_intervencion'])) {
+            $query->where('tipo_intervencion', $filters['tipo_intervencion']);
+        }
+
+        if (!empty($filters['nombre'])) {
+            $query->whereHas('alumnos.persona', function ($q) use ($filters) {
+                $q->where('nombre', 'like', "%{$filters['nombre']}%")
+                ->orWhere('apellido', 'like', "%{$filters['nombre']}%")
+                ->orWhere('dni', 'like', "%{$filters['nombre']}%");
+            });
+        }
+
+        if (!empty($filters['aula_id'])) {
+            $query->whereHas('aulas', fn($q) => $q->where('id_aula', $filters['aula_id']));
+        }
+
+        if (!empty($filters['fecha_desde'])) {
+            $query->where('fecha_hora_intervencion', '>=', $filters['fecha_desde']);
+        }
+
+        if (!empty($filters['fecha_hasta'])) {
+            $query->where('fecha_hora_intervencion', '<=', $filters['fecha_hasta']);
+        }
+
+        return $query->where('activo', true)
+                    ->orderBy('fecha_hora_intervencion', 'desc')
+                    ->get();
+    }
+
+
 
     public function crear(array $data): Intervencion
     {
@@ -73,22 +102,20 @@ class IntervencionRepository implements IntervencionRepositoryInterface
     {
         $intervencion = $this->buscarPorId($id);
         if (!$intervencion) return false;
+        $nuevoEstado = !$intervencion->activo;
 
-        return $intervencion->update(['activo' => false]);
+        return $intervencion->update(['activo' => $nuevoEstado]);
     }
 
     public function obtenerAulasParaFiltro(): Collection
     {
-        $aulasData = Aula::select('id_aula', 'curso', 'division') 
-            ->orderBy('curso') 
+        return Aula::select('id_aula', 'curso', 'division')
+            ->orderBy('curso')
             ->orderBy('division')
-            ->get();
-
-        $mappedCollection = $aulasData->map(fn($aula) => (object)[
-            'id' => $aula->id_aula, 
-            'descripcion' => $aula->curso . ' ° ' . $aula->division 
-        ]);
-
-        return Collection::make($mappedCollection);
+            ->get()
+            ->map(fn($aula) => (object)[
+                'id' => $aula->id_aula,
+                'descripcion' => $aula->curso . ' ° ' . $aula->division
+            ]);
     }
 }

@@ -32,10 +32,10 @@
 
         <input name="nombre" placeholder="Nombre/DNI" class="border px-2 py-1 rounded w-1/5">
 
-        <select name="aula" class="border px-2 py-1 rounded w-1/5">
+        <select name="aula_id" class="border px-2 py-1 rounded w-1/5">
             <option value="">Todos los cursos</option>
             @foreach($cursos as $curso)
-                <option value="{{ $curso->descripcion }}" {{ request('aula') === $curso->descripcion ? 'selected' : '' }}>
+                <option value="{{ $curso->id }}" {{ request('aula_id') == $curso->id ? 'selected' : '' }}>
                     {{ $curso->descripcion }}
                 </option>
             @endforeach
@@ -47,7 +47,7 @@
         <input type="date" name="fecha_hasta" class="border px-2 py-1 rounded" value="{{ request('fecha_hasta') }}">
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('alumnos.principal') }}" >Limpiar</a>
+        <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>
     </form>
 
     <x-tabla-dinamica 
@@ -72,7 +72,7 @@
             @once
                 @php
                     $accionesPorFila = function ($fila) {
-                        $activo = data_get($fila, 'intervencion.activo');
+                        $activo = data_get($fila, 'activo');
                         $ruta = route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'));
                         return view('components.boton-estado', [
                             'activo' => $activo,

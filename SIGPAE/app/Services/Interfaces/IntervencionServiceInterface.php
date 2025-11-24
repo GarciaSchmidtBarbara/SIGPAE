@@ -15,4 +15,5 @@ interface IntervencionServiceInterface
     public function buscar(int $id);
     public function obtenerTipos(): Collection;
     public function obtenerAulasParaFiltro(): Collection;
+    public function obtenerIntervenciones(array $filters = []);
 }

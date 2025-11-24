@@ -14,6 +14,7 @@ use Exception;
 class IntervencionService implements IntervencionServiceInterface
 {
     protected IntervencionRepositoryInterface $repo;
+
     public function __construct(IntervencionRepositoryInterface $repo) {
         $this->repo = $repo;
     }
@@ -86,5 +87,13 @@ class IntervencionService implements IntervencionServiceInterface
     public function obtenerAulasParaFiltro(): Collection
     {
         return $this->repo->obtenerAulasParaFiltro();
+    }
+
+    public function obtenerIntervenciones(array $filters = [])
+    {
+        if (!empty($filters)) {
+            return $this->repo->filtrar($filters);
+        }
+        return $this->repo->obtenerTodos();
     }
 }
