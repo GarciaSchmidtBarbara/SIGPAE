@@ -19,7 +19,7 @@
 
 <div class="p-6">
     <form id="form-intervencion" method="GET" action="{{ route('intervenciones.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
-        <a class="btn-aceptar" href="{{ route('intervenciones.crear-editar') }}">Crear Intervención</a>
+        <a class="btn-aceptar" href="{{ route('intervenciones.crear') }}">Crear Intervención</a>
         
         <select name="tipo_intervencion" class="border px-2 py-1 rounded w-1/5">
             <option value="">Todos los tipos</option>
@@ -63,7 +63,7 @@
             'texto' => 'Eliminar'
         ])->render()"
         idCampo="id_intervencion"
-        :filaEnlace="fn($fila) => route('intervenciones.crear-editar', data_get($fila, 'id_intervencion'))"
+        :filaEnlace="fn($fila) => route('intervenciones.editar', data_get($fila, 'id_intervencion'))"
     >
         <x-slot:accionesPorFila>
             @php
@@ -86,7 +86,7 @@
     </x-tabla-dinamica>
 
     <div class="fila-botones mt-8">
-        <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
+        <a class="btn-volver" href="{{ route('welcome') }}" >Volver</a>
     </div>
 </div>
 @endsection

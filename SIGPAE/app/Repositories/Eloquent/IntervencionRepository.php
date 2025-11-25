@@ -49,10 +49,11 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         }
 
         if (!empty($filters['nombre'])) {
-            $query->whereHas('alumnos.persona', function ($q) use ($filters) {
-                $q->where('nombre', 'like', "%{$filters['nombre']}%")
-                ->orWhere('apellido', 'like', "%{$filters['nombre']}%")
-                ->orWhere('dni', 'like', "%{$filters['nombre']}%");
+            $nombre = $this->normalizarTexto($filters['nombre']);
+            $query->whereHas('alumnos.persona', function ($q) use ($nombre) {
+                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
+                ->orWhereRaw("LOWER(unaccent(apellido::text)) LIKE ?", ["%{$nombre}%"])
+                ->orWhereRaw("CAST(dni AS TEXT) LIKE ?", ["%{$nombre}%"]);
             });
         }
 
@@ -71,6 +72,11 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         return $query->where('activo', true)
                     ->orderBy('fecha_hora_intervencion', 'desc')
                     ->get();
+    }
+
+    private function normalizarTexto(string $texto): string
+    {
+        return strtolower(strtr(iconv('UTF-8', 'ASCII//TRANSLIT', $texto), "´`^~¨", "     "));
     }
 
     public function crear(array $data): Intervencion
@@ -124,7 +130,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         return $intervencion;
     }
 
-    public function actualizar(int $id, array $data): bool
+    public function editar(int $id, array $data): bool
     {
         $intervencion = $this->buscarPorId($id);
 

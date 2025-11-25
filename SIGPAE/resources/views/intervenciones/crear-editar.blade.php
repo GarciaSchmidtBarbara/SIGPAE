@@ -49,11 +49,6 @@
             ];
         });
 
-        $initialAlumnoId = $oldOr('alumno_seleccionado');
-        $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
-                            ? $alumnosJson[$initialAlumnoId]
-                            : null;
-
         $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
             $persona = $prof->persona;
             return [
@@ -124,19 +119,10 @@
     <div x-data="{
         tipoSeleccionado: '{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}',
         alumnoData: {{ $alumnosJson->toJson() }},
-        alumnoSeleccionadoInfo: @json($initialAlumnoInfo),
-        alumnoSeleccionadoId: '{{ $initialAlumnoId }}',
-        
-        seleccionarAlumno(id) {
-            // aseguramos consistencia: actualizar info y el id seleccionado
-            id = String(id || '');
-            this.alumnoSeleccionadoId = id;
-            this.alumnoSeleccionadoInfo = this.alumnoData[id] || null;
-        }
     }">
 
         <form method="POST" action="{{ $esEdicion 
-                ? route('intervenciones.actualizar', $intervencion->id_intervencion)
+                ? route('intervenciones.editar', $intervencion->id_intervencion)
                 : route('intervenciones.guardar') 
             }}">
             @csrf
@@ -150,24 +136,10 @@
             <input type="hidden" name="fk_id_profesional_generador" 
                 value="{{ old('fk_id_profesional_generador', auth()->user()->id_profesional ?? auth()->id()) }}">
 
-
             <fieldset {{ $cerrado ? 'disabled' : '' }}>
                 {{-- DATOS DE LA INTERVENCION --}}
                 <div class="space-y-6 mb-6">
                     <p class="separador">Datos de la intervención</p>
-
-                    {{-- Selector de plan--}}
-                    <div class="selector-box" w-1/3">
-                        <label class="text-sm font-medium">Seleccionar Plan de Acción</label>
-                        <select name="fk_id_plan_de_accion" x-model="planSeleccionado" @change="seleccionarPlan()" class="border px-2 py-1 rounded w-full">
-                            <option value="">-- Seleccionar plan --</option>
-                            @foreach($planes as $plan)
-                                <option value="{{ $plan->id_plan }}" {{ old('fk_id_plan_de_accion', $esEdicion ? $intervencion->fk_id_plan_de_accion : '') == $plan->id_plan ? 'selected' : '' }}>
-                                    {{ $plan->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
                     
                     {{-- Fecha, hora y lugar --}}
                     <div class="flex space-x-4">
@@ -187,29 +159,43 @@
                         </div>
                     </div>
 
-                    @php
-                        $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
-                        $seleccionTipo = old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '');
-                    @endphp
+                    <div class="flex space-x-4">
+                        {{-- Selector de plan--}}
+                        <div class="selector-box" style="width: 50%;">
+                            <label class="text-sm font-medium">Seleccionar Plan de Acción</label>
+                            <select name="fk_id_plan_de_accion" x-model="planSeleccionado" @change="seleccionarPlan()" class="border px-2 py-1 rounded w-full">
+                                <option value="">-- Seleccionar plan --</option>
+                                @foreach($planes as $plan)
+                                    <option value="{{ $plan->id_plan_de_accion }}" {{ old('fk_id_plan_de_accion', $esEdicion ? $intervencion->fk_id_plan_de_accion : '') == $plan->id_plan_de_accion ? 'selected' : '' }}>
+                                        {{ $plan->descripcion }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @php
+                            $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
+                            $seleccionTipo = old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '');
+                        @endphp
 
-                    @if($esEdicion)
-                        <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
-                        <input type="hidden" name="tipo_intervencion" value="{{ $seleccionTipo }}">
-                    @else
-                        <x-opcion-unica
-                            :items="$tipoItems"
-                            name="tipo_intervencion"
-                            layout="horizontal"
-                            :seleccionTipo="$seleccionTipo"
-                            x-model="tipoSeleccionado"
-                        />
-                    @endif
+                        @if($esEdicion)
+                            <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
+                            <input type="hidden" name="tipo_intervencion" value="{{ $seleccionTipo }}">
+                        @else
+                            <x-opcion-unica
+                                :items="$tipoItems"
+                                name="tipo_intervencion"
+                                layout="horizontal"
+                                :seleccionTipo="$seleccionTipo"
+                                x-model="tipoSeleccionado"
+                            />
+                        @endif
+                    </div>
                 </div>
 
 
                 {{-- DESTINATARIOS --}}
                 <div id="destinatarios" 
-                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" 
+                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })"> 
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
@@ -269,9 +255,6 @@
                                                     </svg>
                                                 </button>
                                             </td>
-
-                                            {{-- input hidden para enviar al backend---}}
-                                            <input type="hidden" name="alumnos[]" :value="al.id">
                                         </tr>
                                     </template>
 
@@ -480,9 +463,10 @@
     function datosPersonas({ alumnoData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
         return {
             // Alumnos
+            alumnoData: alumnoData || {},
+            alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
             alumnoSeleccionado: "",
             aulaSeleccionada: "",
-            alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
 
             // Profesionales
             profesionalSeleccionado: "",
@@ -540,19 +524,6 @@
             }
         };
     }
-    function planIndividual({ alumnoData, alumnosIniciales, initialAlumnoId = null }) {
-        return {
-            alumnoData,
-            alumnoSeleccionadoId: initialAlumnoId,
-            alumnoSeleccionadoInfo: initialAlumnoId ? alumnoData[initialAlumnoId] : null,
-
-            seleccionarAlumno(id) {
-                this.alumnoSeleccionadoId = id;
-                this.alumnoSeleccionadoInfo = this.alumnoData[id] ?? null;
-            }
-        }
-    }
-
 </script>
 
 

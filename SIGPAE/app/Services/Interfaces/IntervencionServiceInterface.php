@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 interface IntervencionServiceInterface
 {
     public function crear(array $data);
-    public function actualizar(int $id, array $data): bool;
+    public function editar(int $id, array $data): bool;
     public function eliminar(int $id): bool;
     public function cambiarActivo(int $id): bool;
     public function obtenerTodos();

@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
+use Illuminate\View\View;
 use App\Services\Interfaces\IntervencionServiceInterface;
 
 use App\Models\Intervencion;
@@ -168,24 +169,6 @@ class IntervencionController extends Controller
         // Aulas seleccionadas
         $aulasSeleccionadas = $intervencion->aulas->pluck('id_aula')->toArray();
 
-        // Alumno individual (si aplica)
-        $initialAlumnoId = null;
-        $initialAlumnoInfo = null;
-        if ($intervencion->tipo_intervencion === 'INDIVIDUAL') {
-            $alumno = $intervencion->alumnos->first();
-            if ($alumno) {
-                $initialAlumnoId = $alumno->id_alumno;
-                $initialAlumnoInfo = [
-                    'id' => $alumno->id_alumno,
-                    'nombre' => $alumno->persona->nombre,
-                    'apellido' => $alumno->persona->apellido,
-                    'dni' => $alumno->persona->dni,
-                    'curso' => $alumno->aula?->descripcion,
-                    'aula_id' => $alumno->fk_id_aula,
-                ];
-            }
-        }
-
         // Mapping completo de alumnos para Alpine
         $alumnosJson = $intervencion->alumnos->mapWithKeys(function ($al) {
             $persona = $al->persona;
@@ -218,34 +201,10 @@ class IntervencionController extends Controller
             'profesionales' => $profesionales,
             'planes' => $planes,
             'alumnosJson' => $alumnosJson,
-            'initialAlumnoId' => $initialAlumnoId,
-            'initialAlumnoInfo' => $initialAlumnoInfo,
         ]);
     }
 
-    public function editar(int $id)
-    {
-        $intervencion = $this->service->buscar($id);
-
-        if (!$intervencion) {
-            return redirect()->route('intervenciones.principal')
-                            ->with('error', 'Intervención no encontrada.');
-        }
-
-        $alumnos = Alumno::with('persona', 'aula')->get();
-        $profesionales = Profesional::with('persona')->get();
-        $aulas = Aula::all();
-
-        return view('intervenciones.crear-editar', [
-            'modo' => 'editar',
-            'intervencion' => $intervencion,
-            'alumnos' => $alumnos,
-            'profesionales' => $profesionales,
-            'aulas' => $aulas,
-        ]);
-    }
-
-    public function actualizar(Request $request, int $id)
+    public function editar(Request $request, int $id)
     {
         $data = $request->validate([
             'fecha_hora_intervencion' => 'required|date',
@@ -258,7 +217,7 @@ class IntervencionController extends Controller
         ]);
 
         try {
-            $this->service->actualizar($id, $data);
+            $this->service->editar($id, $data);
             return redirect()
                 ->route('intervenciones.principal')
                 ->with('success', 'Intervención actualizada.');
