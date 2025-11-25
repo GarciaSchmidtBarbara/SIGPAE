@@ -10,7 +10,7 @@ interface AlumnoRepositoryInterface
     public function eliminar(int $id): bool;
     public function buscarPorId(int $id): ?Alumno;
     public function cambiarActivo(int $id): bool;
-    public function buscarPorIdPersona(int $idPersona): ?Alumno;
-    public function vincularHermano(int $idAlumno, int $idHermano): void;
-    public function vincularFamiliar(int $idAlumno, int $idFamiliar): void;
+    public function buscarPorPersonaId(int $idPersona): ?Alumno;
+    public function buscarParaEditar(int $id): ?Alumno;
+    public function vincularHermanos(int $idAlumno, int $idHermano, ?string $observaciones): void;
 }

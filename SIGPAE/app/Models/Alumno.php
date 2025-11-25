@@ -58,17 +58,17 @@ class Alumno extends Model
 
     // revisado
     public function familiares(): BelongsToMany{
-        return $this->belongsToMany(Familiar::class, 'tiene_familiar', 'fk_id_alumno', 'fk_id_familiar');
+        return $this->belongsToMany(Familiar::class, 'tiene_familiar', 'fk_id_alumno', 'fk_id_familiar')->withPivot('activa', 'observaciones');
     }
 
     // revisado
     public function hermanos(): BelongsToMany{
-        return $this->belongsToMany(Alumno::class, 'es_hermano_de', 'fk_id_alumno', 'fk_id_alumno_hermano');
+        return $this->belongsToMany(Alumno::class, 'es_hermano_de', 'fk_id_alumno', 'fk_id_alumno_hermano')->withPivot('activa', 'observaciones');
     }
 
     // revisado
     public function esHermanoDe(): BelongsToMany{
-        return $this->belongsToMany(Alumno::class, 'es_hermano_de', 'fk_id_alumno_hermano',  'fk_id_alumno');
+        return $this->belongsToMany(Alumno::class, 'es_hermano_de', 'fk_id_alumno_hermano',  'fk_id_alumno')->withPivot('activa', 'observaciones');
     }
 
     // revisado
