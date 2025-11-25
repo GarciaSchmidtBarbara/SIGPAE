@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Plan de Acción' : 'Crear Plan de Acción')
+@section('encabezado', isset($modo) && $modo === 'editar' ? 'Editar Intervención' : 'Crear Intervención')
 
 @section('contenido')
 
@@ -27,8 +27,8 @@
 
 
 @php
-    $esEdicion = isset($modo) && $modo === 'editar' && isset($planDeAccion);
-    $cerrado = $esEdicion ? ($planDeAccion->activo === false) : false;
+    $esEdicion = isset($modo) && $modo === 'editar' && isset($intervencion);
+    $cerrado = $esEdicion ? ($intervencion->activo === false) : false;
 
     // helper para valores viejos del modelo
     $oldOr = fn($field, $fallback = null) => old($field, $fallback);
@@ -43,24 +43,11 @@
                     'nombre' => $persona->nombre,
                     'apellido' => $persona->apellido,
                     'dni' => $persona->dni,
-                    'fecha_nacimiento' => $persona->fecha_nacimiento
-                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
-                        : 'N/A',
-                    'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-                    'domicilio' => $persona->domicilio ?? 'N/A',
-                    'edad' => $persona->fecha_nacimiento
-                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age
-                        : 'N/A',
                     'curso'   => $al->aula?->descripcion,
                     'aula_id' => $al->fk_id_aula,
                 ]
             ];
         });
-
-        $initialAlumnoId = $oldOr('alumno_seleccionado');
-        $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
-                            ? $alumnosJson[$initialAlumnoId]
-                            : null;
 
         $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
             $persona = $prof->persona;
@@ -90,10 +77,10 @@
         });
     }
 
-    //Profesional generador para mostrar en la vista
+    // Profesional generador para mostrar en la vista
     $profesionalGenerador = null;
-    if ($esEdicion && isset($planDeAccion->profesionalGenerador) && $planDeAccion->profesionalGenerador?->persona) {
-        $pg = $planDeAccion->profesionalGenerador;
+    if ($esEdicion && isset($intervencion->profesionalGenerador) && $intervencion->profesionalGenerador?->persona) {
+        $pg = $intervencion->profesionalGenerador;
         $profesionalGenerador = trim(($pg->persona->apellido ?? '') . ', ' . ($pg->persona->nombre ?? ''));
     } else {
         $currentProfId = old('fk_id_profesional_generador', auth()->user()->id_profesional ?? null);
@@ -111,42 +98,32 @@
     <div class="mt-4 my-4 flex justify-between items-center">
         <div class="text-sm text-red-600 min-h-[1.5rem]">
             @if($esEdicion && $cerrado)
-                <p>Este plan de acción está cerrado. No se permiten modificaciones.</p>
+                <p>Esta intervención está cerrada. No se permiten modificaciones.</p>
             @endif
         </div>
 
         <div class="flex justify-end space-x-4">
             @if($esEdicion)
                 <x-boton-estado 
-                    :activo="$planDeAccion->activo" 
-                    :route="route('planDeAccion.cambiarActivo', $planDeAccion->id_plan_de_accion)"
+                    :activo="$intervencion->activo" 
+                    :route="route('intervenciones.cambiarActivo', $intervencion->id_intervencion)"
                     :text_activo="'Cerrar'"
                     :text_inactivo="'Abrir'"
                 />
             @endif
-            <a class="btn-volver" href="{{ route('planDeAccion.principal') }}">Volver</a>
+            <a class="btn-volver" href="{{ route('intervenciones.principal') }}">Volver</a>
         </div>
     </div>
 
     {{-- Alpine para controlar secciones por tipo --}}
     <div x-data="{
-        tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}',
-        alumnosData: {{ $alumnosJson->toJson() }},
-        alumnoSeleccionadoInfo: @json($initialAlumnoInfo),
-        // nuevo: guardamos el id seleccionado (se envía como alumnos[] al backend)
-        alumnoSeleccionadoId: '{{ $initialAlumnoId }}',
-        
-        seleccionarAlumno(id) {
-            // aseguramos consistencia: actualizar info y el id seleccionado
-            id = String(id || '');
-            this.alumnoSeleccionadoId = id;
-            this.alumnoSeleccionadoInfo = this.alumnosData[id] || null;
-        }
+        tipoSeleccionado: '{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}',
+        alumnoData: {{ $alumnosJson->toJson() }},
     }">
 
         <form method="POST" action="{{ $esEdicion 
-                ? route('planDeAccion.actualizar', $planDeAccion->id_plan_de_accion)
-                : route('planDeAccion.store') 
+                ? route('intervenciones.editar', $intervencion->id_intervencion)
+                : route('intervenciones.guardar') 
             }}">
             @csrf
 
@@ -156,112 +133,69 @@
             @endif
 
             {{-- Asegurar que el generador queda presente (fallback al usuario autenticado) --}}
-            <input type="hidden" name="fk_id_profesional_generador" value="{{ old('fk_id_profesional_generador', auth()->user()->id_profesional ?? auth()->id()) }}">
+            <input type="hidden" name="fk_id_profesional_generador" 
+                value="{{ old('fk_id_profesional_generador', auth()->user()->id_profesional ?? auth()->id()) }}">
 
             <fieldset {{ $cerrado ? 'disabled' : '' }}>
-                {{-- TIPO --}}
+                {{-- DATOS DE LA INTERVENCION --}}
                 <div class="space-y-6 mb-6">
-                    <p class="separador">Tipo de Plan</p>
-
-                    @php
-                        $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoPlan::cases());
-                        $seleccion = old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '');
-                    @endphp
-
-                    @if($esEdicion)
-                        <p class="font-semibold text-gray-700">
-                            {{ $seleccion }}
-                        </p>
-                        {{-- En edición incluimos el tipo en un input hidden para que el back valide correctamente --}}
-                        <input type="hidden" name="tipo_plan" value="{{ $seleccion }}">
-                    @else
-                        <x-opcion-unica
-                            :items="$tipoItems"
-                            name="tipo_plan"
-                            layout="horizontal"
-                            :seleccion="$seleccion"
-                            x-model="tipoPlanSeleccionado"
-                        />
-                    @endif
-                </div>
-
-                {{-- DESTINATARIO - Individual --}}
-                <div id="destinatario-individual" x-data="planIndividual({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []), initialAlumnoId: '{{ $initialAlumnoId ?? '' }}' })" x-init="if (initialAlumnoId) seleccionarAlumno(initialAlumnoId)" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'INDIVIDUAL') ? '' : 'display:none;' }}">
-                    <div class="space-y-6 mb-6">
-                        <p class="separador">Destinatario</p>
-
-                        {{-- Select simple para elegir UN alumno --}}
-                        <div class="flex gap-4 mt-4">
-                            <div class="flex flex-col w-1/3">
-                                <label class="text-sm font-medium">Seleccionar alumno</label>
-                                <!-- vinculado al id seleccionado y actualiza la info -->
-                                <select name="alumno_seleccionado" class="border px-2 py-1 rounded" x-model="alumnoSeleccionadoId" x-on:change="seleccionarAlumno($event.target.value)">
-                                    <option value="">-- Seleccionar alumno --</option>
-                                    @foreach($alumnos as $al)
-                                        @php
-                                            $alId = $al->id_alumno ?? $al->id ?? null;
-                                            $label = $al->persona->nombre . ' ' . $al->persona->apellido;
-                                        @endphp
-                                        <option value="{{ $alId }}"
-                                            {{ $oldOr('alumno_seleccionado', $esEdicion ? ($planDeAccion->alumnos->first()->id_alumno ?? '') : '') == $alId ? 'selected' : '' }}>
-                                            {{ $label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-
-                                
-                            </div>
+                    <p class="separador">Datos de la intervención</p>
+                    
+                    {{-- Fecha, hora y lugar --}}
+                    <div class="flex space-x-4">
+                        <div class="flex flex-col w-1/4">
+                            <x-campo-requerido text="Fecha" required />
+                            <input type="date" name="fecha_hora_intervencion" value="{{ old('fecha_hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('Y-m-d') : '') }}" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
-                        {{-- FRAGMENTO DE INFORMACIÓN PERSONAL DEL ALUMNO --}}
-                        <div x-show="alumnoSeleccionadoInfo" class="mt-8 p-4">
-                            <h3 class="font-medium text-base text-gray-700 mb-4 border-b pb-2">Información Personal del Alumno</h3>
 
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
-                                
-                                {{-- Fila 1 --}}
-                                <div class="col-span-1">
-                                    <span class="font-medium text-gray-600">Nombre y Apellido:</span>
-                                    <p class="font-semibold text-gray-800" x-text="`${alumnoSeleccionadoInfo.apellido}, ${alumnoSeleccionadoInfo.nombre}`"></p>
-                                </div>
-                                <div class="col-span-1">
-                                    <span class="font-medium text-gray-600">DNI:</span>
-                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.dni"></p>
-                                </div>
-                                <div class="col-span-1">
-                                    <span class="font-medium text-gray-600">Fecha de nacimiento:</span>
-                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.fecha_nacimiento"></p>
-                                </div>
-                                <div class="col-span-1">
-                                    <span class="font-medium text-gray-600">Edad:</span>
-                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.edad"></p>
-                                </div>
-
-                                {{-- Fila 2 --}}
-                                <div class="col-span-1">
-                                    <span class="font-medium text-gray-600">Nacionalidad:</span>
-                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.nacionalidad"></p>
-                                </div>
-                                <div class="col-span-1">
-                                    <span class="font-medium text-gray-600">Domicilio:</span>
-                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.domicilio"></p>
-                                </div>
-                                <div class="col-span-1">
-                                    <span class="font-medium text-gray-600">Curso:</span>
-                                    <p class="font-semibold text-gray-800" x-text="alumnoSeleccionadoInfo.curso"></p>
-                                </div>
-                            </div>
+                        <div class="flex flex-col w-1/4">
+                            <x-campo-requerido text="Hora" required />
+                            <input type="time" name="hora_intervencion" value="{{ old('hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('H:i') : '') }}" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         </div>
-                        <!-- input oculto que enviará siempre alumnos[] cuando el tipo sea INDIVIDUAL -->
-                                <template x-if="alumnoSeleccionadoId">
-                                    <input type="hidden" name="alumnos[]" :value="alumnoSeleccionadoId">
-                                </template>
+
+                        <div class="flex flex-col w-1/3">
+                            <x-campo-requerido text="Lugar" required />
+                            <input name="lugar" value="{{ old('lugar', $esEdicion ? $intervencion->lugar : '') }}" placeholder="Lugar" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        {{-- Selector de plan--}}
+                        <div class="selector-box" style="width: 50%;">
+                            <label class="text-sm font-medium">Seleccionar Plan de Acción</label>
+                            <select name="fk_id_plan_de_accion" x-model="planSeleccionado" @change="seleccionarPlan()" class="border px-2 py-1 rounded w-full">
+                                <option value="">-- Seleccionar plan --</option>
+                                @foreach($planes as $plan)
+                                    <option value="{{ $plan->id_plan_de_accion }}" {{ old('fk_id_plan_de_accion', $esEdicion ? $intervencion->fk_id_plan_de_accion : '') == $plan->id_plan_de_accion ? 'selected' : '' }}>
+                                        {{ $plan->descripcion }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @php
+                            $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
+                            $seleccionTipo = old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '');
+                        @endphp
+
+                        @if($esEdicion)
+                            <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
+                            <input type="hidden" name="tipo_intervencion" value="{{ $seleccionTipo }}">
+                        @else
+                            <x-opcion-unica
+                                :items="$tipoItems"
+                                name="tipo_intervencion"
+                                layout="horizontal"
+                                :seleccionTipo="$seleccionTipo"
+                                x-model="tipoSeleccionado"
+                            />
+                        @endif
                     </div>
                 </div>
 
-                {{-- DESTINATARIO - Grupal --}}
-                <div id="destinatario-grupal" 
-                x-data="planGrupal({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
-                style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'GRUPAL') ? '' : 'display:none;' }}">
+
+                {{-- DESTINATARIOS --}}
+                <div id="destinatarios" 
+                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })"> 
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
@@ -321,9 +255,6 @@
                                                     </svg>
                                                 </button>
                                             </td>
-
-                                            {{-- input hidden para enviar al backend---}}
-                                            <input type="hidden" name="alumnos[]" :value="al.id">
                                         </tr>
                                     </template>
 
@@ -343,47 +274,12 @@
                     </div>
                 </div>
 
-                {{-- CAMPOS COMUNES: Objetivos / Acciones / Observaciones --}}
-                <div class="space-y-8 mb-6">
-                    <p class="separador">Descripción</p>
-
-                    <div class="block text-sm font-medium text-gray-700">
-                        <x-campo-requerido text="Objetivos" required />
-                        <textarea name="objetivos" rows="3"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('objetivos', $esEdicion ? ($planDeAccion->objetivos ?? '') : '') }}</textarea>
-                    </div>
-
-                    <div class="block text-sm font-medium text-gray-700">
-                        <x-campo-requerido text="Acciones a realizar" required />
-                        <textarea name="acciones" rows="3"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('acciones', $esEdicion ? ($planDeAccion->acciones ?? '') : '') }}</textarea>
-                    </div>
-
-                    <div class="block text-sm font-medium text-gray-700">
-                        <label>Observaciones</label>
-                        <textarea name="observaciones" rows="3"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('observaciones', $esEdicion ? ($planDeAccion->observaciones ?? '') : '') }}</textarea>
-                    </div>
-                </div>
-
-                {{-- Si el plan es INSTITUCIONAL en edición, mostrar el profesional creador en la sección de Profesionales --}}
-                @if($esEdicion && (($planDeAccion->tipo_plan->value ?? '') === 'INSTITUCIONAL'))
-                    <div class="space-y-6 mb-6">
-                        <p class="separador">Profesionales</p>
-                        @if($profesionalGenerador)
-                            <div class="font-medium text-base text-gray-700 mb-2">
-                                <strong>Profesional creador: {{ $profesionalGenerador }}</strong>
-                            </div>
-                        @endif
-                    </div>
-                @endif
 
                 {{-- RESPONSABLES  --}}
                 <div id="responsables2" 
-                x-data="planGrupal({ profesionalesData: @js($profesionalesJson), profesionalesIniciales: @js($profesionalesSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'INDIVIDUAL' || tipoPlanSeleccionado === 'GRUPAL'"
-                style="{{ ($esEdicion && in_array(($planDeAccion->tipo_plan->value ?? ''), ['INDIVIDUAL','GRUPAL'])) ? '' : 'display:none;' }}">
+                x-data="datosPersonas({ profesionalesData: @js($profesionalesJson), profesionalesIniciales: @js($profesionalesSeleccionados ?? []) })" >
                     <div class="space-y-6 mb-6">
-                        <p class="separador">Profesionales participantes</p>
+                        <p class="separador">Asistentes</p>
                         <div class="selectors-row">
                             {{-- Selector de profesional--}}
                             <div class="selector-box" style="width: 35%;">
@@ -455,6 +351,64 @@
                     </div>
                 </div>
 
+                {{-- MODALIDAD --}}
+                <div class="space-y-6 mb-6">
+                    <p class="separador">Modalidad</p>
+
+                    @php
+                        $tipoItems = array_map(fn($t) => $t->value, \App\Enums\Modalidad::cases());
+                        $seleccionTipo = old('modalidad', $esEdicion ? ($intervencion->modalidad->value ?? '') : '');
+                    @endphp
+
+                    @if($esEdicion)
+                        <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
+                        <input type="hidden" name="modalidad" value="{{ $seleccionTipo }}">
+                    @else
+                        <div id="modalidad" x-data="{ modalidadSeleccionada: '{{ old('modalidad', $seleccionTipo) }}' }" x-show="true">
+                            <div class="flex items-center space-x-4">
+                                <x-opcion-unica
+                                    :items="$tipoItems"
+                                    name="modalidad"
+                                    layout="horizontal"
+                                    :seleccionTipo="$seleccionTipo"
+                                    x-model="modalidadSeleccionada"
+                                />
+
+                                <template x-if="modalidadSeleccionada === 'OTRA'">
+                                    <input
+                                        name="otra_modalidad"
+                                        value="{{ old('otra_modalidad') }}"
+                                        placeholder="Especificar"
+                                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 w-1/3"
+                                    >
+                                </template>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- DESCRIPCIÓN --}}
+                <div class="space-y-8 mb-6">
+                    <p class="separador">Descripción</p>
+
+                    <div class="block text-sm font-medium text-gray-700">
+                        <x-campo-requerido text="Objetivos" required />
+                        <textarea name="temas_tratados" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('temas_tratados', $esEdicion ? ($intervencion->temas_tratados ?? '') : '') }}</textarea>
+                    </div>
+
+                    <div class="block text-sm font-medium text-gray-700">
+                        <x-campo-requerido text="Compromisos asumidos" required />
+                        <textarea name="compromisos_asumidos" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('compromisos_asumidos', $esEdicion ? ($intervencion->compromisos_asumidos ?? '') : '') }}</textarea>
+                    </div>
+
+                    <div class="block text-sm font-medium text-gray-700">
+                        <label>Observaciones</label>
+                        <textarea name="observaciones" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('observaciones', $esEdicion ? ($intervencion->observaciones ?? '') : '') }}</textarea>
+                    </div>
+                </div>
 
                 {{-- Documentos (placeholder) --}}
                 <div class="space-y-6 mb-6">
@@ -466,12 +420,12 @@
 
                     {{-- TODO: activar cuando exista la lógica de documentos --}}
                     @if(false)
-                    @if($esEdicion && isset($planDeAccion->documentos) && $planDeAccion->documentos->isNotEmpty())
+                    @if($esEdicion && isset($intervencion->documentos) && $intervencion->documentos->isNotEmpty())
                         <div class="space-y-2 mt-2">
-                            @foreach($planDeAccion->documentos as $doc)
+                            @foreach($intervencion->documentos as $doc)
                                 <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
                                     <span class="text-sm text-gray-600">{{ $doc->nombre ?? 'Documento' }}</span>
-                                    <a href="{{ route('planDeAccion.descargarDocumento', $doc->id ?? $doc->id_documento) }}" class="text-indigo-600">Descargar</a>
+                                    <a href="{{ route('intervenciones.descargarDocumento', $doc->id ?? $doc->id_documento) }}" class="text-indigo-600">Descargar</a>
                                 </div>
                             @endforeach
                         </div>
@@ -488,30 +442,31 @@
                 @endif
 
                 @if($esEdicion)
-                    <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}">Volver</a>
+                    <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}">Volver</a>
                 @else
-                    <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}">Cancelar</a>
+                    <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}">Cancelar</a>
                 @endif
             </div>
         </form>
 
             @if($esEdicion)
-                <form action="{{ route('planDeAccion.eliminar', $planDeAccion->id_plan_de_accion) }}" method="POST" class="inline-block mt-2" onsubmit="return confirm('¿Seguro que querés eliminar este plan?');">
+                <form action="{{ route('intervenciones.eliminar', $intervencion->id_intervencion) }}" method="POST" class="inline-block mt-2" onsubmit="return confirm('¿Seguro que querés eliminar esta intervención?');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn-eliminar">Eliminar Plan</button>
+                    <button type="submit" class="btn-eliminar">Eliminar Intervención</button>
                 </form>
             @endif
     </div>
 </div>
 
 <script>
-    function planGrupal({ alumnosData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
+    function datosPersonas({ alumnoData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
         return {
             // Alumnos
+            alumnoData: alumnoData || {},
+            alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
             alumnoSeleccionado: "",
             aulaSeleccionada: "",
-            alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
 
             // Profesionales
             profesionalSeleccionado: "",
@@ -522,11 +477,11 @@
                 if (!this.alumnoSeleccionado || this.alumnoSeleccionado === "") return;
 
                 let id = parseInt(this.alumnoSeleccionado);
-                if (!alumnosData[id]) return;
+                if (!alumnoData[id]) return;
 
                 // Evitar duplicados
                 if (!this.alumnosSeleccionados.find(a => a.id === id)) {
-                    this.alumnosSeleccionados.push(alumnosData[id]);
+                    this.alumnosSeleccionados.push(alumnoData[id]);
                 }
                 this.alumnoSeleccionado = ""; // reseteo
             },
@@ -537,7 +492,7 @@
                 // Buscar alumnos por aula
                 let aulaId = parseInt(this.aulaSeleccionada);
 
-                let alumnos = Object.values(alumnosData)
+                let alumnos = Object.values(alumnoData)
                     .filter(a => a.aula_id == aulaId);
 
                 alumnos.forEach(a => {
@@ -569,19 +524,6 @@
             }
         };
     }
-    function planIndividual({ alumnosData, alumnosIniciales, initialAlumnoId = null }) {
-        return {
-            alumnosData,
-            alumnoSeleccionadoId: initialAlumnoId,
-            alumnoSeleccionadoInfo: initialAlumnoId ? alumnosData[initialAlumnoId] : null,
-
-            seleccionarAlumno(id) {
-                this.alumnoSeleccionadoId = id;
-                this.alumnoSeleccionadoInfo = this.alumnosData[id] ?? null;
-            }
-        }
-    }
-
 </script>
 
 

@@ -44,6 +44,7 @@
                         exact
                     ></x-nav-item>
                    <x-nav-item
+                        route="intervenciones.principal"
                         label=" Intervenciones"
                         icon="icons.icono-intervencion"
                         exact
