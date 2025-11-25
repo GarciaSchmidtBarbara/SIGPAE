@@ -1,7 +1,6 @@
 <?php
 namespace App\Services\Implementations;
-// IMPORTS
-// Alumno
+
 use App\Repositories\Interfaces\AlumnoRepositoryInterface;
 use App\Services\Interfaces\AlumnoServiceInterface;
 //Familiares
@@ -10,7 +9,6 @@ use App\Services\Interfaces\FamiliarServiceInterface;
 use App\Models\Alumno;
 use App\Models\Aula;
 use App\Models\Persona;
-// Requests
 use Illuminate\Http\Request;
 // Soportes
 use Illuminate\Support\Facades\DB;
@@ -307,30 +305,16 @@ class AlumnoService implements AlumnoServiceInterface
             'cud' => isset($data['cud']) ? (($data['cud'] === 'Sí') ? 1 : 0) : $alumno->cud,
             
             'inasistencias' => $data['inasistencias'] ?? $alumno->inasistencias,
-            'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? $alumno->situacion_socioeconomica,
-            'situacion_familiar' => $data['situacion_familiar'] ?? $alumno->situacion_familiar,
-            'situacion_medica' => $data['situacion_medica'] ?? $alumno->situacion_medica,
-            'situacion_escolar' => $data['situacion_escolar'] ?? $alumno->situacion_escolar,
-            'actividades_extraescolares' => $data['actividades_extraescolares'] ?? $alumno->actividades_extraescolares,
-            'intervenciones_externas' => $data['intervenciones_externas'] ?? $alumno->intervenciones_externas,
-            'antecedentes' => $data['antecedentes'] ?? $alumno->antecedentes,
-            'observaciones' => $data['observaciones'] ?? $alumno->observaciones,
+            'cud' => ($data['cud'] ?? 'No') === 'Sí' ? 1 : 0,
+            'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
+            'situacion_familiar' => $data['situacion_familiar'] ?? null,
+            'situacion_medica' => $data['situacion_medica'] ?? null,
+            'situacion_escolar' => $data['situacion_escolar'] ?? null,
+            'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
+            'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
+            'antecedentes' => $data['antecedentes'] ?? null,
+            'observaciones' => $data['observaciones'] ?? null,
         ]);
-    }
-
-    public function actualizarAlumno(int $id, array $datosAlumno, array $listaFamiliares, array $delFamiliares, array $delHermanos): bool
-    {
-        return DB::transaction(function () use ($id, $datosAlumno, $listaFamiliares, $delFamiliares, $delHermanos) {
-            
-            // 1. Actualizar Datos del Alumno
-            $this->actualizar($id, $datosAlumno); 
-            $alumno = $this->repo->buscarPorId($id); // Recuperamos el modelo fresco
-
-            // 2. Ejecutar Borrados Lógicos (Familiares Puros)
-            // Ponemos 'activa = false' en la tabla pivote
-            if (!empty($delFamiliares)) {
-                $alumno->familiares()->updateExistingPivot($delFamiliares, ['activa' => false]);
-            }
 
             // 3. Ejecutar Borrados Físicos (Hermanos Alumnos)
             // Rompemos el lazo (detach) en ambas direcciones por seguridad

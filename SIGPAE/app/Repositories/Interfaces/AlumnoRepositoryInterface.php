@@ -11,5 +11,6 @@ interface AlumnoRepositoryInterface
     public function buscarPorId(int $id): ?Alumno;
     public function cambiarActivo(int $id): bool;
     public function buscarPorPersonaId(int $idPersona): ?Alumno;
+    public function buscarParaEditar(int $id): ?Alumno;
     public function vincularHermanos(int $idAlumno, int $idHermano, ?string $observaciones): void;
 }

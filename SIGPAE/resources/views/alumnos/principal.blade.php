@@ -69,7 +69,9 @@
         :formatters="$formatters"
         :acciones="fn($fila) => view('components.boton-estado', [
             'activo' => data_get($fila, 'persona.activo'),
-            'route' => route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'))
+            'route' => route('alumnos.cambiarActivo', data_get($fila, 'id_alumno')),
+            'text_activo' => 'Desactivar',  
+            'text_inactivo' => 'Activar',
         ])->render()"
 
         idCampo="id_alumno"

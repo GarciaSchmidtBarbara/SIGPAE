@@ -20,4 +20,6 @@ interface AlumnoServiceInterface
 
     public function buscar(string $q): \Illuminate\Support\Collection;
 
+    public function procesarFamiliaresTemporales(int $idAlumno, array $familiaresTemp): void;
+
 }

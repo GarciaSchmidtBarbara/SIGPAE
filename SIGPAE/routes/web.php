@@ -17,13 +17,19 @@ Route::post('/probar-post', function () {
 
 
 //Rutas Plan de Acción
-Route::get('/planDeAccion', function () {
-    return view('planDeAccion.principal');
-})->middleware('auth')->name('planDeAccion.principal');
+use App\Http\Controllers\PlanDeAccionController;
+Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
+    Route::get('/', [PlanDeAccionController::class, 'vista'])->name('planDeAccion.principal');
+    Route::post('/', [PlanDeAccionController::class, 'store'])->name('planDeAccion.store');
+    Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
+    Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
+    Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar');
+    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])
+    ->name('planDeAccion.iniciar-creacion');
+    Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
 
-Route::get('/planDeAccion/crear', function () {
-    return view('planDeAccion.crear-editar');
-})->middleware('auth')->name('planDeAccion.crear-editar');
+});
+
 
 //Rutas Planillas
 Route::get('/planillas', function () {
@@ -77,7 +83,7 @@ Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardar
 Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
 
 
-// Rutas de los usuarios (profesionales)
+//Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;
 Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
 Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->name('usuarios.crear-editar');
@@ -92,4 +98,15 @@ Route::middleware(['auth'])->group(function () {
         ->name('perfil.cambiar-contrasenia');
     Route::post('/perfil/actualizar', [ProfesionalController::class, 'actualizarPerfil'])
         ->name('perfil.actualizar');
+});
+
+//Ruta Intervenciones
+use App\Http\Controllers\IntervencionController;
+Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
+    Route::get('/', [IntervencionController::class, 'vista'])->name('principal');
+    Route::get('/crear', [IntervencionController::class, 'crear'])->name('crear');
+    Route::get('/{id}/editar', [IntervencionController::class, 'iniciarEdicion'])->name('editar');
+    Route::post('/guardar', [IntervencionController::class, 'guardar'])->name('guardar');
+    Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
+    Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
 });
