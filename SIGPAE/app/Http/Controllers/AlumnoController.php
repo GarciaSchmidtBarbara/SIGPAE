@@ -134,15 +134,6 @@ class AlumnoController extends Controller
         return response()->json($this->alumnoService->buscar($q));
     }
 
-    private function quitarTildes(string $texto): string
-    {
-        return strtr(
-            iconv('UTF-8', 'ASCII//TRANSLIT', $texto),
-            "´`^~¨",
-            "     "
-        );
-    }
-
     public function crear() {
         // limpio la sesion manualmente antes de entrar, en caso de que el usuario abra otra pestaña en el navegador
         // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
@@ -427,9 +418,12 @@ class AlumnoController extends Controller
 
     public function actualizar(Request $request, int $id)
     {
+        $alumno = Alumno::with('persona')->findOrFail($id);
+        $idPersona = $alumno->persona->id_persona;
+
         // 1. Validación del Alumno
         $datosAlumno = $request->validate([
-            'dni' => 'required|numeric', 
+            'dni' => 'required|numeric|unique:personas,dni,'. $idPersona . ',id_persona',
             'nombre' => 'required|string|max:191',
             'apellido' => 'required|string|max:191',
             'fecha_nacimiento' => 'required|date',
@@ -456,7 +450,7 @@ class AlumnoController extends Controller
 
             // 3. Delegamos al Servicio la lógica pesada
             // (El servicio orquestará la transacción de BBDD)
-            $this->alumnoService->actualizarAlumno(
+            $this->alumnoService->actualizar(
                 $id, 
                 $datosAlumno, 
                 $familiares, 

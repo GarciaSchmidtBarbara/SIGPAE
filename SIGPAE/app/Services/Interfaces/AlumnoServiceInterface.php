@@ -26,6 +26,7 @@ interface AlumnoServiceInterface
 
     public function buscar(string $q): \Illuminate\Support\Collection;
 
-    public function actualizar(int $id, array $data): bool;
+    public function actualizar(int $id, array $data, array $listaFamiliares, 
+    array $familiaresAEliminar, array $hermanosAEliminar): bool;
 
 }

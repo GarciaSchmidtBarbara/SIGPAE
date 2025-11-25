@@ -33,65 +33,68 @@ class AlumnoService implements AlumnoServiceInterface
 
     public function crearAlumno(array $data): Alumno
     {
-        try {
-            $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
-            $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
-            $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
+        return DB::transaction(function () use ($data) {
+            try {
+                $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
+                $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
+                $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
 
-            $persona = Persona::create([
-                'dni' => $data['dni'],
-                'nombre' => $data['nombre'],
-                'apellido' => $data['apellido'],
-                'fecha_nacimiento' => $data['fecha_nacimiento'],
-                'nacionalidad' => $data['nacionalidad'],
-                'activo' => true,
-            ]);
+                $persona = Persona::create([
+                    'dni' => $data['dni'],
+                    'nombre' => $data['nombre'],
+                    'apellido' => $data['apellido'],
+                    'fecha_nacimiento' => $data['fecha_nacimiento'],
+                    'nacionalidad' => $data['nacionalidad'],
+                    'activo' => true,
+                ]);
 
-            if (!$persona) {
-                throw new \Exception('Error al crear la persona asociada');
+                if (!$persona) {
+                    throw new \Exception('Error al crear la persona asociada');
+                }
+
+                if (!str_contains($data['aula'], '°')) {
+                    throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
+                }
+
+                [$curso, $division] = explode('°', $data['aula']);
+                $aula = Aula::where('curso', $curso)
+                            ->where('division', $division)
+                            ->first();
+
+                if (!$aula) {
+                    throw new \Exception('No se encontró el aula con la descripción: ' . $data['aula']);
+                }
+                
+                $cud = $data['cud'] === 'Sí' ? 1 : 0;
+                
+                $alumno = new Alumno([
+                    'fk_id_persona' => $persona->id_persona,
+                    'fk_id_aula' => $aula->id_aula,
+                    'cud' => $cud,
+                    'inasistencias' => $data['inasistencias'] ?? null,
+                    'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
+                    'situacion_familiar' => $data['situacion_familiar'] ?? null,
+                    'situacion_medica' => $data['situacion_medica'] ?? null,
+                    'situacion_escolar' => $data['situacion_escolar'] ?? null,
+                    'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
+                    'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
+                    'antecedentes' => $data['antecedentes'] ?? null,
+                    'observaciones' => $data['observaciones'] ?? null,
+                ]);
+
+                $alumno->save();
+                
+                if (!$alumno->exists) {
+                    throw new \Exception('El alumno no se guardó correctamente');
+                }
+
+                return $alumno;
+            } catch (\Throwable $e) {
+                // El catch ahora maneja la excepción, y la transacción se revertirá.
+                \Log::error('Error al crear alumno: '.$e->getMessage(), ['data' => $data]);
+                throw new \Exception('Ocurrió un error al crear el alumno. '.$e->getMessage());
             }
-
-            if (!str_contains($data['aula'], '°')) {
-                throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
-            }
-
-            [$curso, $division] = explode('°', $data['aula']);
-            $aula = Aula::where('curso', $curso)
-                        ->where('division', $division)
-                        ->first();
-
-            if (!$aula) {
-                throw new \Exception('No se encontró el aula con la descripción: ' . $data['aula']);
-            }
-            
-            $cud = $data['cud'] === 'Sí' ? 1 : 0;
-            
-            $alumno = new Alumno([
-                'fk_id_persona' => $persona->id_persona,
-                'fk_id_aula' => $aula->id_aula,
-                'cud' => $cud,
-                'inasistencias' => $data['inasistencias'] ?? null,
-                'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
-                'situacion_familiar' => $data['situacion_familiar'] ?? null,
-                'situacion_medica' => $data['situacion_medica'] ?? null,
-                'situacion_escolar' => $data['situacion_escolar'] ?? null,
-                'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
-                'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
-                'antecedentes' => $data['antecedentes'] ?? null,
-                'observaciones' => $data['observaciones'] ?? null,
-            ]);
-
-            $alumno->save();
-            
-            if (!$alumno->exists) {
-                throw new \Exception('El alumno no se guardó correctamente');
-            }
-
-            return $alumno;
-        } catch (\Throwable $e) {
-            \Log::error('Error al crear alumno: '.$e->getMessage(), ['data' => $data]);
-            throw new \Exception('Ocurrió un error al crear el alumno. '.$e->getMessage());
-        }
+        });
     }
     
     //Cuando se crea el alumno junto con sus familiares
@@ -209,6 +212,25 @@ class AlumnoService implements AlumnoServiceInterface
         return Aula::all()->map(fn($a) => $a->descripcion)->unique();
     }
 
+    private function buscarAulaPorDescripcion(string $descripcion): ?Aula
+    {
+        if (!str_contains($descripcion, '°')) {
+            throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
+        }
+
+        [$curso, $division] = explode('°', $descripcion);
+
+        $aula = Aula::where('curso', $curso)
+                    ->where('division', $division)
+                    ->first();
+
+        if (!$aula) {
+            throw new \Exception('No se encontró el aula con la descripción: ' . $descripcion);
+        }
+
+        return $aula;
+    }
+
     private function normalizarTexto(string $texto): string
     {
         return strtolower(strtr(iconv('UTF-8', 'ASCII//TRANSLIT', $texto), "´`^~¨", "     "));
@@ -257,76 +279,73 @@ class AlumnoService implements AlumnoServiceInterface
         }
     }
 
-    /**
-     * Actualiza los datos básicos del alumno y su persona asociada.
-     */
-    public function actualizar(int $id, array $data): bool
+    //Actualiza los datos básicos del alumno y su persona asociada.
+    public function actualizar(int $id, array $data, array $listaFamiliares, array $familiaresAEliminar, array $hermanosAEliminar): bool
     {
-        $alumno = $this->repo->buscarPorId($id);
-        
-        if (!$alumno) {
-            throw new \Exception("Alumno no encontrado.");
-        }
-
-        // 1. Actualizar Persona (Datos Personales)
-        // USAMOS '??' PARA EVITAR EL ERROR DE 'UNDEFINED INDEX'
-        // Si $data['dni'] no existe, usamos $alumno->persona->dni (el valor viejo)
-        $alumno->persona->update([
-            'dni' => $data['dni'] ?? $alumno->persona->dni,
-            'nombre' => $data['nombre'] ?? $alumno->persona->nombre,
-            'apellido' => $data['apellido'] ?? $alumno->persona->apellido,
-            'fecha_nacimiento' => $data['fecha_nacimiento'] ?? $alumno->persona->fecha_nacimiento,
-            'nacionalidad' => $data['nacionalidad'] ?? $alumno->persona->nacionalidad,
-            'domicilio' => $data['domicilio'] ?? $alumno->persona->domicilio,
-        ]);
-
-        // 2. Actualizar Aula (Solo si vino el dato)
-        if (!empty($data['aula'])) {
-            if (!str_contains($data['aula'], '°')) {
-                 throw new \Exception('Formato de aula inválido. Se espera "Curso°División".');
-            }
+        return DB::transaction(function () use ($id, $data, $listaFamiliares, $familiaresAEliminar, $hermanosAEliminar) {
+            $alumno = $this->repo->buscarPorId($id);
             
-            [$curso, $division] = explode('°', $data['aula']);
-            
-            $aula = \App\Models\Aula::where('curso', $curso)
-                                    ->where('division', $division)
-                                    ->first();
-            
-            if (!$aula) {
-                throw new \Exception("No se encontró el aula {$data['aula']}.");
-            }
-            
-            $alumno->fk_id_aula = $aula->id_aula;
-        }
-
-        // 3. Actualizar Datos del Alumno (Con lógica segura)
-        $alumno->update([
-            // Para booleanos, chequeamos si la clave existe antes de comparar
-            'cud' => isset($data['cud']) ? (($data['cud'] === 'Sí') ? 1 : 0) : $alumno->cud,
-            
-            'inasistencias' => $data['inasistencias'] ?? $alumno->inasistencias,
-            'cud' => ($data['cud'] ?? 'No') === 'Sí' ? 1 : 0,
-            'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
-            'situacion_familiar' => $data['situacion_familiar'] ?? null,
-            'situacion_medica' => $data['situacion_medica'] ?? null,
-            'situacion_escolar' => $data['situacion_escolar'] ?? null,
-            'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
-            'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
-            'antecedentes' => $data['antecedentes'] ?? null,
-            'observaciones' => $data['observaciones'] ?? null,
-        ]);
-
-            // 3. Ejecutar Borrados Físicos (Hermanos Alumnos)
-            // Rompemos el lazo (detach) en ambas direcciones por seguridad
-            if (!empty($delHermanos)) {
-                $alumno->hermanos()->detach($delHermanos);
-                $alumno->esHermanoDe()->detach($delHermanos); 
+            if (!$alumno) {
+                throw new \Exception("Alumno no encontrado.");
             }
 
-            // 4. Procesar Upserts (Crear o Actualizar relaciones)
-            $this->procesarRelaciones($alumno, $listaFamiliares);
+            // 1. Actualizar Persona (Datos Personales)
+            // USAMOS '??' PARA EVITAR EL ERROR DE 'UNDEFINED INDEX'
+            // Si $data['dni'] no existe, usamos $alumno->persona->dni (el valor viejo)
+            $alumno->persona->update([
+                'dni' => $data['dni'] ?? $alumno->persona->dni,
+                'nombre' => $data['nombre'] ?? $alumno->persona->nombre,
+                'apellido' => $data['apellido'] ?? $alumno->persona->apellido,
+                'fecha_nacimiento' => $data['fecha_nacimiento'] ?? $alumno->persona->fecha_nacimiento,
+                'nacionalidad' => $data['nacionalidad'] ?? $alumno->persona->nacionalidad,
+                'domicilio' => $data['domicilio'] ?? $alumno->persona->domicilio,
+            ]);
+
+            // 2. Actualizar Aula (Solo si vino el dato)
+            if (!empty($data['aula'])) {
+                if (!str_contains($data['aula'], '°')) {
+                    throw new \Exception('Formato de aula inválido. Se espera "Curso°División".');
+                }
+                
+                [$curso, $division] = explode('°', $data['aula']);
+                
+                $aula = \App\Models\Aula::where('curso', $curso)
+                                        ->where('division', $division)
+                                        ->first();
+                
+                if (!$aula) {
+                    throw new \Exception("No se encontró el aula {$data['aula']}.");
+                }
+                
+                $alumno->fk_id_aula = $aula->id_aula;
+            }
+
+            // 3. Actualizar Datos del Alumno (Con lógica segura)
+            $alumno->update([
+                'inasistencias' => $data['inasistencias'] ?? $alumno->inasistencias,
+                'cud' => ($data['cud'] ?? 'No') === 'Sí' ? 1 : 0,
+                'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
+                'situacion_familiar' => $data['situacion_familiar'] ?? null,
+                'situacion_medica' => $data['situacion_medica'] ?? null,
+                'situacion_escolar' => $data['situacion_escolar'] ?? null,
+                'actividades_extraescolares' => $data['actividades_extraescolares'] ?? null,
+                'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
+                'antecedentes' => $data['antecedentes'] ?? null,
+                'observaciones' => $data['observaciones'] ?? null,
+            ]);
+
+                // 3. Ejecutar Borrados Físicos (Hermanos Alumnos)
+                // Rompemos el lazo (detach) en ambas direcciones por seguridad
+                if (!empty($delHermanos)) {
+                    $alumno->hermanos()->detach($delHermanos);
+                    $alumno->esHermanoDe()->detach($delHermanos); 
+                }
+
+                // 4. Procesar Upserts (Crear o Actualizar relaciones)
+                $this->procesarRelaciones($alumno, $listaFamiliares);
 
             return true;
+        });
     }
 
 }

@@ -71,7 +71,7 @@ Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('al
 Route::post('/alumnos/store', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
 
-Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
 
 
