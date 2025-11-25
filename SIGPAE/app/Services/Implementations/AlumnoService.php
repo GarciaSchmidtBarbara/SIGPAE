@@ -260,7 +260,7 @@ class AlumnoService implements AlumnoServiceInterface
     /**
      * Actualiza los datos básicos del alumno y su persona asociada.
      */
-    public function actualizar(int $id, array $data): void
+    public function actualizar(int $id, array $data): bool
     {
         $alumno = $this->repo->buscarPorId($id);
         
@@ -327,7 +327,6 @@ class AlumnoService implements AlumnoServiceInterface
             $this->procesarRelaciones($alumno, $listaFamiliares);
 
             return true;
-        });
     }
 
 }
