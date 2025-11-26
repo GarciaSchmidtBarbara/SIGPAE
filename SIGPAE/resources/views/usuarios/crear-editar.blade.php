@@ -62,8 +62,8 @@
                     </select>
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <x-campo-requerido text="Sigla" required />
-                    <input name="siglas" readonly x-model="selectedSigla" value="{{ $usuarioData['siglas'] ?? old('siglas') }}" placeholder="PS" class="border px-2 py-1 rounded bg-gray-100" />
+                    <x-campo-requerido text="Siglas" required />
+                    <input name="siglas" readonly x-model="selectedSigla" value="{{ $usuarioData['siglas'] ?? old('siglas') }}" placeholder="Seleccione profesión" class="border px-2 py-1 rounded bg-gray-100"/>
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Email" required />
