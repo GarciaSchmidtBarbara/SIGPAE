@@ -110,8 +110,14 @@
                     :text_activo="'Cerrar'"
                     :text_inactivo="'Abrir'"
                 />
+                @if($intervencion->planDeAccion)
+                    <a class="btn-aceptar" href="{{ route('planDeAccion.iniciar-edicion', $intervencion->planDeAccion->id_plan_de_accion) }}">
+                        Ver Plan Vinculado
+                    </a>
+                @endif
             @endif
-            <a class="btn-volver" href="{{ route('intervenciones.principal') }}">Volver</a>
+            <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
+            
         </div>
     </div>
 
@@ -442,7 +448,7 @@
                 @endif
 
                 @if($esEdicion)
-                    <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}">Volver</a>
+                    <a class="btn-aceptar" href="{{ url()->previous() }}">Volver</a>
                 @else
                     <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}">Cancelar</a>
                 @endif

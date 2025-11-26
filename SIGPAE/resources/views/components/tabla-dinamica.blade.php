@@ -15,7 +15,9 @@
                     {{ is_array($col) ? $col['label'] : ucfirst($col) }}
                 </th>
             @endforeach
-            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">ACCIONES</th>
+            @if (is_callable($acciones))
+                <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">ACCIONES</th>
+            @endif
         </tr>
     </thead>
     <tbody class="bg-white divide-y divide-gray-200">
@@ -47,16 +49,16 @@
                     </td>
                 @endforeach
 
-                <td class="px-4 py-2 text-sm flex gap-2">
-                    {{-- Si se pasó una función, se ejecuta --}}
-                    @if (is_callable($acciones))
+                {{-- Si se pasó una función, se ejecuta --}}
+                @if (is_callable($acciones))
+                    <td class="px-4 py-2 text-sm flex gap-2">
                         {!! $acciones($fila) !!}
-                    @endif
-                </td>
+                    </td>
+                @endif
             </tr>
         @empty
             <tr>
-                <td colspan="{{ count($columnas) + 1 }}" class="px-4 py-2 text-center text-gray-500">
+                <td colspan="{{ count($columnas) + (is_callable($acciones) ? 1 : 0) }}" class="px-4 py-2 text-center text-gray-500">
                     No hay registros disponibles.
                 </td>
             </tr>

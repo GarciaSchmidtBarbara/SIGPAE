@@ -24,7 +24,7 @@ class AlumnoRepository implements AlumnoRepositoryInterface
 
     public function crear(array $data): Alumno
     {
-        return Alumno::crearAlumno($data);
+        return Alumno::create($data);
     }
 
     public function eliminar(int $id): bool
