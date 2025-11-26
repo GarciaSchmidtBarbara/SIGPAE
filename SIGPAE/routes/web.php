@@ -110,3 +110,14 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
 });
+
+//Rutas Eventos (Calendario)
+use App\Http\Controllers\EventoController;
+Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function () {
+    Route::get('/calendario', [EventoController::class, 'getEventosCalendario'])->name('calendario');
+    Route::get('/', [EventoController::class, 'index'])->name('index');
+    Route::get('/{id}', [EventoController::class, 'show'])->name('show');
+    Route::post('/', [EventoController::class, 'store'])->name('store');
+    Route::put('/{id}', [EventoController::class, 'update'])->name('update');
+    Route::delete('/{id}', [EventoController::class, 'destroy'])->name('destroy');
+});

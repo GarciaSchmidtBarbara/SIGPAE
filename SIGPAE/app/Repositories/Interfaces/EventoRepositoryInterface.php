@@ -33,4 +33,7 @@ interface EventoRepositoryInterface
 
     //Adjunta o sincroniza alumnos a un evento
     public function syncAlumnos(Evento $evento, array $alumnoIds): void;
+
+    //Obtiene eventos en un rango de fechas para el calendario
+    public function getEventosByDateRange(string $start, string $end): Collection;
 }

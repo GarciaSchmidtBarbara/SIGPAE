@@ -37,4 +37,12 @@ class EventoRepository implements EventoRepositoryInterface
     {
         return (bool) Evento::whereKey($id)->delete();
     }
+
+    public function getEventosByDateRange(string $start, string $end): \Illuminate\Support\Collection
+    {
+        return Evento::whereBetween('fecha_hora', [$start, $end])
+            ->with(['profesionalCreador.persona'])
+            ->orderBy('fecha_hora', 'asc')
+            ->get();
+    }
 }

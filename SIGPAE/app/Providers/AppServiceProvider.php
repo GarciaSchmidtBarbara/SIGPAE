@@ -38,6 +38,11 @@ use App\Services\Interfaces\IntervencionServiceInterface;
 use App\Services\Implementations\IntervencionService;
 use App\Repositories\Interfaces\IntervencionRepositoryInterface;
 use App\Repositories\Eloquent\IntervencionRepository;
+// Evento
+use App\Services\Interfaces\EventoServiceInterface;
+use App\Services\Implementations\EventoService;
+use App\Repositories\Interfaces\EventoRepositoryInterface;
+use App\Repositories\Eloquent\EventoRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -53,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IntervencionRepositoryInterface::class,IntervencionRepository::class
     );
         $this->app->bind(PlanDeAccionRepositoryInterface::class, PlanDeAccionRepository::class);
+        $this->app->bind(EventoRepositoryInterface::class, EventoRepository::class);
 
         // Services
         $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
@@ -62,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IntervencionServiceInterface::class,IntervencionService::class
     );
         $this->app->bind(PlanDeAccionServiceInterface::class, PlanDeAccionService::class);
+        $this->app->bind(EventoServiceInterface::class, EventoService::class);
     }
 
     /**
