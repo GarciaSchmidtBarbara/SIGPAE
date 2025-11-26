@@ -35,9 +35,9 @@ class ProfesionalRepository implements ProfesionalRepositoryInterface
         return $this->model->find($id);
     }
 
-    public function create(array $data): Profesional
+    public function crear(array $data): Profesional
     {
-        return $this->model->create($data);
+        return Profesional::crearProfesional($data);
     }
 
     public function update(int $id, array $data): Profesional
