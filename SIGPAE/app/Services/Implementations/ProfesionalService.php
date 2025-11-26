@@ -20,20 +20,25 @@ use App\Enums\Siglas;
 
 class ProfesionalService implements ProfesionalServiceInterface
 {
-    protected ProfesionalRepositoryInterface $profesionalRepository;
+    protected ProfesionalRepositoryInterface $repo;
 
-    public function __construct(ProfesionalRepositoryInterface $profesionalRepository) {
-        $this->profesionalRepository = $profesionalRepository;
+    public function __construct(ProfesionalRepositoryInterface $repo) {
+        $this->repo = $repo;
     }
 
     public function getAllProfesionales(): Collection
     {
-        return $this->profesionalRepository->all();
+        return $this->repo->all();
     }
 
     public function getProfesionalById(int $id): ?Profesional
     {
-        return $this->profesionalRepository->find($id);
+        return $this->repo->find($id);
+    }
+
+    public function cambiarActivo(int $id): bool
+    {
+        return $this->repo->cambiarActivo($id);
     }
 
     // Lógica de búsqueda y filtrado
@@ -94,7 +99,7 @@ class ProfesionalService implements ProfesionalServiceInterface
                 }
             }
             
-            $profesional = $this->profesionalRepository->create($profesionalFields);
+            $profesional = $this->repo->create($profesionalFields);
             
             DB::commit();
             return $profesional;
@@ -134,7 +139,7 @@ class ProfesionalService implements ProfesionalServiceInterface
 
             // Actualizar el profesional con los campos propios
             if (!empty($profesionalFields)) {
-                $profesional = $this->profesionalRepository->update($id, $profesionalFields);
+                $profesional = $this->repo->update($id, $profesionalFields);
             }
 
             DB::commit();
@@ -147,22 +152,22 @@ class ProfesionalService implements ProfesionalServiceInterface
 
     public function deleteProfesional(int $id): bool
     {
-        return $this->profesionalRepository->delete($id);
+        return $this->repo->delete($id);
     }
 
     public function getProfesionalByMatricula(string $matricula): ?Profesional
     {
-        return $this->profesionalRepository->findByMatricula($matricula);
+        return $this->repo->findByMatricula($matricula);
     }
 
     public function getProfesionalWithPersona(int $id): ?Profesional
     {
-        return $this->profesionalRepository->findWithPersona($id);
+        return $this->repo->findWithPersona($id);
     }
 
     public function getAllProfesionalesWithPersona(): Collection
     {
-        return $this->profesionalRepository->allWithPersona();
+        return $this->repo->allWithPersona();
     }
     public function obtenerTodasLasSiglas(): ISupportCollection {
         // Devuelve una colección con todas las siglas posibles del enum

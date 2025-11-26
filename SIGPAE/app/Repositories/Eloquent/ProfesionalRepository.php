@@ -15,6 +15,16 @@ class ProfesionalRepository implements ProfesionalRepositoryInterface
         $this->model = $profesional;
     }
 
+    public function cambiarActivo(int $id): bool
+    {
+        $usuario = Profesional::with('persona')->find($id);
+        if ($usuario && $usuario->persona) {
+            $usuario->persona->activo = !$usuario->persona->activo;
+            return $usuario->persona->save();
+        }
+        return false;
+    }
+
     public function all(): Collection
     {
         return $this->model->all();

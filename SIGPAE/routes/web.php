@@ -86,7 +86,8 @@ Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('al
 use App\Http\Controllers\ProfesionalController;
 Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
 Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->name('usuarios.crear-editar');
-
+Route::put('usuarios/{id}/cambiar-estado', [ProfesionalController::class, 'cambiarActivo'])->name('usuarios.cambiarActivo');
+Route::get('/usuarios/{id}/editar', [ProfesionalController::class, 'editar'])->name('usuarios.editar');
 
 //Ruta Perfil
 use App\Http\Controllers\Auth\PasswordController;

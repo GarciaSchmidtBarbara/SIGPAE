@@ -26,7 +26,6 @@ class Profesional extends Authenticatable
 
   
     protected $fillable = [
-        // campos mínimos de profesional / usuario
         'telefono',
         'usuario',
         'profesion',
