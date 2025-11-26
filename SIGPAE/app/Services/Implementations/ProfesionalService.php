@@ -20,20 +20,27 @@ use App\Enums\Siglas;
 
 class ProfesionalService implements ProfesionalServiceInterface
 {
-    protected ProfesionalRepositoryInterface $profesionalRepository;
+    protected ProfesionalRepositoryInterface $repo;
+    protected \App\Services\Interfaces\PersonaServiceInterface $personaService;
 
-    public function __construct(ProfesionalRepositoryInterface $profesionalRepository) {
-        $this->profesionalRepository = $profesionalRepository;
+    public function __construct(ProfesionalRepositoryInterface $repo, \App\Services\Interfaces\PersonaServiceInterface $personaService) {
+        $this->repo = $repo;
+        $this->personaService = $personaService;
     }
 
     public function getAllProfesionales(): Collection
     {
-        return $this->profesionalRepository->all();
+        return $this->repo->all();
     }
 
     public function getProfesionalById(int $id): ?Profesional
     {
-        return $this->profesionalRepository->find($id);
+        return $this->repo->find($id);
+    }
+
+    public function cambiarActivo(int $id): bool
+    {
+        return $this->repo->cambiarActivo($id);
     }
 
     // Lógica de búsqueda y filtrado
@@ -77,7 +84,7 @@ class ProfesionalService implements ProfesionalServiceInterface
         ]));
 
         $profesionalFields = array_intersect_key($data, array_flip([
-            'telefono', 'usuario', 'email', 'password', 'fk_id_persona'
+            'telefono', 'usuario', 'email', 'contrasenia', 'profesion', 'siglas', 'fk_id_persona'
         ]));
 
         try {
@@ -94,7 +101,7 @@ class ProfesionalService implements ProfesionalServiceInterface
                 }
             }
             
-            $profesional = $this->profesionalRepository->create($profesionalFields);
+            $profesional = $this->repo->create($profesionalFields);
             
             DB::commit();
             return $profesional;
@@ -117,7 +124,7 @@ class ProfesionalService implements ProfesionalServiceInterface
         ]));
 
         $profesionalFields = array_intersect_key($data, array_flip([
-            'matricula', 'especialidad', 'cargo', 'profesion', 'telefono', 'usuario', 'email', 'password'
+            'matricula', 'especialidad', 'cargo', 'profesion', 'siglas', 'telefono', 'usuario', 'email', 'contrasenia'
         ]));
 
         try {
@@ -134,7 +141,7 @@ class ProfesionalService implements ProfesionalServiceInterface
 
             // Actualizar el profesional con los campos propios
             if (!empty($profesionalFields)) {
-                $profesional = $this->profesionalRepository->update($id, $profesionalFields);
+                $profesional = $this->repo->update($id, $profesionalFields);
             }
 
             DB::commit();
@@ -147,22 +154,22 @@ class ProfesionalService implements ProfesionalServiceInterface
 
     public function deleteProfesional(int $id): bool
     {
-        return $this->profesionalRepository->delete($id);
+        return $this->repo->delete($id);
     }
 
     public function getProfesionalByMatricula(string $matricula): ?Profesional
     {
-        return $this->profesionalRepository->findByMatricula($matricula);
+        return $this->repo->findByMatricula($matricula);
     }
 
     public function getProfesionalWithPersona(int $id): ?Profesional
     {
-        return $this->profesionalRepository->findWithPersona($id);
+        return $this->repo->findWithPersona($id);
     }
 
     public function getAllProfesionalesWithPersona(): Collection
     {
-        return $this->profesionalRepository->allWithPersona();
+        return $this->repo->allWithPersona();
     }
     public function obtenerTodasLasSiglas(): ISupportCollection {
         // Devuelve una colección con todas las siglas posibles del enum

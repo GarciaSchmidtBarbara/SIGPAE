@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Services\Interfaces\ProfesionalServiceInterface;
-use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Session;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Profesional;
 use App\Enums\Siglas;
@@ -129,4 +129,38 @@ class ProfesionalController extends Controller {
         }
     }
 
+    public function cambiarActivo(int $id): RedirectResponse
+    {
+        $resultado = $this->profesionalService->cambiarActivo($id);
+        $mensaje = $resultado
+            ? ['success' => 'El estado del usuario fue actualizado correctamente.']
+            : ['error' => 'No pudo realizarse la actualización de estado del usuario.'];
+
+        return redirect()->route('usuarios.principal')->with($mensaje);
+    }
+
+    public function editar(int $id)
+    {
+        $usuario = $this->profesionalService->obtener($id);
+        if (!$usuario) {
+            return redirect()->route('usuarios.principal')->with('error', 'Usuario no encontrado.');
+        }
+
+        $siglas = $this->profesionalService->obtenerTodasLasSiglas();
+
+        $usuarioData = [
+            'dni' => $usuario->persona->dni,
+            'nombre' => $usuario->persona->nombre,
+            'apellido' => $usuario->persona->apellido,
+            'fecha_nacimiento' => $usuario->persona->fecha_nacimiento,
+            'nacionalidad' => $usuario->persona->nacionalidad,
+            'profesion' => $usuario->profesion,
+            'siglas' => $usuario->siglas,
+        ];
+
+        //Guardar el ID en sesión para saber que estamos editando
+        Session::put('editando_usuario_id', $id);
+
+        return view('usuarios.crear-editar', compact('usuarioData', 'siglas', 'usuario'))->with('modo', 'editar');
+    }
 }
