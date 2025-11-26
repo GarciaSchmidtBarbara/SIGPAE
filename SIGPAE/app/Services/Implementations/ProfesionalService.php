@@ -21,9 +21,11 @@ use App\Enums\Siglas;
 class ProfesionalService implements ProfesionalServiceInterface
 {
     protected ProfesionalRepositoryInterface $repo;
+    protected \App\Services\Interfaces\PersonaServiceInterface $personaService;
 
-    public function __construct(ProfesionalRepositoryInterface $repo) {
+    public function __construct(ProfesionalRepositoryInterface $repo, \App\Services\Interfaces\PersonaServiceInterface $personaService) {
         $this->repo = $repo;
+        $this->personaService = $personaService;
     }
 
     public function getAllProfesionales(): Collection
@@ -82,7 +84,7 @@ class ProfesionalService implements ProfesionalServiceInterface
         ]));
 
         $profesionalFields = array_intersect_key($data, array_flip([
-            'telefono', 'usuario', 'email', 'password', 'fk_id_persona'
+            'telefono', 'usuario', 'email', 'contrasenia', 'profesion', 'siglas', 'fk_id_persona'
         ]));
 
         try {
@@ -122,7 +124,7 @@ class ProfesionalService implements ProfesionalServiceInterface
         ]));
 
         $profesionalFields = array_intersect_key($data, array_flip([
-            'matricula', 'especialidad', 'cargo', 'profesion', 'telefono', 'usuario', 'email', 'password'
+            'matricula', 'especialidad', 'cargo', 'profesion', 'siglas', 'telefono', 'usuario', 'email', 'contrasenia'
         ]));
 
         try {

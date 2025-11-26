@@ -4,35 +4,19 @@
 
 @section('contenido')
 <div x-data="{
-    familyMembers: {{ json_encode(array_values($familiares_temp ?? [])) }},
-    
-    async removeFamiliar(index) {
-        if (confirm('¿Estás seguro de eliminar este familiar?')) {
-            try {
-                const response = await fetch(`/familiares/temp/${index}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                });
-                
-                if (response.ok) {
-                    this.familyMembers.splice(index, 1);
-                } else {
-                    alert('Error al eliminar el familiar');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al eliminar el familiar');
-            }
-        }
-    }
+    // Profesional form helpers
+    selectedProfesion: '{{ $usuarioData['profesion'] ?? '' }}',
+    selectedSigla: '{{ $usuarioData['siglas'] ?? '' }}',
+    onProfesionChange(e) {
+        const opt = e.target.options[e.target.selectedIndex];
+        this.selectedProfesion = opt.value || '';
+        this.selectedSigla = opt.dataset.sigla || '';
+    },
 }">
 
     <form method="POST" action="{{ isset($modo) && $modo === 'editar' 
-            ? route('alumnos.actualizar', $alumno->id_alumno)
-            : route('alumnos.store') }}">
+            ? route('usuarios.update', $usuario->id_profesional)
+            : route('usuarios.store') }}">
         @csrf
         @if(isset($modo) && $modo === 'editar')
             @method('PUT')
@@ -52,17 +36,34 @@
                     <x-campo-requerido text="Apellidos" required />
                     <input name="apellido" value="{{ $usuarioData['apellido'] ?? old('apellido') }}" placeholder="Apellidos" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
+                <x-campo-fecha-edad label="Fecha de nacimiento" name="fecha_nacimiento" :value="old(
+                        'fecha_nacimiento',
+                        isset($usuario) && isset($usuario->persona->fecha_nacimiento)
+                            ? \Illuminate\Support\Carbon::parse($usuario->persona->fecha_nacimiento)->format('Y-m-d')
+                            : ($usuarioData['fecha_nacimiento'] ?? '')
+                    )" edad-name="edad" :edad-value="old('edad', $usuarioData['edad'] ?? '')" required
+
+                />
+
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Nombre de Usuario" required />
-                    <input name="nombre-usuario" value="{{ $usuarioData['nombre-usuario'] ?? old('nombre-usuario') }}" placeholder="nombre_de_usuario" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input name="usuario" value="{{ $usuarioData['usuario'] ?? old('usuario') }}" placeholder="nombre_de_usuario" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Profesión" required />
-                    <input name="profesion" value="{{ $usuarioData['profesion'] ?? old('profesion') }}" placeholder="Profesión" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select name="profesion" @change="onProfesionChange" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Seleccione profesión</option>
+                        @foreach(\App\Enums\Siglas::cases() as $case)
+                            @php $label = $case->label(); $sigla = $case->value; @endphp
+                            <option value="{{ $label }}" data-sigla="{{ $sigla }}" {{ (isset($usuarioData['profesion']) && $usuarioData['profesion'] === $label) ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="flex flex-col w-1/5">
-                    <x-campo-requerido text="Siglas de Profesión" required />
-                    <input name="siglas-profesion" value="{{ $usuarioData['siglas-profesion'] ?? old('siglas-profesion') }}" placeholder="PS" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <x-campo-requerido text="Sigla" required />
+                    <input name="siglas" readonly x-model="selectedSigla" value="{{ $usuarioData['siglas'] ?? old('siglas') }}" placeholder="PS" class="border px-2 py-1 rounded bg-gray-100" />
                 </div>
                 <div class="flex flex-col w-1/5">
                     <x-campo-requerido text="Email" required />
@@ -85,8 +86,7 @@
 
         <div class="fila-botones mt-8">
             <button type="submit" class="btn-aceptar">Guardar</button>
-            <button type="button" class="btn-eliminar" >Desactivar</button>
-            <a class="btn-volver" href="{{ route('alumnos.principal') }}" >Volver</a>
+            <a class="btn-volver" href="{{ route('usuarios.principal') }}" >Volver</a>
         </div>
     </form>
 </div>
