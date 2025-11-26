@@ -40,15 +40,33 @@ class ProfesionalController extends Controller {
         return response()->json($profesional);
     }
 
-    public function store(Request $request): JsonResponse {
+    public function store(Request $request): RedirectResponse {
+        $request->validate([
+            'dni' => 'required|numeric',
+            'nombre' => 'required|string|max:191',
+            'apellido' => 'required|string|max:191',
+            'fecha_nacimiento' => 'required|date|before_or_equal:today',
+            'usuario' => 'required|string',
+        ], [
+            'required' => 'Este campo es obligatorio.',
+            'date' => 'Debe ingresar una fecha válida.',
+            'numeric' => 'Debe ingresar un número válido.',
+            'before_or_equal' => 'La fecha de nacimiento no puede ser posterior a hoy.',
+        ]);
+
         try {
             // Pasamos todo el payload al servicio; el service separará persona/profesional
             $payload = $request->all();
+            $profesional = $this->profesionalService->crearProfesional($payload);
+            return redirect()
+                ->route('usuarios.principal')
+                ->with('success', 'Usuario creado correctamente');
 
-            $profesional = $this->profesionalService->createProfesional($payload);
-            return response()->json($profesional, 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+        } catch (\Throwable $e) {
+            // Vuelve atrás, conserva los valores del formulario y envía el error
+            return back()
+                ->withInput()
+                ->withErrors(['error' => $e->getMessage()]);
         }
     }
 
@@ -59,15 +77,19 @@ class ProfesionalController extends Controller {
         return view('usuarios.crear-editar', compact('usuarioData', 'siglas'));
     }
 
-    public function update(Request $request, int $id): JsonResponse {
+    public function update(Request $request, int $id): RedirectResponse {
         try {
             // Permitimos que el payload contenga tanto datos de persona como datos del profesional
             $data = $request->all();
-
             $profesional = $this->profesionalService->updateProfesional($id, $data);
-            return response()->json($profesional);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+            return redirect()
+                ->route('usuarios.principal')
+                ->with('success', 'Usuario creado correctamente');
+
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->withErrors(['error' => $e->getMessage()]);
         }
     }
 

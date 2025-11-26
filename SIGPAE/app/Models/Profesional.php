@@ -26,6 +26,7 @@ class Profesional extends Authenticatable
 
   
     protected $fillable = [
+        'fk_id_persona',
         'telefono',
         'usuario',
         'profesion',
@@ -118,5 +119,11 @@ class Profesional extends Authenticatable
     public function documentosCargados(): HasMany
     {
         return $this->hasMany(Documento::class, 'fk_id_profesional', 'id_profesional');
+    }
+
+    // Métodos personalizados
+    public static function crearProfesional(array $data): Alumno
+    {
+        return self::create($data);
     }
 }
