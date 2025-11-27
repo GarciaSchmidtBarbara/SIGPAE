@@ -124,7 +124,7 @@
                     :text_inactivo="'Abrir'"
                 />
             @endif
-            <a class="btn-volver" href="{{ route('planDeAccion.principal') }}">Volver</a>
+            <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
         </div>
     </div>
 
@@ -455,6 +455,24 @@
                     </div>
                 </div>
 
+                {{-- INTERVENCIONES RELACIONADAS --}}
+                <div id="intervenciones-asociadas" x-data="{ intervenciones: @js($intervencionesAsociadas ?? []) }">                    
+                    <div class="space-y-6 mb-6">
+                        <p class="separador">Intervenciones Asociadas</p>
+                        <x-tabla-dinamica 
+                            :columnas="[
+                                ['key' => 'fecha_hora_intervencion', 'label' => 'Fecha y Hora'],
+                                ['key' => 'tipo_intervencion', 'label' => 'Tipo'],
+                                ['key' => 'estado', 'label' => 'Estado'],
+                            ]"
+                            :filas="$intervencionesAsociadas"
+                            idCampo="id_intervencion"
+                            :filaEnlace="fn($fila) => route('intervenciones.editar', data_get($fila, 'id_intervencion'))"
+                        >
+                        </x-tabla-dinamica>
+                    </div>
+                </div>
+
 
                 {{-- Documentos (placeholder) --}}
                 <div class="space-y-6 mb-6">
@@ -488,7 +506,7 @@
                 @endif
 
                 @if($esEdicion)
-                    <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}">Volver</a>
+                    <a class="btn-aceptar" href="{{ url()->previous() }}">Volver</a>
                 @else
                     <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}">Cancelar</a>
                 @endif

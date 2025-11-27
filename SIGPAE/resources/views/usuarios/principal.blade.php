@@ -4,7 +4,7 @@
 
 @section('contenido')
 <div class="p-6">
-    <form id="form-alumno" method="GET" action="{{ route('alumnos.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+    <form id="form-alumno" method="GET" action="{{ route('usuarios.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('usuarios.crear-editar') }}">Registrar Usuario</a>
         <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
         <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
@@ -20,19 +20,8 @@
         </select>
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('alumnos.principal') }}" >Limpiar</a>
+        <a class="btn-aceptar" href="{{ route('usuarios.principal') }}" >Limpiar</a>
     </form>
-
-    @php
-        $accionesPorFila = function ($fila) {
-            $activo = data_get($fila, 'persona.activo');
-            $ruta = route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'));
-            return view('components.boton-estado', [
-                'activo' => $activo,
-                'route' => $ruta
-            ])->render();
-        };
-    @endphp
 
     <x-tabla-dinamica 
         :columnas="[
@@ -42,25 +31,15 @@
             ['key' => 'siglas', 'label' => 'Profesión'],
         ]"
         :filas="$usuarios"
-        idCampo="id_usuario"
+        idCampo="id_profesional"
+        :acciones="fn($fila) => view('components.boton-estado', [
+        'activo' => data_get($fila, 'persona.activo'),
+        'route' => route('usuarios.cambiarActivo', data_get($fila, 'id_profesional')),
+        'text_activo' => 'Desactivar',
+        'text_inactivo' => 'Activar',
+        ])->render()"
+        :filaEnlace="fn($fila) => route('usuarios.editar', data_get($fila, 'id_profesional'))"
     >
-        <x-slot:accionesPorFila>
-            @php
-                // función anónima que recibirá $fila
-            @endphp
-            @once
-                @php
-                    $accionesPorFila = function ($fila) {
-                        $activo = data_get($fila, 'persona.activo');
-                        $ruta = route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'));
-                        return view('components.boton-estado', [
-                            'activo' => $activo,
-                            'route' => $ruta
-                        ])->render();
-                    };
-                @endphp
-            @endonce
-        </x-slot:accionesPorFila>
     </x-tabla-dinamica>
 
     <div class="fila-botones mt-8">
