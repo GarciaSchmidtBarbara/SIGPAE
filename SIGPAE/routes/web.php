@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 require __DIR__.'/auth.php';
 
 // Ruta protegida
-Route::get('/welcome', function () {
+Route::get('/', function () {
     return view('welcome');
 })->middleware('auth')->name('welcome');
 
