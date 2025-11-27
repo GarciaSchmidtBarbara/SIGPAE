@@ -35,7 +35,7 @@
                 :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
             />
         @endif
-        <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
+        <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
     </div>
 </div>
 
@@ -441,7 +441,7 @@
                 :activo="$alumno->persona->activo" 
                 :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
             />
-            <a class="btn-volver" href="{{ route('alumnos.principal') }}">Volver</a>
+            <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
         </div>
     </div>
 @endif

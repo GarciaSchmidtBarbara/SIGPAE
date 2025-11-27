@@ -20,20 +20,27 @@ use App\Enums\Siglas;
 
 class ProfesionalService implements ProfesionalServiceInterface
 {
-    protected ProfesionalRepositoryInterface $profesionalRepository;
+    protected ProfesionalRepositoryInterface $repo;
+    protected \App\Services\Interfaces\PersonaServiceInterface $personaService;
 
-    public function __construct(ProfesionalRepositoryInterface $profesionalRepository) {
-        $this->profesionalRepository = $profesionalRepository;
+    public function __construct(ProfesionalRepositoryInterface $repo, \App\Services\Interfaces\PersonaServiceInterface $personaService) {
+        $this->repo = $repo;
+        $this->personaService = $personaService;
     }
 
     public function getAllProfesionales(): Collection
     {
-        return $this->profesionalRepository->all();
+        return $this->repo->all();
     }
 
     public function getProfesionalById(int $id): ?Profesional
     {
-        return $this->profesionalRepository->find($id);
+        return $this->repo->find($id);
+    }
+
+    public function cambiarActivo(int $id): bool
+    {
+        return $this->repo->cambiarActivo($id);
     }
 
     // Lógica de búsqueda y filtrado
@@ -69,38 +76,46 @@ class ProfesionalService implements ProfesionalServiceInterface
         return $usuarios;
     }
 
-    public function createProfesional(array $data): Profesional
-    {
-        // Separar campos de persona y campos propios del profesional
-        $personaFields = array_intersect_key($data, array_flip([
-            'nombre', 'apellido', 'dni', 'fecha_nacimiento', 'domicilio', 'nacionalidad'
-        ]));
-
-        $profesionalFields = array_intersect_key($data, array_flip([
-            'telefono', 'usuario', 'email', 'password', 'fk_id_persona'
-        ]));
-
+    public function crearProfesional(array $data): Profesional {
+        \DB::beginTransaction();
         try {
-            DB::beginTransaction();
+            $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
+            $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
+            $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
 
-            // Si vienen datos de persona, crear la Persona y asociarla.
-            if (!empty($personaFields)) {
-                $persona = $this->personaService->createPersona($personaFields);
-                $profesionalFields['fk_id_persona'] = $persona->id_persona;
-            } else {
-                // Si no vienen datos de persona, esperamos que venga fk_id_persona en payload
-                if (empty($profesionalFields['fk_id_persona'])) {
-                    throw new InvalidArgumentException('Se requiere fk_id_persona o datos de persona');
-                }
+            $persona = Persona::create([
+                'dni' => $data['dni'],
+                'nombre' => $data['nombre'],
+                'apellido' => $data['apellido'],
+                'fecha_nacimiento' => $data['fecha_nacimiento'],
+                'activo' => true,
+            ]);
+
+            if (!$persona) {
+                throw new \Exception('Error al crear la persona asociada');
             }
+                        
+            $usuario = new Profesional([
+                'fk_id_persona' => $persona->id_persona,
+                'usuario' => $data['usuario'],
+                'profesion' => $data['profesion'],
+                'siglas' => $data['siglas'],
+                'email' => $data['email'],
+                'contrasenia' => bcrypt($data['contrasenia']),
+            ]);
+
+            $usuario->save();
             
-            $profesional = $this->profesionalRepository->create($profesionalFields);
-            
-            DB::commit();
-            return $profesional;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
+            if (!$usuario->exists) {
+                throw new \Exception('El usuario no se guardó correctamente');
+            }
+            \DB::commit();
+            return $usuario->load(['persona']);
+
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            \Log::error('Error al crear usuario: '.$e->getMessage(), ['data' => $data]);
+            throw new \Exception('Ocurrió un error al crear el usuario. '.$e->getMessage());
         }
     }
 
@@ -117,7 +132,7 @@ class ProfesionalService implements ProfesionalServiceInterface
         ]));
 
         $profesionalFields = array_intersect_key($data, array_flip([
-            'matricula', 'especialidad', 'cargo', 'profesion', 'telefono', 'usuario', 'email', 'password'
+            'matricula', 'especialidad', 'cargo', 'profesion', 'siglas', 'telefono', 'usuario', 'email', 'contrasenia'
         ]));
 
         try {
@@ -134,7 +149,7 @@ class ProfesionalService implements ProfesionalServiceInterface
 
             // Actualizar el profesional con los campos propios
             if (!empty($profesionalFields)) {
-                $profesional = $this->profesionalRepository->update($id, $profesionalFields);
+                $profesional = $this->repo->update($id, $profesionalFields);
             }
 
             DB::commit();
@@ -147,22 +162,22 @@ class ProfesionalService implements ProfesionalServiceInterface
 
     public function deleteProfesional(int $id): bool
     {
-        return $this->profesionalRepository->delete($id);
+        return $this->repo->delete($id);
     }
 
     public function getProfesionalByMatricula(string $matricula): ?Profesional
     {
-        return $this->profesionalRepository->findByMatricula($matricula);
+        return $this->repo->findByMatricula($matricula);
     }
 
     public function getProfesionalWithPersona(int $id): ?Profesional
     {
-        return $this->profesionalRepository->findWithPersona($id);
+        return $this->repo->findWithPersona($id);
     }
 
     public function getAllProfesionalesWithPersona(): Collection
     {
-        return $this->profesionalRepository->allWithPersona();
+        return $this->repo->allWithPersona();
     }
     public function obtenerTodasLasSiglas(): ISupportCollection {
         // Devuelve una colección con todas las siglas posibles del enum

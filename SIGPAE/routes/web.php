@@ -71,7 +71,7 @@ Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('al
 Route::post('/alumnos/store', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
 
-Route::post('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
 
 
@@ -87,7 +87,11 @@ Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAj
 use App\Http\Controllers\ProfesionalController;
 Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
 Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->name('usuarios.crear-editar');
-
+// Crear y actualizar profesionales
+Route::post('/usuarios', [ProfesionalController::class, 'store'])->name('usuarios.store');
+Route::put('/usuarios/{id}', [ProfesionalController::class, 'update'])->name('usuarios.update');
+Route::put('usuarios/{id}/cambiar-estado', [ProfesionalController::class, 'cambiarActivo'])->name('usuarios.cambiarActivo');
+Route::get('/usuarios/{id}/editar', [ProfesionalController::class, 'editar'])->name('usuarios.editar');
 
 //Ruta Perfil
 use App\Http\Controllers\Auth\PasswordController;

@@ -86,7 +86,7 @@
     </x-tabla-dinamica>
 
     <div class="fila-botones mt-8">
-        <a class="btn-volver" href="{{ route('welcome') }}" >Volver</a>
+        <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
 </div>
 @endsection

@@ -122,6 +122,20 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         // === Aulas seleccionadas ===
         $aulasSeleccionadas = $plan?->aulas->pluck('id_aula')->toArray() ?? [];
 
+        //intervenciones relacionadas
+        $intervencionesAsociadas = collect();
+        if ($plan) {
+            $intervencionesAsociadas = $plan->intervenciones()
+                ->get()
+                ->map(function ($i) {
+                    return [
+                        'id_intervencion' => $i->id_intervencion,
+                        'fecha_hora_intervencion' => $i->fecha_hora_intervencion->format('d/m/Y H:i'),
+                        'tipo_intervencion' => $i->tipo_intervencion,
+                        'estado' => $i->activo ? 'Activo' : 'Inactivo',
+                    ];
+                });
+        }
         return [
             'plan' => $plan,
             'alumnos' => $alumnos,
@@ -133,6 +147,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             'alumnosSeleccionados' => $alumnosSeleccionados,
             'profesionalesSeleccionados' => $profesionalesSeleccionados,
             'aulasSeleccionadas' => $aulasSeleccionadas,
+            'intervencionesAsociadas' => $intervencionesAsociadas,
         ];
     }
 

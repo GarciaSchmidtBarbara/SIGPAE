@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Services\Interfaces\ProfesionalServiceInterface;
-use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Session;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Profesional;
 use App\Enums\Siglas;
@@ -40,15 +40,33 @@ class ProfesionalController extends Controller {
         return response()->json($profesional);
     }
 
-    public function store(Request $request): JsonResponse {
+    public function store(Request $request): RedirectResponse {
+        $request->validate([
+            'dni' => 'required|numeric',
+            'nombre' => 'required|string|max:191',
+            'apellido' => 'required|string|max:191',
+            'fecha_nacimiento' => 'required|date|before_or_equal:today',
+            'usuario' => 'required|string',
+        ], [
+            'required' => 'Este campo es obligatorio.',
+            'date' => 'Debe ingresar una fecha válida.',
+            'numeric' => 'Debe ingresar un número válido.',
+            'before_or_equal' => 'La fecha de nacimiento no puede ser posterior a hoy.',
+        ]);
+
         try {
             // Pasamos todo el payload al servicio; el service separará persona/profesional
             $payload = $request->all();
+            $profesional = $this->profesionalService->crearProfesional($payload);
+            return redirect()
+                ->route('usuarios.principal')
+                ->with('success', 'Usuario creado correctamente');
 
-            $profesional = $this->profesionalService->createProfesional($payload);
-            return response()->json($profesional, 201);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+        } catch (\Throwable $e) {
+            // Vuelve atrás, conserva los valores del formulario y envía el error
+            return back()
+                ->withInput()
+                ->withErrors(['error' => $e->getMessage()]);
         }
     }
 
@@ -59,15 +77,19 @@ class ProfesionalController extends Controller {
         return view('usuarios.crear-editar', compact('usuarioData', 'siglas'));
     }
 
-    public function update(Request $request, int $id): JsonResponse {
+    public function update(Request $request, int $id): RedirectResponse {
         try {
             // Permitimos que el payload contenga tanto datos de persona como datos del profesional
             $data = $request->all();
-
             $profesional = $this->profesionalService->updateProfesional($id, $data);
-            return response()->json($profesional);
-        } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+            return redirect()
+                ->route('usuarios.principal')
+                ->with('success', 'Usuario creado correctamente');
+
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->withErrors(['error' => $e->getMessage()]);
         }
     }
 
@@ -129,4 +151,38 @@ class ProfesionalController extends Controller {
         }
     }
 
+    public function cambiarActivo(int $id): RedirectResponse
+    {
+        $resultado = $this->profesionalService->cambiarActivo($id);
+        $mensaje = $resultado
+            ? ['success' => 'El estado del usuario fue actualizado correctamente.']
+            : ['error' => 'No pudo realizarse la actualización de estado del usuario.'];
+
+        return redirect()->route('usuarios.principal')->with($mensaje);
+    }
+
+    public function editar(int $id)
+    {
+        $usuario = $this->profesionalService->obtener($id);
+        if (!$usuario) {
+            return redirect()->route('usuarios.principal')->with('error', 'Usuario no encontrado.');
+        }
+
+        $siglas = $this->profesionalService->obtenerTodasLasSiglas();
+
+        $usuarioData = [
+            'dni' => $usuario->persona->dni,
+            'nombre' => $usuario->persona->nombre,
+            'apellido' => $usuario->persona->apellido,
+            'fecha_nacimiento' => $usuario->persona->fecha_nacimiento,
+            'nacionalidad' => $usuario->persona->nacionalidad,
+            'profesion' => $usuario->profesion,
+            'siglas' => $usuario->siglas,
+        ];
+
+        //Guardar el ID en sesión para saber que estamos editando
+        Session::put('editando_usuario_id', $id);
+
+        return view('usuarios.crear-editar', compact('usuarioData', 'siglas', 'usuario'))->with('modo', 'editar');
+    }
 }

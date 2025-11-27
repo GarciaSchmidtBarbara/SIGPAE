@@ -15,6 +15,16 @@ class ProfesionalRepository implements ProfesionalRepositoryInterface
         $this->model = $profesional;
     }
 
+    public function cambiarActivo(int $id): bool
+    {
+        $usuario = Profesional::with('persona')->find($id);
+        if ($usuario && $usuario->persona) {
+            $usuario->persona->activo = !$usuario->persona->activo;
+            return $usuario->persona->save();
+        }
+        return false;
+    }
+
     public function all(): Collection
     {
         return $this->model->all();
@@ -25,9 +35,9 @@ class ProfesionalRepository implements ProfesionalRepositoryInterface
         return $this->model->find($id);
     }
 
-    public function create(array $data): Profesional
+    public function crear(array $data): Profesional
     {
-        return $this->model->create($data);
+        return Profesional::crearProfesional($data);
     }
 
     public function update(int $id, array $data): Profesional
