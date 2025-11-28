@@ -3,6 +3,10 @@
 @section('encabezado', 'Planillas')
 
 @section('contenido')
+    <div class="fila-botones mt-8 mb-6">
+        <a class="btn-volver" href="{{ route('welcome') }}">Volver a Principal</a>
+    </div>
+
     <div class="flex flex-row justify-start gap-4">
 
         <div x-data="{ abrirPlanilla:false, tipo:'' }" x-cloak>

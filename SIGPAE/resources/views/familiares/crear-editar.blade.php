@@ -596,7 +596,7 @@
 
         <div class="fila-botones mt-8">
             <button type="button" class="btn-aceptar" @click="validarYGuardar()">Guardar y Volver</button>
-            <a href="{{ route('alumnos.crear') }}" class="btn-volver">Volver</a>
+            <a href="{{ url()->previous() }}" class="btn-volver">Volver</a>
         </div>
     </form>
 </div>

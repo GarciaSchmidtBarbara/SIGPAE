@@ -5,6 +5,9 @@
 @section('encabezado', 'Perfil')
 
 @section('contenido')
+<div class="fila-botones mt-8">
+     <a class="btn-volver" href="{{ route('welcome') }}">Volver a Principal</a>
+</div>
 <div>
 <div class="p-2 rounded-lg text-lg font-semibold flex text-gray-400 items-center">
     <span>Visualización de historial: {{ $prof->usuario }} - {{ $prof->siglas }} ({{ $prof->profesion }})</span>
