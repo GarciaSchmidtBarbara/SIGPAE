@@ -24,8 +24,7 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
     Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
     Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar');
-    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])
-    ->name('planDeAccion.iniciar-creacion');
+    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])->name('planDeAccion.iniciar-creacion');
     Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
 
 });
@@ -72,7 +71,6 @@ Route::post('/alumnos/store', [AlumnoController::class, 'guardar'])->name('alumn
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
 
 Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
-
 
 
 //Rutas familiares
