@@ -17,6 +17,10 @@
         </div>
     @endif
 
+<div class="fila-botones mt-8">
+    <a class="btn-volver" href="{{ route('welcome') }}">Volver a Principal</a>
+</div>
+
 <div class="p-6">
     <form id="form-alumno" method="GET" action="{{ route('alumnos.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('alumnos.crear') }}">Registrar Alumno</a>
@@ -95,9 +99,5 @@
             @endonce
         </x-slot:accionesPorFila>
     </x-tabla-dinamica>
-
-    <div class="fila-botones mt-8">
-        <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
-    </div>
 </div>
 @endsection

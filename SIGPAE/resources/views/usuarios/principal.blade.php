@@ -3,6 +3,10 @@
 @section('encabezado', 'Usuarios')
 
 @section('contenido')
+<div class="fila-botones mt-8">
+    <a class="btn-volver" href="{{ route('welcome') }}">Volver a Principal</a>
+</div>
+
 <div class="p-6">
     <form id="form-alumno" method="GET" action="{{ route('usuarios.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('usuarios.crear-editar') }}">Registrar Usuario</a>
@@ -41,9 +45,5 @@
         :filaEnlace="fn($fila) => route('usuarios.editar', data_get($fila, 'id_profesional'))"
     >
     </x-tabla-dinamica>
-
-    <div class="fila-botones mt-8">
-        <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
-    </div>
 </div>
 @endsection

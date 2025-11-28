@@ -17,6 +17,10 @@
         </div>
     @endif
 
+<div class="fila-botones mt-8">
+    <a class="btn-volver" href="{{ route('welcome') }}">Volver a Principal</a>
+</div>
+
 <div class="p-6">
     <form id="form-plan" method="GET" action="{{ route('planDeAccion.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('planDeAccion.iniciar-creacion') }}">Crear Plan de Acción</a>
