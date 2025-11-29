@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use App\Models\Profesional;
 use App\Models\Alumno;
@@ -25,6 +26,7 @@ class Evento extends Model{
             'notas',
             'profesional_tratante', // preguntar a Lucas
             'periodo_recordatorio', // integer en dias
+            'fk_id_profesional_creador',
         ];
 
         protected $casts = [

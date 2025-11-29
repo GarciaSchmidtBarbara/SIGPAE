@@ -17,5 +17,11 @@ interface EventoServiceInterface
     
     public function eliminar(int $id): bool;
     
+    public function crearConParticipantes(array $data): Evento;
+    
+    public function actualizarConParticipantes(int $id, array $data): bool;
+    
+    public function crearDerivacionExterna(array $data): Evento;
+    
     public function obtenerEventosParaCalendario(string $start, string $end): array;
 }

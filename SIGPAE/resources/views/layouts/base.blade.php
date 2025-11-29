@@ -40,6 +40,7 @@
                         exact
                     ></x-nav-item>
                     <x-nav-item
+                        route="eventos.principal"
                         label=" Eventos"
                         icon="icons.icono-evento"
                         exact

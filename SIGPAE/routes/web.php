@@ -118,6 +118,17 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
 //Rutas Eventos (Calendario)
 use App\Http\Controllers\EventoController;
 Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function () {
+    // Vistas del CRUD
+    Route::get('/vista', [EventoController::class, 'vista'])->name('principal');
+    Route::get('/crear', [EventoController::class, 'crear'])->name('crear');
+    Route::get('/{id}/ver', [EventoController::class, 'ver'])->name('ver');
+    Route::post('/guardar', [EventoController::class, 'guardar'])->name('guardar');
+    Route::put('/{id}/actualizar', [EventoController::class, 'actualizar'])->name('actualizar');
+    Route::get('/crear-derivacion', [EventoController::class, 'crearDerivacion'])->name('crear-derivacion');
+    Route::post('/guardar-derivacion', [EventoController::class, 'guardarDerivacion'])->name('guardar-derivacion');
+    Route::post('/{id}/confirmar', [EventoController::class, 'actualizarConfirmacion'])->name('actualizar-confirmacion');
+    
+    // API para calendario
     Route::get('/calendario', [EventoController::class, 'getEventosCalendario'])->name('calendario');
     Route::get('/', [EventoController::class, 'index'])->name('index');
     Route::get('/{id}', [EventoController::class, 'show'])->name('show');
