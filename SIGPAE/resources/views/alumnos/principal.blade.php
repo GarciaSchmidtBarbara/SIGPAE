@@ -45,15 +45,6 @@
         $formatters = [
             'cud' => fn($valor) => $valor ? 'Tiene' : 'No tiene',
         ];
-
-        $accionesPorFila = function ($fila) {
-            $activo = data_get($fila, 'persona.activo');
-            $ruta = route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'));
-            return view('components.boton-estado', [
-                'activo' => $activo,
-                'route' => $ruta
-            ])->render();
-        };
     @endphp
     
 
@@ -78,9 +69,6 @@
         :filaEnlace="fn($fila) => route('alumnos.editar', data_get($fila, 'id_alumno'))"
     >
         <x-slot:accionesPorFila>
-            @php
-                // función anónima que recibirá $fila
-            @endphp
             @once
                 @php
                     $accionesPorFila = function ($fila) {

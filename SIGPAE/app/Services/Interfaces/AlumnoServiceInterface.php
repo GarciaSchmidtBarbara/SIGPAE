@@ -3,6 +3,7 @@
 namespace App\Services\Interfaces;
 
 use App\Models\Alumno;
+use Illuminate\Support\Collection;
 
 interface AlumnoServiceInterface
 {
@@ -16,15 +17,15 @@ interface AlumnoServiceInterface
 
     public function obtener(int $id): ?Alumno;
 
-    public function obtenerParaEditar(int $id): ?Alumno;
+    public function obtenerParaEditar(int $id): ?Alumno; //OK
 
-    public function cambiarActivo(int $id): bool;
+    public function cambiarActivo(int $id): bool; //OK
 
-    public function filtrar(\Illuminate\Http\Request $request): \Illuminate\Support\Collection;
+    public function filtrar(\Illuminate\Http\Request $request): Collection; //OK
 
-    public function obtenerCursos(): \Illuminate\Support\Collection;
+    public function obtenerCursos(): Collection; //OK
 
-    public function buscar(string $q): \Illuminate\Support\Collection;
+    public function buscar(string $q): Collection;
 
     public function actualizar(int $id, array $data, array $listaFamiliares, 
     array $familiaresAEliminar, array $hermanosAEliminar): bool;

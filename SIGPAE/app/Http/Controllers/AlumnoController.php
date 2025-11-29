@@ -26,10 +26,13 @@ class AlumnoController extends Controller
         $this->alumnoService = $alumnoService;
     }
 
-    public function index(): JsonResponse
+    //entrega datos a las vista  OK
+    public function vista(Request $request)
     {
-        $alumnos = $this->alumnoService->listar();
-        return response()->json($alumnos);
+        $alumnos = $this->alumnoService->filtrar($request);
+        $cursos = $this->alumnoService->obtenerCursos();
+
+        return view('alumnos.principal', compact('alumnos', 'cursos'));
     }
 
     public function show(int $id): JsonResponse
@@ -109,7 +112,8 @@ class AlumnoController extends Controller
                 ->with('error', 'Error al crear el alumno: ' . $e->getMessage());
         }
     }
-
+  
+    //OK
     public function cambiarActivo(int $id): RedirectResponse
     {
         $resultado = $this->alumnoService->cambiarActivo($id);
@@ -120,13 +124,7 @@ class AlumnoController extends Controller
         return redirect()->route('alumnos.principal')->with($mensaje);
     }
 
-    public function vista(Request $request)
-    {
-        $alumnos = $this->alumnoService->filtrar($request);
-        $cursos = $this->alumnoService->obtenerCursos();
-
-        return view('alumnos.principal', compact('alumnos', 'cursos'));
-    }
+    
 
     public function buscar(Request $request): JsonResponse
     {

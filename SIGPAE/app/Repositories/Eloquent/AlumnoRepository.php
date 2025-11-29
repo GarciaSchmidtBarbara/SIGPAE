@@ -2,7 +2,10 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Alumno;
+use App\Models\Aula;
 use App\Repositories\Interfaces\AlumnoRepositoryInterface;
+
+use \Illuminate\Support\Collection;
 
 //Define cómo se obtienen los datos (ORM, query builder, SQL, etc.)
 //Es la capa que sí toca los modelos Eloquent (Alumno, Persona, etc.)
@@ -22,6 +25,54 @@ class AlumnoRepository implements AlumnoRepositoryInterface
             ->values(); // reindexa los resultados
     }
 
+    //filtros consulta BD OK
+    public function filtrar(array $filters): Collection 
+    {
+        $query = Alumno::with(['persona', 'aula']);
+
+        if (!empty($filters['nombre'])) {
+            $nombre = $filters ['nombre'];
+            $query->whereHas('persona', fn($q) =>
+                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
+            );
+        }
+
+        if (!empty($filters['apellido'])) {
+            $apellido = $filters['apellido'];
+            $query->whereHas('persona', fn($q) =>
+                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"])
+            );
+        }
+
+        if (!empty($filters['documento'])) {
+            $query->whereHas('persona', fn($q) =>
+                $q->where('dni', 'like', '%' . $filters['documento'] . '%')
+            );
+        }
+
+        if (!empty($filters['aula'])) {
+            [$curso, $division] = explode('°', $filters['aula']);
+            $query->whereHas('aula', fn($q) =>
+                $q->where('curso', $curso)->where('division', $division)
+            );
+        }
+        
+        if (isset($filters['estado'])) {
+            if ($filters['estado'] === 'activos') {
+                $query->whereHas('persona', fn($q) => $q->where('activo', true));
+            } elseif ($filters['estado'] === 'inactivos') {
+                $query->whereHas('persona', fn($q) => $q->where('activo', false));
+            }
+        }
+
+        return $query->get();
+    }
+
+    //ok
+    public function obtenerCursos(): Collection{
+        return Aula::all();
+    }
+
     public function crear(array $data): Alumno
     {
         return Alumno::create($data);
@@ -33,19 +84,20 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         return $alumno ? $alumno->delete() : false;
     }
 
-    public function buscarPorPersonaId(int $idPersona): ?Alumno
+    public function obtenerPorPersonaId(int $idPersona): ?Alumno
     {
         return Alumno::where('fk_id_persona', $idPersona)->first();
     }
 
-    public function buscarPorId(int $id): ?Alumno
+    //ok
+    public function obtenerPorId(int $id): ?Alumno
     {
         return Alumno::with(['persona', 'aula'])->find($id);
     }
 
     // creo este metodo para no sobrecargar el buscarPorId, sino ya no seria tan reutilizablae
-    // este nuevo metodo busca todo lo necesario para cargar los datos del alumno en asistente (sesion)
-    public function buscarParaEditar(int $id): ?Alumno
+    // este nuevo metodo busca todo lo necesario para cargar los datos del alumno en asistente (sesion) OK
+    public function obtenerParaEditar(int $id): ?Alumno
     {
         return Alumno::with([
             'persona', 
@@ -73,8 +125,8 @@ class AlumnoRepository implements AlumnoRepositoryInterface
 
         ])->find($id);
     }
-
-    //metodo para cambiar de activo a inactivo
+    
+    //metodo para cambiar de activo a inactivo  OK
     public function cambiarActivo(int $id): bool
     {
         $alumno = Alumno::with('persona')->find($id);

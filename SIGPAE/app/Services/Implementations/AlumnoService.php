@@ -12,6 +12,7 @@ use App\Models\Persona;
 use Illuminate\Http\Request;
 // Soportes
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 //Define qué se hace (ej: listar, activar, eliminar, filtrar…)
 //Pero no cómo se accede a la base de datos.
@@ -26,7 +27,7 @@ class AlumnoService implements AlumnoServiceInterface
         $this->familiarService = $familiarService;
     }
 
-    public function listar(): \Illuminate\Support\Collection
+    public function listar(): Collection
     {
         return $this->repo->obtenerTodos();
     }
@@ -112,7 +113,7 @@ class AlumnoService implements AlumnoServiceInterface
         });
     }
 
-    public function buscar(string $q): \Illuminate\Support\Collection
+    public function buscar(string $q): Collection
     {
         if (trim($q) === '') return collect();
         $like = '%' . str_replace('%','', $q) . '%';
@@ -131,61 +132,38 @@ class AlumnoService implements AlumnoServiceInterface
         return $this->repo->eliminar($id);
     }
 
+    //busca alumno por id (consulta simple) 
     public function obtener(int $id): ?Alumno
     {
-        return $this->repo->buscarPorId($id);
+        return $this->repo->obtenerPorId($id);
     }
 
+    //busca alumno por id y genera una consulta con todas sus relaciones 
     public function obtenerParaEditar(int $id): ?Alumno
     {
-        return $this->repo->buscarParaEditar($id);
+        return $this->repo->obtenerParaEditar($id);
     }
 
+    //ok
     public function cambiarActivo(int $id): bool
     {
         return $this->repo->cambiarActivo($id);
     }
-
-    // Nueva función: lógica de búsqueda y filtrado
-    public function filtrar(Request $request): \Illuminate\Support\Collection
+    //ok
+    // lógica de búsqueda y filtrado
+    public function filtrar(Request $request): Collection 
     {
-        $query = Alumno::with('persona', 'aula');
+        //se normalizan reglas de negocio
+        $filters = [
+            'nombre'=> $request->filled('nombre') ? $this->normalizarTexto($request->nombre) : null,
+            'apellido'=> $request->filled('apellido') ? $this->normalizarTexto($request->apellido) : null,
+            'documento' => $request->documento,
+            'aula' => $request->aula,
+            'estado' => $request->get('estado','activos'),
+        ];
 
-        if ($request->filled('nombre')) {
-            $nombre = $this->normalizarTexto($request->nombre);
-            $query->whereHas('persona', fn($q) =>
-                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
-            );
-        }
-
-        if ($request->filled('apellido')) {
-            $apellido = $this->normalizarTexto($request->apellido);
-            $query->whereHas('persona', fn($q) =>
-                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"])
-            );
-        }
-
-        if ($request->filled('documento')) {
-            $query->whereHas('persona', fn($q) =>
-                $q->where('dni', 'like', '%' . $request->documento . '%')
-            );
-        }
-
-        if ($request->filled('aula') && str_contains($request->aula, '°')) {
-            [$curso, $division] = explode('°', $request->aula);
-            $query->whereHas('aula', fn($q) =>
-                $q->where('curso', $curso)->where('division', $division)
-            );
-        }
-        
-        $estado = $request->get('estado', 'activos');
-        if ($estado === 'activos') {
-            $query->whereHas('persona', fn($q) => $q->where('activo', true));
-        } elseif ($estado === 'inactivos') {
-            $query->whereHas('persona', fn($q) => $q->where('activo', false));
-        }
-
-        $alumnos = $query->get();
+        //filtro por medio del repository
+        $alumnos = $this->repo->filtrar($filters);
 
         // Ordenamiento compuesto: primero activos (desc), luego apellido asc dentro de cada grupo.
         $alumnos = $alumnos->sort(function ($a, $b) {
@@ -207,9 +185,11 @@ class AlumnoService implements AlumnoServiceInterface
         return $alumnos;
     }
 
-    public function obtenerCursos(): \Illuminate\Support\Collection
+    //ok
+    public function obtenerCursos(): Collection
     {
-        return Aula::all()->map(fn($a) => $a->descripcion)->unique();
+        $aulas = $this->repo->obtenerCursos();
+        return $aulas->map(fn($a) => $a->descripcion)->unique()->values();
     }
 
     private function buscarAulaPorDescripcion(string $descripcion): ?Aula
@@ -247,7 +227,7 @@ class AlumnoService implements AlumnoServiceInterface
 
             if ($esHermanoAlumno) {
                 // 1. Buscamos al hermano
-                $hermano = $this->repo->buscarPorPersonaId($datos['fk_id_persona']);
+                $hermano = $this->repo->obtenerPorPersonaId($datos['fk_id_persona']);
                 // (O usá Alumno::where si no querés crear método en repo para esto solo)
 
                 if ($hermano && $hermano->id_alumno !== $alumno->id_alumno) {
@@ -283,7 +263,7 @@ class AlumnoService implements AlumnoServiceInterface
     public function actualizar(int $id, array $data, array $listaFamiliares, array $familiaresAEliminar, array $hermanosAEliminar): bool
     {
         return DB::transaction(function () use ($id, $data, $listaFamiliares, $familiaresAEliminar, $hermanosAEliminar) {
-            $alumno = $this->repo->buscarPorId($id);
+            $alumno = $this->repo->obtenerPorId($id);
             
             if (!$alumno) {
                 throw new \Exception("Alumno no encontrado.");
