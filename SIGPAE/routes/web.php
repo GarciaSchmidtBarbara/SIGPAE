@@ -111,14 +111,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/perfil/actualizar', [ProfesionalController::class, 'actualizarPerfil'])
         ->name('perfil.actualizar');
 });
-// RUTA TEMPORAL PARA ESPIAR (Borrar después)
-Route::get('/ver-ultima-acta', function () {
-    // Busca la última planilla creada
-    $planilla = App\Models\Planilla::latest('id_planilla')->first();
-    
-    // Muestra los datos en pantalla
-    return $planilla;
-});
+
 //Ruta Intervenciones
 use App\Http\Controllers\IntervencionController;
 Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
