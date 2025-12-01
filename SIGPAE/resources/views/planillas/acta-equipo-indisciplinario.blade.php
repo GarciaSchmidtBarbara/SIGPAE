@@ -40,7 +40,17 @@
 				</div>
 			</div>
 
-			<x-tabla-participantes :listado="$personal" />
+							{{-- LÓGICA INTELIGENTE: ¿Es Edición o Creación? --}}
+				@php
+					if (isset($planilla)) {
+						$datosParaTabla = $planilla->datos_planilla['participantes'];
+					} else {
+						$datosParaTabla = $personal;
+					}
+				@endphp
+
+				{{-- Le pasamos la variable calculada al componente --}}
+				<x-tabla-participantes :listado="$datosParaTabla" />
 		     <div class="mt-8 space-y-6">    
 
              {{-- 1. TEMARIO --}}
@@ -48,9 +58,9 @@
              <div x-data="{ contenido: '' }">
                  <label for="temario" class="block font-bold text-gray-700 mb-2">Temario:</label> 
                  
-                 {{-- VERSIÓN PANTALLA (Textarea) --}}
+                 {{-- cambios para vista preliminar y impresion--}}
                  {{-- Agregamos 'no-imprimir' para que desaparezca al imprimir --}}
-                 {{-- x-model enlaza lo que escribes con la variable --}}
+               
                  <textarea 
                        x-model="contenido"
                        id="temario" 
@@ -62,7 +72,7 @@
 
                  {{-- VERSIÓN IMPRESIÓN (Div espejo) --}}
                  {{-- Agregamos 'solo-imprimir' para que aparezca solo en papel --}}
-                 {{-- whitespace-pre-wrap: Respeta los 'ENTER' que des --}}
+               
                  <div class="solo-imprimir text-justify whitespace-pre-wrap border-b border-gray-300 pb-2"
                       x-text="contenido">
                  </div>

@@ -89,6 +89,12 @@
                     class="border border-gray-300 rounded px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
+             <div>
+				<label class="mt-6 block">
+					Firmas: 
+				</label>
+			</div>
+            
             {{-- SECCIÓN 5: Botonera --}}
             <div class="mt-10 pt-6 border-t border-gray-200">
                  <div class="fila-botones justify-between items-center">

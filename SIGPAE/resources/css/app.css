@@ -211,18 +211,29 @@
             }
 
             /* 3. REGLAS PARA LA TABLA */
+
             table {
                 width: 100% !important;
+                
+                /* MAGIA 1: Esto impide que la tabla se salga de la hoja */
+                table-layout: fixed !important; 
+                
                 border-collapse: collapse !important;
                 margin-top: 10px;
                 margin-bottom: 10px;
+                font-size: 10pt !important; /* Un tamaño seguro */
             }
 
             table th, table td {
                 border: 1px solid #000 !important; 
                 padding: 4px !important;
                 text-align: left;
+                vertical-align: top;
+                overflow-wrap: break-word; 
+                word-wrap: break-word;     
+                white-space: normal !important;
             }
+
         
             table input {
                 border: none !important;

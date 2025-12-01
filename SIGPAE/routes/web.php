@@ -33,14 +33,17 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
 
 
 
+
+
 //Rutas Planillas
-Route::get('/planillas', function () {
-    return view('planillas.principal');
-})->middleware('auth')->name('planillas.principal');
+// Rutas Planillas (Conectada al Controlador)
+use App\Http\Controllers\PlanillaController;
+Route::get('/planillas', [PlanillaController::class, 'index'])
+    ->middleware('auth')
+    ->name('planillas.principal');
 
 // Subrutas de creación de planillas (usadas por planillas.principal)
 
- use App\Http\Controllers\PlanillaController; 
 Route::prefix('planillas')->middleware('auth')->group(function () {
 
    
@@ -58,13 +61,54 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
     Route::post('/acta-reunion-trabajo/guardar', [PlanillaController::class, 'guardarActaReunionTrabajo'])
         ->name('planillas.acta-reunion-trabajo.store');
 
-    Route::get('/acta-reuniones-banda/crear', function () {
-        return view('planillas.acta-reuniones-banda');
-    })->name('planillas.acta-reuniones-banda.create');
+    // --- ACTA BANDA (COMPLETA) ---
+    
+    // 1. Formulario
+    Route::get('/acta-reuniones-banda/crear', [PlanillaController::class, 'crearActaBanda'])
+        ->name('planillas.acta-reuniones-banda.create');
 
-    Route::get('/planilla-medial/crear', function () {
-        return view('planillas.planilla-medial');
-    })->name('planillas.planilla-medial.create');
+    // 2. Guardar
+    Route::post('/acta-reuniones-banda/guardar', [PlanillaController::class, 'guardarActaBanda'])
+        ->name('planillas.acta-reuniones-banda.store');
+
+        // --- PLANILLA MEDIAL ---
+    Route::get('/planilla-medial/crear', [PlanillaController::class, 'crearPlanillaMedial'])
+        ->name('planillas.planilla-medial.create');
+
+    Route::post('/planilla-medial/guardar', [PlanillaController::class, 'guardarPlanillaMedial'])
+        ->name('planillas.planilla-medial.store');
+    // --- PLANILLA FINAL ---
+    Route::get('/planilla-final/crear', [PlanillaController::class, 'crearPlanillaFinal'])
+        ->name('planillas.planilla-final.create');
+
+    Route::post('/planilla-final/guardar', [PlanillaController::class, 'guardarPlanillaFinal'])
+        ->name('planillas.planilla-final.store');
+   
+    
+    // papelera
+    Route::delete('/planillas/{id}/eliminar', [PlanillaController::class, 'eliminar'])
+        ->name('planillas.eliminar');
+
+    // Ver papelera
+    Route::get('/planillas/papelera', [PlanillaController::class, 'verPapelera'])
+        ->name('planillas.papelera');
+
+    // Restaurar
+    Route::post('/planillas/{id}/restaurar', [PlanillaController::class, 'restaurar'])
+        ->name('planillas.restaurar');
+
+    // eliminado definitivo
+    Route::delete('/planillas/{id}/destruir', [PlanillaController::class, 'forzarEliminacion'])
+        ->name('planillas.destruir');
+
+    
+    // abre el archivo o planilla para editarlo 
+    Route::get('/planillas/{id}/editar', [PlanillaController::class, 'editar'])
+        ->name('planillas.editar');
+
+    // guarda los cambios realizados en la planilla editada
+    Route::put('/planillas/{id}/actualizar', [PlanillaController::class, 'actualizar'])
+        ->name('planillas.actualizar');
 });
 
 //Rutas Alumnos
