@@ -119,6 +119,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
 
         //aulas
         $aulasSeleccionadas = $plan?->aulas->pluck('id_aula')->toArray() ?? [];
+        $aulas = $this->repository->obtenerModelosAulas();
 
         //intervenciones relacionadas
         $intervencionesAsociadas = collect();
@@ -145,6 +146,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             'initialAlumnoInfo' => $initialAlumnoInfo,
             'alumnosSeleccionados' => $alumnosSeleccionados,
             'profesionalesSeleccionados' => $profesionalesSeleccionados,
+            'intervencionesAsociadas' => $intervencionesAsociadas,
             
         ];
     }
