@@ -50,9 +50,13 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
     Route::post('/acta-equipo-indisciplinario/guardar', [PlanillaController::class, 'guardarActaIndisciplinario'])
         ->name('planillas.acta-equipo-indisciplinario.store');
 
-    Route::get('/acta-reunion-trabajo/crear', function () {
-        return view('planillas.acta-reunion-trabajo');
-    })->name('planillas.acta-reunion-trabajo.create');
+    // --- ACTA REUNIÓN TRABAJO (EI SIN DIRECTIVOS) ---
+    
+    Route::get('/acta-reunion-trabajo/crear', [PlanillaController::class, 'crearActaReunionTrabajo'])
+        ->name('planillas.acta-reunion-trabajo.create');
+
+    Route::post('/acta-reunion-trabajo/guardar', [PlanillaController::class, 'guardarActaReunionTrabajo'])
+        ->name('planillas.acta-reunion-trabajo.store');
 
     Route::get('/acta-reuniones-banda/crear', function () {
         return view('planillas.acta-reuniones-banda');
