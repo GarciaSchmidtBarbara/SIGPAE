@@ -22,65 +22,16 @@ class IntervencionController extends Controller
     public function __construct(IntervencionServiceInterface $intervencionService)
     {
         $this->service = $intervencionService;
-
     }
 
-   public function vista(Request $request)
+    public function vista (Request $request):View
     {
-        $filters = [
-            'tipo_intervencion' => $request->input('tipo_intervencion'),
-            'nombre'            => $request->input('nombre'),
-            'aula_id'           => $request->input('aula_id'),
-            'fecha_desde'       => $request->input('fecha_desde'),
-            'fecha_hasta'       => $request->input('fecha_hasta'),
-        ];
+        $intervencionesFiltradas = $this->service->filtrar($request);
+        $intervenciones = $this->service->formatearParaVista($intervencionesFiltradas);
+        $tiposIntervencion = $this->service->obtenerTipos();
+        $aulas = $this->service->obtenerAulas();
 
-        $intervencionesRaw = $this->service->obtenerIntervenciones($filters);
-        $tiposIntervencion = $this->service->obtenerTipos(); 
-        $cursos = $this->service->obtenerAulasParaFiltro();
-
-        $intervenciones = $intervencionesRaw->map(function ($intervencion) {
-            $alumnos = $intervencion->alumnos->map(function ($alumno) {
-                $persona = $alumno->persona;
-                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-            })->implode(', ');
-
-            $profesionalesReune = $intervencion->profesionales->map(function ($profesional) {
-                $persona = $profesional->persona;
-                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-            });
-
-            $otrosProfesionales = $intervencion->otros_asistentes_i->map(function ($asistente) {
-                $profesional = $asistente->profesional;
-                $persona = $profesional?->persona;
-                return $persona ? ($persona->nombre . ' ' . $persona->apellido) : 'N/A';
-            });
-
-            $profesionalGenerador = $intervencion->profesionalGenerador?->persona;
-            $profGeneradorString = $profesionalGenerador
-                ? ($profesionalGenerador->nombre . ' ' . $profesionalGenerador->apellido)
-                : null;
-
-            $todosProfesionales = collect()
-                ->merge($profesionalesReune)
-                ->merge($otrosProfesionales)
-                ->when($profGeneradorString, fn($c) => $c->push($profGeneradorString))
-                ->unique()
-                ->implode(', ');
-
-            return [
-                'id_intervencion' => $intervencion->id_intervencion,
-                'fecha_hora_intervencion' => $intervencion->fecha_hora_intervencion
-                    ? Carbon::parse($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i')
-                    : 'Sin fecha',
-                'tipo_intervencion' => $intervencion->tipo_intervencion,
-                'alumnos' => $alumnos ?: 'Sin alumnos',
-                'profesionales' => $todosProfesionales ?: 'Sin participantes',
-                'activo' => $intervencion->activo,
-            ];
-        });
-
-        return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'cursos'));
+        return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'aulas'));
     }
 
 
@@ -134,7 +85,7 @@ class IntervencionController extends Controller
 
     public function iniciarEdicion(int $id): View
     {
-        $intervencion = $this->service->buscar($id);
+        $intervencion = $this->service->buscarPorId($id);
 
         if (!$intervencion) {
             return redirect()

@@ -7,38 +7,28 @@ use App\Services\Interfaces\IntervencionServiceInterface;
 use App\Models\Intervencion;
 use App\Enums\TipoIntervencion;
 use Illuminate\Support\Collection;
-
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class IntervencionService implements IntervencionServiceInterface
 {
-    protected IntervencionRepositoryInterface $repo;
+    protected IntervencionRepositoryInterface $repository;
 
-    public function __construct(IntervencionRepositoryInterface $repo) {
-        $this->repo = $repo;
+    public function __construct(IntervencionRepositoryInterface $repository) {
+        $this->repository = $repository;
     }
 
-    public function obtenerTodos()
+    public function buscarPorId(int $id)
     {
-        return $this->repo->obtenerTodos();
-    }
-
-    public function buscar(int $id)
-    {
-        return $this->repo->buscarPorId($id);
+        return $this->repository->buscarPorId($id);
     }
 
     public function crear(array $data)
     {
         DB::beginTransaction();
         try {
-            $intervencion = $this->repo->crear($data);
-
-            // aquí podrás sincronizar profesionales, aulas, alumnos...
-            // ejemplo:
-            // $intervencion->profesionales()->sync($data['profesionales'] ?? []);
-
+            $intervencion = $this->repository->crear($data);
             DB::commit();
             return $intervencion;
         } catch (Exception $e) {
@@ -51,16 +41,11 @@ class IntervencionService implements IntervencionServiceInterface
     {
         DB::beginTransaction();
         try {
-            $ok = $this->repo->editar($id, $data);
+            $ok = $this->repository->editar($id, $data);
 
             if (!$ok) {
                 throw new Exception('Intervención no encontrada.');
             }
-
-            // sincronización ejemplo
-            // $intervencion = $this->repo->buscarPorId($id);
-            // $intervencion->profesionales()->sync($data['profesionales'] ?? []);
-
             DB::commit();
             return true;
         } catch (Exception $e) {
@@ -71,12 +56,12 @@ class IntervencionService implements IntervencionServiceInterface
 
     public function eliminar(int $id): bool
     {
-        return $this->repo->eliminar($id);
+        return $this->repository->eliminar($id);
     }
 
     public function cambiarActivo(int $id): bool
     {
-        return $this->repo->cambiarActivo($id);
+        return $this->repository->cambiarActivo($id);
     }
 
     public function obtenerTipos(): Collection
@@ -84,17 +69,54 @@ class IntervencionService implements IntervencionServiceInterface
         return collect(TipoIntervencion::cases())->map(fn($tipo) => $tipo->value);
     }
 
-    public function obtenerAulasParaFiltro(): Collection
+    public function obtenerAulas(): Collection
     {
-        return $this->repo->obtenerAulasParaFiltro();
+        return $this->repository->obtenerAulas();
     }
 
-    public function obtenerIntervenciones(array $filters = [])
+    public function filtrar(Request $request): Collection
     {
-        if (!empty($filters)) {
-            return $this->repo->filtrar($filters);
-        }
-        return $this->repo->obtenerTodos();
+        return $this->repository->filtrar($request);
     }
+
+    public function formatearParaVista(Collection $intervenciones): Collection
+{
+    return $intervenciones->map(function ($intervencion) {
+        $alumnos = $intervencion->alumnos->map(function ($alumno) {
+            $persona = $alumno->persona;
+            return $persona ? "{$persona->nombre} {$persona->apellido}" : 'N/A';
+        })->implode(', ');
+
+        $profesionalesReune = $intervencion->profesionales->map(function ($profesional) {
+            $persona = $profesional->persona;
+            return $persona ? "{$persona->nombre} {$persona->apellido}" : 'N/A';
+        });
+
+        $otrosProfesionales = $intervencion->otros_asistentes_i->map(function ($asistente) {
+            $persona = $asistente->profesional?->persona;
+            return $persona ? "{$persona->nombre} {$persona->apellido}" : 'N/A';
+        });
+
+        $generador = $intervencion->profesionalGenerador?->persona;
+        $generadorNombre = $generador ? "{$generador->nombre} {$generador->apellido}" : null;
+
+        $todosProfesionales = collect()
+            ->merge($profesionalesReune)
+            ->merge($otrosProfesionales)
+            ->when($generadorNombre, fn($c) => $c->push($generadorNombre))
+            ->unique()
+            ->implode(', ');
+
+        return [
+            'id_intervencion' => $intervencion->id_intervencion,
+            'fecha_hora_intervencion' => optional($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i'),
+            'tipo_intervencion' => $intervencion->tipo_intervencion,
+            'alumnos' => $alumnos ?: 'Sin alumnos',
+            'profesionales' => $todosProfesionales ?: 'Sin participantes',
+            'activo' => $intervencion->activo,
+        ];
+    });
+}
+
 
 }
