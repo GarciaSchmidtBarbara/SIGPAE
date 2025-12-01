@@ -56,6 +56,12 @@
         background-size: 20px 20px;
     }
 
+
+    .btn-gris-variantes {
+        @apply bg-gray-300 text-black text-shadow-lg px-[10px] py-[5px] cursor-pointer rounded-md transition-all duration-200 hover:bg-gray-500 hover:shadow-md hover:scale-105 transform;
+    }
+
+
     .separador {
         @apply bg-estado text-white text-shadow-lg py-1 px-3 my-1 text-lg
     }
@@ -168,4 +174,68 @@
     .btn-quitar:hover {
         background: #b91c1c;
     }
+
+    
+
+    /* uso para no imprimir el borde del costado */
+    .solo-imprimir {
+        display: none;
+    }
+
+
+
+    @media print {
+            /* 1. Configuración básica */
+            .no-imprimir, nav, aside, header, button, .btn-volver {
+                display: none !important;
+            }
+            
+            @page { margin: 1.5cm; size: A4; }
+
+            body {
+                background-color: white !important;
+                margin: 0 !important;
+                font-family: 'Times New Roman', serif;
+                font-size: 11pt; 
+            }
+
+            /* 2. Limpiar contenedores */
+            .bg-white, .shadow-lg, .rounded-lg {
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            /* 3. REGLAS PARA LA TABLA */
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+
+            table th, table td {
+                border: 1px solid #000 !important; 
+                padding: 4px !important;
+                text-align: left;
+            }
+        
+            table input {
+                border: none !important;
+                background: transparent !important;
+                width: 100% !important;
+                overflow: visible !important;
+                white-space: normal !important;
+            }
+
+            /* 4. AQUÍ ACTIVAMOS LA CLASE SOLO PARA IMPRIMIR */
+            .solo-imprimir {
+                display: block !important; 
+                text-align: justify;
+            }
+   }
 }
