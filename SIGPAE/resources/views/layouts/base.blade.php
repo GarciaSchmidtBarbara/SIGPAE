@@ -21,7 +21,7 @@
 <body>
     <div class="layout min-h-screen w-full flex flex-row">
         <!-- Menú lateral -->
-        <nav class="sidebar bg-fondo basis-1/5 rounded-r-3xl p-[20px] flex flex-col">
+        <nav class="sidebar bg-fondo basis-1/5 rounded-r-3xl p-[20px] flex flex-col no-imprimir">
             <p class="text-white text-3xl font-bold my-3 text-shadow-lg ">SIGPAE</p>
             <div class="menu flex flex-col justify-between flex-1 text-white">
                 <div class="menu-superior flex flex-col">

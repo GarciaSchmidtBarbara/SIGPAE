@@ -6,17 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        Schema::create('planillas', function (Blueprint $table) {
-            //revisado
-            $table->id('id_planilla');
-            $table->string('nombre_planilla');
-            $table->enum('tipo_planilla',['MEDIAL','FINAL']);
-            $table->year('anio');
-            $table->timestamps();
-        });
-    }
+        public function up(): void
+        {
+            Schema::create('planillas', function (Blueprint $table) {
+                $table->id('id_planilla');
+                $table->string('nombre_planilla')->nullable(); 
+                $table->string('tipo_planilla'); 
+                $table->year('anio');
+                $table->json('datos_planilla'); 
+                $table->timestamps();
+            });
+        }
 
     public function down(): void
     {
