@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Models\Planilla;
 
 require __DIR__.'/auth.php';
 
@@ -31,16 +32,23 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
 });
 
 
+
 //Rutas Planillas
 Route::get('/planillas', function () {
     return view('planillas.principal');
 })->middleware('auth')->name('planillas.principal');
 
 // Subrutas de creación de planillas (usadas por planillas.principal)
+
+ use App\Http\Controllers\PlanillaController; 
 Route::prefix('planillas')->middleware('auth')->group(function () {
-    Route::get('/acta-equipo-indisciplinario/crear', function () {
-        return view('planillas.acta-equipo-indisciplinario');
-    })->name('planillas.acta-equipo-indisciplinario.create');
+
+   
+    Route::get('/acta-equipo-indisciplinario/crear', [PlanillaController::class, 'crearActaIndisciplinario'])
+        ->name('planillas.acta-equipo-indisciplinario.create');
+
+    Route::post('/acta-equipo-indisciplinario/guardar', [PlanillaController::class, 'guardarActaIndisciplinario'])
+        ->name('planillas.acta-equipo-indisciplinario.store');
 
     Route::get('/acta-reunion-trabajo/crear', function () {
         return view('planillas.acta-reunion-trabajo');
@@ -103,7 +111,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/perfil/actualizar', [ProfesionalController::class, 'actualizarPerfil'])
         ->name('perfil.actualizar');
 });
-
+// RUTA TEMPORAL PARA ESPIAR (Borrar después)
+Route::get('/ver-ultima-acta', function () {
+    // Busca la última planilla creada
+    $planilla = App\Models\Planilla::latest('id_planilla')->first();
+    
+    // Muestra los datos en pantalla
+    return $planilla;
+});
 //Ruta Intervenciones
 use App\Http\Controllers\IntervencionController;
 Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
