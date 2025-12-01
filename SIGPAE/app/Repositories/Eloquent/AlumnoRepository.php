@@ -24,7 +24,7 @@ class AlumnoRepository implements AlumnoRepositoryInterface
 
     public function crear(array $data): Alumno
     {
-        return Alumno::crearAlumno($data);
+        return Alumno::create($data);
     }
 
     public function eliminar(int $id): bool
@@ -33,9 +33,45 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         return $alumno ? $alumno->delete() : false;
     }
 
+    public function buscarPorPersonaId(int $idPersona): ?Alumno
+    {
+        return Alumno::where('fk_id_persona', $idPersona)->first();
+    }
+
     public function buscarPorId(int $id): ?Alumno
     {
         return Alumno::with(['persona', 'aula'])->find($id);
+    }
+
+    // creo este metodo para no sobrecargar el buscarPorId, sino ya no seria tan reutilizablae
+    // este nuevo metodo busca todo lo necesario para cargar los datos del alumno en asistente (sesion)
+    public function buscarParaEditar(int $id): ?Alumno
+    {
+        return Alumno::with([
+            'persona', 
+            'aula', 
+            
+            // Familiares Puros (Filtrados)
+            'familiares' => function ($query) {
+                $query->wherePivot('activa', true);
+            },
+            'familiares.persona',
+            
+            // Hermanos Lado A (AHORA FILTRADOS)
+            'hermanos' => function ($query) {
+                $query->wherePivot('activa', true);
+            },
+            'hermanos.persona',
+            'hermanos.aula',
+            
+            // Hermanos Lado B (AHORA FILTRADOS)
+            'esHermanoDe' => function ($query) {
+                $query->wherePivot('activa', true);
+            },
+            'esHermanoDe.persona', 
+            'esHermanoDe.aula'
+
+        ])->find($id);
     }
 
     //metodo para cambiar de activo a inactivo
@@ -49,28 +85,42 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         return false;
     }
 
-    public function buscarPorIdPersona(int $idPersona): ?Alumno
+    public function vincularHermanos(int $idAlumno, int $idHermano, ?string $observaciones): void
     {
-        return Alumno::where('fk_id_persona', $idPersona)->first();
-    }
+        // Buscamos al alumno principal para acceder a su relación
+        $alumno = $this->buscarPorId($idAlumno);
 
-    public function vincularHermano(int $idAlumno, int $idHermano): void
-    {
-        $alumno = Alumno::find($idAlumno);
-        $hermano = Alumno::find($idHermano);
+        // 1. Verificar existencia en la tabla pivote
+        $existe = $alumno->hermanos()
+                         ->where('es_hermano_de.fk_id_alumno_hermano', $idHermano)
+                         ->exists();
+
+        if ($existe) {
+            // UPDATE: Si ya existe, actualizamos observación y reactivamos
+            $alumno->hermanos()->updateExistingPivot($idHermano, [
+                'observaciones' => $observaciones,
+                'activa' => true
+            ]);
+        } else {
+            // INSERT: Si no existe, creamos
+            $alumno->hermanos()->attach($idHermano, [
+                'observaciones' => $observaciones,
+                'activa' => true
+            ]);
+        }
+
+        // 2. Hacemos la inversa (B -> A) sin tocar observaciones
+        $hermano = $this->buscarPorId($idHermano);
         
-        if ($alumno && $hermano) {
-            //Relación bidireccional si elijo un hermano que esta en la institucion, también se le vincula el alumno actual
-            $alumno->hermanos()->syncWithoutDetaching([$idHermano]);
-            $hermano->hermanos()->syncWithoutDetaching([$idAlumno]);
+        $existeInverso = $hermano->hermanos()
+                                 ->where('es_hermano_de.fk_id_alumno_hermano', $idAlumno)
+                                 ->exists();
+
+        if ($existeInverso) {
+            $hermano->hermanos()->updateExistingPivot($idAlumno, ['activa' => true]);
+        } else {
+            $hermano->hermanos()->attach($idAlumno, ['activa' => true]);
         }
     }
 
-    public function vincularFamiliar(int $idAlumno, int $idFamiliar): void
-    {
-        $alumno = Alumno::find($idAlumno);
-        if ($alumno) {
-            $alumno->familiares()->attach($idFamiliar);
-        }
-    }
 }

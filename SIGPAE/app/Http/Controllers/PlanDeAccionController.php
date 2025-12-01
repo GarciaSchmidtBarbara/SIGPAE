@@ -155,6 +155,16 @@ class PlanDeAccionController extends Controller
                 $initialAlumnoInfo = $alumnosJson[$initialAlumnoId] ?? null;
             }
         }
+        // Intervenciones asociadas directamente al plan
+        $intervencionesAsociadas = $plan->intervenciones
+            ->map(function ($i) {
+                return [
+                    'id_intervencion' => $i->id_intervencion,
+                    'fecha_hora_intervencion' => $i->fecha_hora_intervencion->format('d/m/Y H:i'),
+                    'tipo_intervencion' => $i->tipo_intervencion,
+                    'estado' => $i->activo ? 'Activo' : 'Inactivo',
+                ];
+            });
 
         return view('planDeAccion.crear-editar', [
             'modo' => 'editar',
@@ -191,6 +201,7 @@ class PlanDeAccionController extends Controller
             }),
             'initialAlumnoId' => $initialAlumnoId,
             'initialAlumnoInfo' => $initialAlumnoInfo,
+            'intervencionesAsociadas' => $intervencionesAsociadas,
         ]);
     }
 
@@ -206,6 +217,8 @@ class PlanDeAccionController extends Controller
             'aula' => 'nullable|integer|exists:aulas,id_aula',
             'profesionales' => 'array',
             'profesionales.*' => 'integer|exists:profesionales,id_profesional',
+            'intervenciones_asociadas' => 'array',
+            'intervenciones_asociadas.*' => 'integer|exists:intervenciones,id_intervencion',
         ]);
 
         $this->planDeAccionService->actualizar($id, $validatedData);

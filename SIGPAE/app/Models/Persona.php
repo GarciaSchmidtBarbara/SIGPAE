@@ -9,6 +9,7 @@ use App\Models\Alumno;
 use App\Models\Profesional;
 use App\Models\Familiar;
 use App\Models\Hermano;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Persona extends Model
 {
@@ -25,6 +26,19 @@ class Persona extends Model
         'nacionalidad',
         'activo',
     ];
+
+    /**
+     * Define un accesor para la fecha de nacimiento.
+     * Ahora, siempre que se pida 'fecha_nacimiento',
+     * se devolverá en formato Y-m-d.
+     */
+    protected function fechaNacimiento(): Attribute
+    {
+        return Attribute::make(
+            // El 'get' intercepta la llamada
+            get: fn ($value) => $value ? \Carbon\Carbon::parse($value)->format('Y-m-d') : null,
+        );
+    }
 
     protected $casts = [
         'fecha_nacimiento' => 'date',

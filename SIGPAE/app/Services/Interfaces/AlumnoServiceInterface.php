@@ -16,10 +16,17 @@ interface AlumnoServiceInterface
 
     public function obtener(int $id): ?Alumno;
 
+    public function obtenerParaEditar(int $id): ?Alumno;
+
     public function cambiarActivo(int $id): bool;
+
+    public function filtrar(\Illuminate\Http\Request $request): \Illuminate\Support\Collection;
+
+    public function obtenerCursos(): \Illuminate\Support\Collection;
 
     public function buscar(string $q): \Illuminate\Support\Collection;
 
-    public function procesarFamiliaresTemporales(int $idAlumno, array $familiaresTemp): void;
+    public function actualizar(int $id, array $data, array $listaFamiliares, 
+    array $familiaresAEliminar, array $hermanosAEliminar): bool;
 
 }

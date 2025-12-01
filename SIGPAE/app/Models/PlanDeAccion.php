@@ -29,6 +29,11 @@ class PlanDeAccion extends Model
 
     public $timestamps = true;
 
+    public function getDescripcionAttribute()
+    {
+        return "PLAN {$this->tipo_plan->value} N°{$this->id_plan_de_accion}";
+    }
+
     protected $casts = [
         'activo' => 'boolean',
         'objetivos' => 'string', // será tratado como text

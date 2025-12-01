@@ -55,38 +55,43 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
     })->name('planillas.planilla-medial.create');
 });
 
-
-//Rutas Personas
-use App\Http\Controllers\PersonaController;
-Route::post('/personas/check-dni', [PersonaController::class, 'checkDni'])->name('personas.check-dni');
-
 //Rutas Alumnos
 use App\Http\Controllers\AlumnoController;
-Route::get('/alumnos/iniciar-creacion', [AlumnoController::class, 'iniciarCreacion'])->name('alumnos.iniciar-creacion');
 Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
-Route::get('/alumnos/crear', [AlumnoController::class, 'crearEditar'])->name('alumnos.crear-editar');
-Route::post('/alumnos', [AlumnoController::class, 'store'])->name('alumnos.store');
-Route::match(['POST', 'PUT'], '/alumnos/prepare-familiar', [AlumnoController::class, 'prepareFamiliarCreation'])->name('alumnos.prepare-familiar');
-Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
+Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear');
 Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
+
+//con item me refiero a que puede ser un familiar o un hermano alumno
+Route::delete('/alumnos/asistente/item/eliminar/{indice}', [AlumnoController::class, 'eliminarItemDeSesion'])->name('asistente.item.eliminar');
+Route::post('/alumnos/asistente/sincronizar', [AlumnoController::class, 'sincronizarEstado'])->name('asistente.sincronizar');
+
+Route::get('/alumnos/asistente/continuar', [AlumnoController::class, 'continuar'])->name('alumnos.continuar');
+Route::post('/alumnos/validar-dni', [AlumnoController::class, 'validarDniAjax'])->name('alumnos.validar-dni');
+Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
+Route::post('/alumnos/store', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
 Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
+
+Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
 
 
 //Rutas familiares
 use App\Http\Controllers\FamiliarController;
-Route::get('/familiares/crear', [FamiliarController::class, 'create'])->name('familiares.create');
-Route::post('/familiares/store-and-return', [FamiliarController::class, 'storeAndReturn'])->name('familiares.storeAndReturn');
-Route::delete('/familiares/temp/{index}', [FamiliarController::class, 'removeTempFamiliar'])->name('familiares.removeTemp');
+Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
+Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
+Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardarYVolver'])->name('familiares.guardarYVolver');
+Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
 
-//Búsqueda de alumnos (para seleccionar hermano)
-Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
 
 //Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;
 Route::get('/usuarios', [ProfesionalController::class, 'vista'])->name('usuarios.principal');
 Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->name('usuarios.crear-editar');
-
+// Crear y actualizar profesionales
+Route::post('/usuarios', [ProfesionalController::class, 'store'])->name('usuarios.store');
+Route::put('/usuarios/{id}', [ProfesionalController::class, 'update'])->name('usuarios.update');
+Route::put('usuarios/{id}/cambiar-estado', [ProfesionalController::class, 'cambiarActivo'])->name('usuarios.cambiarActivo');
+Route::get('/usuarios/{id}/editar', [ProfesionalController::class, 'editar'])->name('usuarios.editar');
 
 //Ruta Perfil
 use App\Http\Controllers\Auth\PasswordController;
@@ -97,4 +102,15 @@ Route::middleware(['auth'])->group(function () {
         ->name('perfil.cambiar-contrasenia');
     Route::post('/perfil/actualizar', [ProfesionalController::class, 'actualizarPerfil'])
         ->name('perfil.actualizar');
+});
+
+//Ruta Intervenciones
+use App\Http\Controllers\IntervencionController;
+Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
+    Route::get('/', [IntervencionController::class, 'vista'])->name('principal');
+    Route::get('/crear', [IntervencionController::class, 'crear'])->name('crear');
+    Route::get('/{id}/editar', [IntervencionController::class, 'iniciarEdicion'])->name('editar');
+    Route::post('/guardar', [IntervencionController::class, 'guardar'])->name('guardar');
+    Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
+    Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
 });

@@ -15,7 +15,7 @@ interface ProfesionalServiceInterface
      * (nombre, apellido, dni, fecha_nacimiento, domicilio, nacionalidad)
      * and profesional fields (matricula, especialidad, cargo, etc.).
      */
-    public function createProfesional(array $data): Profesional;
+    public function crearProfesional(array $data): Profesional;
 
     /**
      * Update a profesional. $data may include persona fields to update the linked Persona.

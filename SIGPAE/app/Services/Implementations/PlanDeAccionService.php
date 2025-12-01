@@ -119,8 +119,21 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
 
         //aulas
         $aulasSeleccionadas = $plan?->aulas->pluck('id_aula')->toArray() ?? [];
-        $aulas = $this->repository->obtenerModelosAulas();
 
+        //intervenciones relacionadas
+        $intervencionesAsociadas = collect();
+        if ($plan) {
+            $intervencionesAsociadas = $plan->intervenciones()
+                ->get()
+                ->map(function ($i) {
+                    return [
+                        'id_intervencion' => $i->id_intervencion,
+                        'fecha_hora_intervencion' => $i->fecha_hora_intervencion->format('d/m/Y H:i'),
+                        'tipo_intervencion' => $i->tipo_intervencion,
+                        'estado' => $i->activo ? 'Activo' : 'Inactivo',
+                    ];
+                });
+        }
         return [
             'plan' => $plan,
             'alumnos' => $alumnos,
