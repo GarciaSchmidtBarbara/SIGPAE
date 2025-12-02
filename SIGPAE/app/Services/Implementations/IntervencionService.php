@@ -118,15 +118,9 @@ class IntervencionService implements IntervencionServiceInterface
     });
 }
 
-    public function guardarOtrosAsistentes(int $id, array $filas)
+    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas)
     {
-        $filas = array_filter($filas, fn($f) =>
-            trim($f['nombre'] ?? '') &&
-            trim($f['apellido'] ?? '') &&
-            trim($f['descripcion'] ?? '')
-        );
-
-        return $this->repository->guardarOtrosAsistentes($id, $filas);
+        return $this->repository->guardarOtrosAsistentes($intervencion, $filas);
     }
 
 
