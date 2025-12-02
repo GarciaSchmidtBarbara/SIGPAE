@@ -20,7 +20,7 @@ class PlanDeAccionController extends Controller
     public function vista(Request $request): View
     {
         $planesDeAccion = $this->planDeAccionService->filtrar($request);
-        $aulas = $this->planDeAccionService->obtenerAulasParaFiltro();
+        $aulas = $this->planDeAccionService->obtenerAulas();
         $tipos = $this->planDeAccionService->obtenerTipos(); 
 
         return view('planDeAccion.principal', compact('planesDeAccion', 'aulas', 'tipos'));
@@ -36,6 +36,7 @@ class PlanDeAccionController extends Controller
         return redirect()->route('planDeAccion.principal')->with($mensaje);
     }
     
+    //metodos de creacion y almacenamiento
     public function iniciarCreacion(): View
     {
         $data = $this->planDeAccionService->datosParaFormulario();
@@ -86,7 +87,7 @@ class PlanDeAccionController extends Controller
         }
 
         if ($tipo === 'INSTITUCIONAL') {
-            // nada extra → solo los generales
+            // nada extra, solo los generales
         }
 
         // Validar profesional generador
@@ -103,12 +104,13 @@ class PlanDeAccionController extends Controller
                         ->with('success', 'Plan creado con éxito.');
     }
 
+    //metodos de edicion y almacenamiento
     public function iniciarEdicion(int $id): View
     {
         $data = $this->planDeAccionService->datosParaFormulario($id);
         $plan = $data['plan'];
 
-        // === Alumnos seleccionados con datos completos para Alpine ===
+        //Alumnos seleccionados con datos completos para Alpine
         $alumnosSeleccionados = $plan->alumnos->map(function ($al) {
             $persona = $al->persona;
             return [
@@ -203,8 +205,6 @@ class PlanDeAccionController extends Controller
         ]);
     }
 
-
-
     public function actualizar(Request $request, int $id): RedirectResponse
     {
         $validatedData = $request->validate([
@@ -229,7 +229,7 @@ class PlanDeAccionController extends Controller
 
     public function eliminar(int $id): RedirectResponse
     {
-        $plan = $this->planDeAccionService->obtener($id);
+        $plan = $this->planDeAccionService->buscarPorId($id);
 
         if (!$plan) {
             return redirect()->route('planDeAccion.principal')
