@@ -35,12 +35,15 @@ class IntervencionController extends Controller
     }
 
 
+
     public function crear()
     {
         $alumnos = Alumno::with('persona', 'aula')->get();
         $profesionales = Profesional::with('persona')->get();
-        $aulas = Aula::all();
+        $aulas = $this->service->obtenerAulas();
         $planes = PlanDeAccion::all();
+        $otrosAsistentes = $this->intervencionService->actualizarOtrosAsistentes($intervencion,json_decode($request->otros_asistentes_json, true)
+        );
 
         return view('intervenciones.crear-editar', [
             'modo' => 'crear',
