@@ -169,4 +169,19 @@ class IntervencionRepository implements IntervencionRepositoryInterface
                 'descripcion' => $aula->curso . ' ° ' . $aula->division
             ]);
     }
+
+    public function guardarOtrosAsistentes(int $id, array $filas)
+    {
+        $intervencion = $this->buscarPorId($id);
+        $intervencion->otros_asistentes_i()->delete();
+
+        foreach ($filas as $fila) {
+            $intervencion->otros_asistentes_i()->create([
+                'nombre'      => $fila['nombre'],
+                'apellido'    => $fila['apellido'],
+                'descripcion' => $fila['descripcion'],
+            ]);
+        }
+    }
+
 }
