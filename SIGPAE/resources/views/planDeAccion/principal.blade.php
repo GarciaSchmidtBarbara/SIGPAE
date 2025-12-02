@@ -78,7 +78,7 @@
                         $destinatarios->push(...$plan->aulas->map(fn($aula) => 'Aula: ' . $aula->descripcion));
                     }
 
-                    return $destinatarios->isNotEmpty() ? $destinatarios->implode('<br>') : '—';
+                    return $destinatarios->isNotEmpty() ? $destinatarios->implode(', ') : '—';
                 }
             ],
             [
