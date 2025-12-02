@@ -43,7 +43,7 @@
                         <button type="button" class="btn-gris-variantes" onclick="window.print()">Vista Previa</button>
                         <button type="button" class="btn-aceptar">Descargar</button>
                         <button type="submit" class="btn-aceptar">Guardar</button>
-                        <a href="#" class="btn-volver">Volver</a>
+                        <a href="{{ route('planillas.principal') }}" class="btn-volver">Volver</a>
                     </div>  
                  </div>
             </div>

@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes; // <--- 1. IMPORTANTE: Importamos la Papelera
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Planilla extends Model
 {
-    use SoftDeletes; // <--- 2. IMPORTANTE: Activamos la Papelera en este modelo
+    use HasFactory, SoftDeletes; // <--- 2. IMPORTANTE: Activamos la Papelera en este modelo
 
     protected $primaryKey = 'id_planilla';
 

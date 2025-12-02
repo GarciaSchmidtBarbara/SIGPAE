@@ -109,6 +109,7 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
     // guarda los cambios realizados en la planilla editada
     Route::put('/planillas/{id}/actualizar', [PlanillaController::class, 'actualizar'])
         ->name('planillas.actualizar');
+    
 });
 
 //Rutas Alumnos
