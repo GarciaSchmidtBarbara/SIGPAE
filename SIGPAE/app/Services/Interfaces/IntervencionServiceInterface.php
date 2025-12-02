@@ -16,4 +16,5 @@ interface IntervencionServiceInterface
     public function obtenerTipos(): Collection;
     public function obtenerAulas(): Collection;
     public function filtrar(Request $request): Collection;
+    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas);
 }

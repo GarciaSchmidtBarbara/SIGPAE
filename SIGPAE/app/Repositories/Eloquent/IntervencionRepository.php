@@ -163,24 +163,26 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         return Aula::select('id_aula', 'curso', 'division')
             ->orderBy('curso')
             ->orderBy('division')
-            ->get()
-            ->map(fn($aula) => (object)[
-                'id' => $aula->id_aula,
-                'descripcion' => $aula->curso . ' ° ' . $aula->division
-            ]);
+            ->get();
     }
 
-    public function guardarOtrosAsistentes(int $id, array $filas)
+    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas)
     {
-        $intervencion = $this->buscarPorId($id);
         $intervencion->otros_asistentes_i()->delete();
 
-        foreach ($filas as $fila) {
-            $intervencion->otros_asistentes_i()->create([
-                'nombre'      => $fila['nombre'],
-                'apellido'    => $fila['apellido'],
-                'descripcion' => $fila['descripcion'],
-            ]);
+        // Filtrar y mapear las filas válidas
+        $data = collect($filas)
+            ->filter(fn($fila) => !empty($fila['nombre']) || !empty($fila['apellido']) || !empty($fila['descripcion']))
+            ->map(fn($fila) => [
+                'nombre' => $fila['nombre'] ?? '',
+                'apellido' => $fila['apellido'] ?? '',
+                'descripcion' => $fila['descripcion'] ?? '',
+            ])
+            ->toArray();
+
+        // Crear en lote
+        if (!empty($data)) {
+            $intervencion->otros_asistentes_i()->createMany($data);
         }
     }
 

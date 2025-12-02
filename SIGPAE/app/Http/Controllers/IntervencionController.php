@@ -34,16 +34,14 @@ class IntervencionController extends Controller
         return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'aulas'));
     }
 
-
-
+    //metodos de creacion y almacenamiento
     public function crear()
     {
         $alumnos = Alumno::with('persona', 'aula')->get();
         $profesionales = Profesional::with('persona')->get();
         $aulas = $this->service->obtenerAulas();
         $planes = PlanDeAccion::all();
-        $otrosAsistentes = $this->intervencionService->actualizarOtrosAsistentes($intervencion,json_decode($request->otros_asistentes_json, true)
-        );
+        $otrosAsistentes = [];
 
         return view('intervenciones.crear-editar', [
             'modo' => 'crear',
@@ -51,6 +49,7 @@ class IntervencionController extends Controller
             'profesionales' => $profesionales,
             'aulas' => $aulas,
             'planes' => $planes,
+            'otrosAsistentes' => $otrosAsistentes,
         ]);
     }
 
@@ -73,11 +72,17 @@ class IntervencionController extends Controller
             'tipo_intervencion' => 'required|string',
             'fk_id_profesional_generador' => 'required|integer|exists:profesionales,id_profesional',
             'plan_de_accion' => 'nullable|integer|exists:plan_de_accion,id_plan_de_accion',
-    
         ]);
 
         try {
             $intervencion = $this->service->crear($data);
+
+            //guardar otros asistentes si vienen en el request
+            if ($request->filled('otros_asistentes_json')) {
+                $otrosAsistentes = json_decode($request->otros_asistentes_json, true);
+                $this->service->guardarOtrosAsistentes($intervencion, $otrosAsistentes);
+            }
+
             return redirect()
                 ->route('intervenciones.principal')
                 ->with('success', 'Intervención creada exitosamente.');
@@ -96,7 +101,7 @@ class IntervencionController extends Controller
                 ->with('error', 'Intervención no encontrada.');
         }
 
-        // === Alumnos seleccionados con datos completos para Alpine ===
+        //Alumnos seleccionados con datos completos para Alpine
         $alumnosSeleccionados = $intervencion->alumnos->map(function ($al) {
             $persona = $al->persona;
             return [
@@ -138,6 +143,15 @@ class IntervencionController extends Controller
             ];
         });
 
+        // Otros asistentes externos
+        $otrosAsistentes = $intervencion->otros_asistentes_i->map(function ($as) {
+            return [
+                'nombre' => $as->nombre,
+                'apellido' => $as->apellido,
+                'descripcion' => $as->descripcion,
+            ];
+        })->toArray();
+
         // Colecciones completas para selects
         $alumnos = Alumno::with('persona', 'aula')->get();
         $profesionales = Profesional::with('persona')->get();
@@ -155,6 +169,7 @@ class IntervencionController extends Controller
             'profesionales' => $profesionales,
             'planes' => $planes,
             'alumnosJson' => $alumnosJson,
+            'otrosAsistentes' => $otrosAsistentes,
         ]);
     }
 
@@ -172,6 +187,12 @@ class IntervencionController extends Controller
 
         try {
             $this->service->editar($id, $data);
+
+            if ($request->filled('otros_asistentes_json')) {
+                $otrosAsistentes = json_decode($request->otros_asistentes_json, true);
+                $this->service->guardarOtrosAsistentes($intervencion, $otrosAsistentes);
+            }
+            
             return redirect()
                 ->route('intervenciones.principal')
                 ->with('success', 'Intervención actualizada.');

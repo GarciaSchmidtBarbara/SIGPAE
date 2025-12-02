@@ -15,4 +15,5 @@ interface IntervencionRepositoryInterface
     public function eliminar (int $id): bool;
     public function cambiarActivo (int $id): bool;
     public function obtenerAulas(): Collection;
+    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas);
 }
