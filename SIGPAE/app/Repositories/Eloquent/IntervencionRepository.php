@@ -18,14 +18,15 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         $this->model = $model;
     }
 
-    private function withRelations()
+    private function withRelations(): array
     {
         return [
             'planDeAccion',
-            'profesionalGenerador',
-            'profesionales',
+            'profesionalGenerador.persona',
+            'profesionales.persona',
             'aulas',
-            'alumnos',
+            'alumnos.persona',
+            'alumnos.aula',
             'evaluacionDeIntervencionEspontanea',
             'documentos',
             'otros_asistentes_i',
@@ -33,9 +34,16 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         ];
     }
 
+    //busqueda simple (sirve para saber si existe el id)
     public function buscarPorId(int $id): ?Intervencion
     {
-        return Intervencion::query()
+        return $this->model->newQuery()->find($id);
+    }
+
+    //Búsqueda completa con todas las relaciones para edición
+    public function buscarPorIdConRelaciones(int $id): ?Intervencion
+    {
+        return $this->model->newQuery()
             ->with($this->withRelations())
             ->find($id);
     }
@@ -87,7 +95,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         $tipo = strtoupper($data['tipo_intervencion'] ?? '');
 
         // 1. Crear la intervencion base
-        $intervencion = Intervencion::create([
+        $intervencion = $this->model->create([
             'fecha_hora_intervencion' => $data['fecha_hora_intervencion'],
             'lugar' => $data['lugar'] ?? null, 
             'modalidad' => $data['modalidad'] ?? null,
@@ -109,36 +117,40 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         }
 
         //alumnos destinatarios
-        if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
+        if (!empty($data['alumnos'])) {
             $intervencion->alumnos()->sync(array_map('intval', $data['alumnos']));
         }
 
         //aulas destinatarias
-        if (!empty($data['aulas']) && is_array($data['aulas'])) {
+        if (!empty($data['aulas'])) {
             $intervencion->aulas()->sync(array_map('intval', $data['aulas']));
         }
 
         //profesionales participantes
-        if (!empty($data['profesionales']) && is_array($data['profesionales'])) {
+        if (!empty($data['profesionales'])) {
             $intervencion->profesionales()->sync(array_map('intval', $data['profesionales']));
         }
 
         //otros asistentes
         if (!empty($data['otros_asistentes_i'])) {
             $intervencion->otros_asistentes_i()->createMany(
-                collect($data['otros_asistentes_i'])->map(fn($id) => ['fk_id_profesional' => (int) $id])->toArray()
+                collect($data['otros_asistentes_i'])->map(fn($fila) => [
+                    'nombre' => $fila['nombre'] ?? '',
+                    'apellido' => $fila['apellido'] ?? '',
+                    'descripcion' => $fila['descripcion'] ?? '',
+                ])->toArray()
             );
         }
 
         return $intervencion;
     }
 
-    public function editar(int $id, array $data): bool
+    public function actualizar(int $id, array $data): ?Intervencion
     {
         $intervencion = $this->buscarPorId($id);
 
         if (!$intervencion) {
-            return false;
+            return null;
         }
 
         return $intervencion->update($data);
@@ -146,7 +158,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
 
     public function eliminar(int $id): bool
     {
-        return $this->model->destroy($id);
+        return $this->model->destroy($id) > 0;
     }
 
     public function cambiarActivo(int $id): bool

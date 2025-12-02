@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\Interfaces\IntervencionServiceInterface;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
-use Illuminate\View\View;
-use App\Services\Interfaces\IntervencionServiceInterface;
 
 use App\Models\Intervencion;
-use App\Models\Alumno;
-use App\Models\Profesional;
-use App\Models\Aula;
-use App\Models\PlanDeAccion;
 
 
 class IntervencionController extends Controller
 {
+    protected IntervencionServiceInterface $intervencionService; 
+
     public function __construct(IntervencionServiceInterface $intervencionService)
     {
         $this->service = $intervencionService;
     }
 
+    //vista intervenciones filtradas
     public function vista (Request $request):View
     {
         $intervencionesFiltradas = $this->service->filtrar($request);
@@ -35,25 +35,17 @@ class IntervencionController extends Controller
     }
 
     //metodos de creacion y almacenamiento
-    public function crear()
+    public function iniciarCreacion(): View
     {
-        $alumnos = Alumno::with('persona', 'aula')->get();
-        $profesionales = Profesional::with('persona')->get();
-        $aulas = $this->service->obtenerAulas();
-        $planes = PlanDeAccion::all();
-        $otrosAsistentes = [];
-
-        return view('intervenciones.crear-editar', [
+        $data = $this->service->datosParaFormulario();
+        return view('intervenciones.crear-editar', $data + [
             'modo' => 'crear',
-            'alumnos' => $alumnos,
-            'profesionales' => $profesionales,
-            'aulas' => $aulas,
-            'planes' => $planes,
-            'otrosAsistentes' => $otrosAsistentes,
+            'otrosAsistentes' => [],
+            'intervencion' => null,
         ]);
     }
 
-    public function guardar(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         // 1. Asegurar que el ID del generador esté en el Request (siempre antes de la validación)
         $request->merge([
@@ -66,13 +58,16 @@ class IntervencionController extends Controller
             'modalidad' => 'required|string',
             'otra_modalidad' => 'nullable|string',
             'temas_tratados' => 'nullable|string',
-            'compromisos' => 'nullable|string',
+            'compromisos_asumidos' => 'nullable|string',
             'observaciones' => 'nullable|string',
             'activo' => 'boolean',
             'tipo_intervencion' => 'required|string',
+            'alumnos' => 'nullable|array',
+            'alumnos.*' => 'integer|exists:alumnos,id_alumno',
             'fk_id_profesional_generador' => 'required|integer|exists:profesionales,id_profesional',
             'plan_de_accion' => 'nullable|integer|exists:plan_de_accion,id_plan_de_accion',
         ]);
+        $validated['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
 
         try {
             $intervencion = $this->service->crear($data);
@@ -91,102 +86,43 @@ class IntervencionController extends Controller
         }
     }
 
+    //metodos de edicion y almacenamiento
     public function iniciarEdicion(int $id): View
     {
-        $intervencion = $this->service->buscarPorId($id);
+        $data = $this->service->datosParaFormulario($id);
 
-        if (!$intervencion) {
+        if (!$data['intervencion']) {
             return redirect()
                 ->route('intervenciones.principal')
                 ->with('error', 'Intervención no encontrada.');
         }
 
-        //Alumnos seleccionados con datos completos para Alpine
-        $alumnosSeleccionados = $intervencion->alumnos->map(function ($al) {
-            $persona = $al->persona;
-            return [
-                'id' => $al->id_alumno,
-                'nombre' => $persona->nombre,
-                'apellido' => $persona->apellido,
-                'dni' => $persona->dni,
-                'curso'   => $al->aula?->descripcion,
-                'aula_id' => $al->fk_id_aula,
-            ];
-        })->toArray();
-
-        // Profesionales participantes
-        $profesionalesSeleccionados = $intervencion->profesionales->map(function ($prof) {
-            $persona = $prof->persona;
-            return [
-                'id' => $prof->id_profesional,
-                'nombre' => $persona->nombre ?? null,
-                'apellido' => $persona->apellido ?? null,
-                'profesion' => $prof->profesion ?? 'N/A',
-            ];
-        })->toArray();
-
-        // Aulas seleccionadas
-        $aulasSeleccionadas = $intervencion->aulas->pluck('id_aula')->toArray();
-
-        // Mapping completo de alumnos para Alpine
-        $alumnosJson = $intervencion->alumnos->mapWithKeys(function ($al) {
-            $persona = $al->persona;
-            return [
-                $al->id_alumno => [
-                    'id' => $al->id_alumno,
-                    'nombre' => $persona->nombre,
-                    'apellido' => $persona->apellido,
-                    'dni' => $persona->dni,
-                    'curso' => $al->aula?->descripcion,
-                    'aula_id' => $al->fk_id_aula,
-                ]
-            ];
-        });
-
-        // Otros asistentes externos
-        $otrosAsistentes = $intervencion->otros_asistentes_i->map(function ($as) {
-            return [
-                'nombre' => $as->nombre,
-                'apellido' => $as->apellido,
-                'descripcion' => $as->descripcion,
-            ];
-        })->toArray();
-
-        // Colecciones completas para selects
-        $alumnos = Alumno::with('persona', 'aula')->get();
-        $profesionales = Profesional::with('persona')->get();
-        $aulas = Aula::all();
-        $planes = PlanDeAccion::all();
-
-        return view('intervenciones.crear-editar', [
+        return view('intervenciones.crear-editar', $data + [
             'modo' => 'editar',
-            'intervencion' => $intervencion,
-            'alumnosSeleccionados' => $alumnosSeleccionados,
-            'profesionalesSeleccionados' => $profesionalesSeleccionados,
-            'aulasSeleccionadas' => $aulasSeleccionadas,
-            'alumnos' => $alumnos,
-            'aulas' => $aulas,
-            'profesionales' => $profesionales,
-            'planes' => $planes,
-            'alumnosJson' => $alumnosJson,
-            'otrosAsistentes' => $otrosAsistentes,
         ]);
     }
 
-    public function editar(Request $request, int $id)
+    public function editar(Request $request, int $id): RedirectResponse
     {
         $data = $request->validate([
             'fecha_hora_intervencion' => 'required|date',
+            'hora_intervencion' => 'required',
             'lugar' => 'required|string|max:255',
             'modalidad' => 'required|string',
             'otra_modalidad' => 'nullable|string',
             'temas_tratados' => 'nullable|string',
-            'compromisos' => 'nullable|string',
+            'compromisos_asumidos' => 'nullable|string',
             'observaciones' => 'nullable|string',
+            'alumnos' => 'nullable|array',
+            'alumnos.*' => 'integer|exists:alumnos,id_alumno',
+            'aulas' => 'nullable|array',
+            'aulas.*' => 'integer|exists:aulas,id_aula',
+            'profesionales' => 'nullable|array',
+            'profesionales.*' => 'integer|exists:profesionales,id_profesional',
         ]);
-
+        $validated['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
         try {
-            $this->service->editar($id, $data);
+            $this->service->actualizar($id, $data);
 
             if ($request->filled('otros_asistentes_json')) {
                 $otrosAsistentes = json_decode($request->otros_asistentes_json, true);
@@ -209,7 +145,7 @@ class IntervencionController extends Controller
                         ->with($ok ? 'success' : 'error', $ok ? 'Intervención eliminada.' : 'No se pudo eliminar.');
     }
 
-    public function cambiarActivo(int $id)
+    public function cambiarActivo(int $id): RedirectResponse
     {
         $ok = $this->service->cambiarActivo($id);
 
