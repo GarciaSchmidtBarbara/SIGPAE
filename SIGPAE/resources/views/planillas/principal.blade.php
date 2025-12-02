@@ -114,6 +114,19 @@
                                     </span>
                                 </td>
 
+                                <td class="p-4 align-middle">
+                                    <div class="font-medium text-gray-900">
+                                        {{-- ENLACE QUE QUERÍAS --}}
+                                        <a href="{{ route('planillas.editar', $item->id_planilla) }}" class="hover:text-blue-600 hover:underline">
+                                            {{ $item->nombre_planilla ?? 'Sin Nombre' }}
+                                        </a>
+                                    </div>
+                                    {{-- Subtítulo gris --}}
+                                    <div class="text-xs text-gray-500 mt-1 font-normal truncate max-w-xs">
+                                        {{ Str::limit($item->tipo_planilla, 40) }}
+                                    </div>
+                                </td>
+
                                 {{-- 2. NOMBRE COMPLETO --}}
                                 <td class="p-4 font-medium text-gray-900">
                                     {{ $item->nombre_planilla ?? 'Sin Nombre' }}
