@@ -347,20 +347,13 @@
                                 </tbody>
                             </table>
 
-                            {{-- TABLA DINÁMICA DE PROFESIONALES SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
+                            {{-- TABLA EDITABLE DE OTROS ASISTENTES EXTERNOS --}}
                         
-                                 <h3 class="font-medium text-base text-gray-700 mb-2">Otros participantes externos</h3>
-                            <x-tabla-dinamica 
-                                :columnas="[
-                                    [
-                                        'key' => 'nombre_completo',
-                                        'label' => 'Nombre y Apellido',
-                                        'formatter' => fn($v,$fila) => $fila->nombre . ' ' . $fila->apellido
-                                    ],
-                                    ['key' => 'descripcion', 'label' => 'Descripción'],
-                                ]"
-                                :filas="$intervencion->otros_asistentes_i"
-                            />
+                            {{-- DEBUG TEMPORAL --}}
+                            <h3 class="font-medium text-base text-gray-700 mb-2">Otros participantes externos</h3>
+                            <x-tabla-editable :listado="$otrosAsistentes" />
+                            
+
                             
                         </div>
                         

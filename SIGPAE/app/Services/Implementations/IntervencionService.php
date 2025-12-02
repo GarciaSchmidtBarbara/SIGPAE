@@ -4,6 +4,11 @@ namespace App\Services\Implementations;
 
 use App\Repositories\Interfaces\IntervencionRepositoryInterface;
 use App\Services\Interfaces\IntervencionServiceInterface;
+//otros sevrice
+use App\Services\Interfaces\PlanDeAccionServiceInterface;
+use App\Services\Interfaces\AlumnoServiceInterface;
+use App\Services\Interfaces\ProfesionalServiceInterface;
+
 use App\Models\Intervencion;
 use App\Enums\TipoIntervencion;
 use Illuminate\Support\Collection;
@@ -14,44 +19,26 @@ use Exception;
 class IntervencionService implements IntervencionServiceInterface
 {
     protected IntervencionRepositoryInterface $repository;
+    protected AlumnoServiceInterface $serviceAlumno;
+    protected ProfesionalServiceInterface $serviceProfesional;
+    protected PlanDeAccionServiceInterface $servicePlan;
 
-    public function __construct(IntervencionRepositoryInterface $repository) {
+    public function __construct(IntervencionRepositoryInterface $repository, AlumnoServiceInterface $serviceAlumno,
+    ProfesionalServiceInterface $serviceProfesional, PlanDeAccionServiceInterface $servicePlan) {
         $this->repository = $repository;
+        $this->serviceAlumno = $serviceAlumno;
+        $this->serviceProfesional = $serviceProfesional;
+        $this->servicePlan = $servicePlan;
     }
 
-    public function buscarPorId(int $id)
+    public function crear(array $data): Intervencion
     {
-        return $this->repository->buscarPorId($id);
+        return $this->repository->crear($data);
     }
 
-    public function crear(array $data)
+    public function actualizar(int $id, array $data): ?Intervencion
     {
-        DB::beginTransaction();
-        try {
-            $intervencion = $this->repository->crear($data);
-            DB::commit();
-            return $intervencion;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
-
-    public function editar(int $id, array $data): bool
-    {
-        DB::beginTransaction();
-        try {
-            $ok = $this->repository->editar($id, $data);
-
-            if (!$ok) {
-                throw new Exception('Intervención no encontrada.');
-            }
-            DB::commit();
-            return true;
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        return $this->repository->actualizar($id, $data);
     }
 
     public function eliminar(int $id): bool
@@ -78,57 +65,115 @@ class IntervencionService implements IntervencionServiceInterface
     {
         return $this->repository->filtrar($request);
     }
-
-    public function formatearParaVista(Collection $intervenciones): Collection
-{
-    return $intervenciones->map(function ($intervencion) {
-        $alumnos = $intervencion->alumnos->map(function ($alumno) {
-            $persona = $alumno->persona;
-            return $persona ? "{$persona->nombre} {$persona->apellido}" : 'N/A';
-        })->implode(', ');
-
-        $profesionalesReune = $intervencion->profesionales->map(function ($profesional) {
-            $persona = $profesional->persona;
-            return $persona ? "{$persona->nombre} {$persona->apellido}" : 'N/A';
-        });
-
-        $otrosProfesionales = $intervencion->otros_asistentes_i->map(function ($asistente) {
-            $persona = $asistente->profesional?->persona;
-            return $persona ? "{$persona->nombre} {$persona->apellido}" : 'N/A';
-        });
-
-        $generador = $intervencion->profesionalGenerador?->persona;
-        $generadorNombre = $generador ? "{$generador->nombre} {$generador->apellido}" : null;
-
-        $todosProfesionales = collect()
-            ->merge($profesionalesReune)
-            ->merge($otrosProfesionales)
-            ->when($generadorNombre, fn($c) => $c->push($generadorNombre))
-            ->unique()
-            ->implode(', ');
-
-        return [
-            'id_intervencion' => $intervencion->id_intervencion,
-            'fecha_hora_intervencion' => optional($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i'),
-            'tipo_intervencion' => $intervencion->tipo_intervencion,
-            'alumnos' => $alumnos ?: 'Sin alumnos',
-            'profesionales' => $todosProfesionales ?: 'Sin participantes',
-            'activo' => $intervencion->activo,
-        ];
-    });
-}
-
-    public function guardarOtrosAsistentes(int $id, array $filas)
+    
+    public function buscarPorId(int $id): ?Intervencion
     {
-        $filas = array_filter($filas, fn($f) =>
-            trim($f['nombre'] ?? '') &&
-            trim($f['apellido'] ?? '') &&
-            trim($f['descripcion'] ?? '')
-        );
-
-        return $this->repository->guardarOtrosAsistentes($id, $filas);
+        return $this->repository->buscarPorId($id);
     }
 
+    public function formatearParaVista(Collection $intervenciones): Collection
+    {
+       return $intervenciones->map(function ($intervencion) {
+            $alumnos = $intervencion->alumnos->map(fn($al) => $al->persona ? "{$al->persona->nombre} {$al->persona->apellido}" : 'N/A')->implode(', ');
+            $profesionales = $intervencion->profesionales->map(fn($p) => $p->persona ? "{$p->persona->nombre} {$p->persona->apellido}" : 'N/A');
+            $otros = $intervencion->otros_asistentes_i->map(fn($as) => "{$as->nombre} {$as->apellido}");
+            $generador = $intervencion->profesionalGenerador?->persona;
+            $generadorNombre = $generador ? "{$generador->nombre} {$generador->apellido}" : null;
 
+            $todosProfesionales = collect()
+                ->merge($profesionales)
+                ->merge($otros)
+                ->when($generadorNombre, fn($c) => $c->push($generadorNombre))
+                ->unique()
+                ->implode(', ');
+
+            return [
+                'id_intervencion' => $intervencion->id_intervencion,
+                'fecha_hora_intervencion' => optional($intervencion->fecha_hora_intervencion)->format('d/m/Y H:i'),
+                'tipo_intervencion' => $intervencion->tipo_intervencion,
+                'alumnos' => $alumnos ?: 'Sin alumnos',
+                'profesionales' => $todosProfesionales ?: 'Sin participantes',
+                'activo' => $intervencion->activo,
+            ];
+        });
+    }
+
+    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas)
+    {
+        return $this->repository->guardarOtrosAsistentes($intervencion, $filas);
+    }
+
+    public function datosParaFormulario(?int $id = null): array
+    {
+        $intervencion = $id ? $this->repository->buscarPorIdConRelaciones($id) : null;
+
+        // Alumnos
+        $alumnos = $this->serviceAlumno->listar();
+        $alumnosJson = $alumnos->mapWithKeys(function ($al) {
+            $persona = $al->persona;
+            return [
+                $al->id_alumno => [
+                    'id' => $al->id_alumno,
+                    'nombre' => $persona->nombre,
+                    'apellido' => $persona->apellido,
+                    'dni' => $persona->dni,
+                    'curso' => $al->aula?->descripcion,
+                    'aula_id' => $al->fk_id_aula,
+                ]
+            ];
+        });
+
+        // Alumnos seleccionados
+        $alumnosSeleccionados = $intervencion?->alumnos->map(function ($al) {
+            $persona = $al->persona;
+            return [
+                'id' => $al->id_alumno,
+                'nombre' => $persona->nombre,
+                'apellido' => $persona->apellido,
+                'dni' => $persona->dni,
+                'curso' => $al->aula?->descripcion,
+                'aula_id' => $al->fk_id_aula,
+            ];
+        }) ?? collect();
+
+        // Profesionales
+        $profesionales = $this->serviceProfesional->getAllProfesionales();
+        $profesionalesSeleccionados = $intervencion?->profesionales->map(function ($prof) {
+            $persona = $prof->persona;
+            return [
+                'id' => $prof->id_profesional,
+                'nombre' => $persona->nombre ?? null,
+                'apellido' => $persona->apellido ?? null,
+                'profesion' => $prof->profesion ?? 'N/A',
+            ];
+        }) ?? collect();
+
+        // Aulas
+        $aulas = $this->repository->obtenerAulas();
+        $aulasSeleccionadas = $intervencion?->aulas->pluck('id_aula')->toArray() ?? [];
+
+        // Planes de acción
+        $planes = $this->servicePlan->obtenerTodos();
+
+        // Otros asistentes
+        $otrosAsistentes = $intervencion?->otros_asistentes_i->map(fn($as) => [
+            'nombre' => $as->nombre,
+            'apellido' => $as->apellido,
+            'descripcion' => $as->descripcion,
+        ]) ?? collect();
+
+        return [
+            'intervencion' => $intervencion,
+            'alumnos' => $alumnos,
+            'profesionales' => $profesionales,
+            'aulas' => $aulas,
+            'planes' => $planes,
+            'alumnosJson' => $alumnosJson,
+            'alumnosSeleccionados' => $alumnosSeleccionados,
+            'profesionalesSeleccionados' => $profesionalesSeleccionados,
+            'aulasSeleccionadas' => $aulasSeleccionadas,
+            'otrosAsistentes' => $otrosAsistentes,
+        ];
+    }
 
 }
