@@ -165,9 +165,10 @@ Route::middleware(['auth'])->group(function () {
 use App\Http\Controllers\IntervencionController;
 Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::get('/', [IntervencionController::class, 'vista'])->name('principal');
-    Route::get('/crear', [IntervencionController::class, 'crear'])->name('crear');
+    Route::get('/crear', [IntervencionController::class, 'iniciarCreacion'])->name('crear');
+    Route::post('/guardar', [IntervencionController::class, 'store'])->name('guardar');
     Route::get('/{id}/editar', [IntervencionController::class, 'iniciarEdicion'])->name('editar');
-    Route::post('/guardar', [IntervencionController::class, 'guardar'])->name('guardar');
+    Route::put('/{id}', [IntervencionController::class, 'editar'])->name('actualizar');
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
 });

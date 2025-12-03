@@ -6,50 +6,60 @@ use App\Models\Intervencion;
 use App\Models\Aula;
 use App\Repositories\Interfaces\IntervencionRepositoryInterface;
 use Illuminate\Support\Collection;
+use Illuminate\Http\Request;
 
 
 class IntervencionRepository implements IntervencionRepositoryInterface
 {
-    private function withRelations()
+    protected Intervencion $model;
+    
+    public function __construct(Intervencion $model)
+    {
+        $this->model = $model;
+    }
+
+    private function withRelations(): array
     {
         return [
             'planDeAccion',
-            'profesionalGenerador',
-            'profesionales',
+            'profesionalGenerador.persona',
+            'profesionales.persona',
             'aulas',
-            'alumnos',
+            'alumnos.persona',
+            'alumnos.aula',
             'evaluacionDeIntervencionEspontanea',
             'documentos',
             'otros_asistentes_i',
             'planillas',
         ];
     }
-    public function obtenerTodos()
-    {
-        return Intervencion::query()
-            ->with($this->withRelations())
-            ->where('activo', true)
-            ->orderBy('fecha_hora_intervencion', 'desc')
-            ->get();
-    }
 
+    //busqueda simple (sirve para saber si existe el id)
     public function buscarPorId(int $id): ?Intervencion
     {
-        return Intervencion::query()
+        return $this->model->newQuery()->find($id);
+    }
+
+    //Búsqueda completa con todas las relaciones para edición
+    public function buscarPorIdConRelaciones(int $id): ?Intervencion
+    {
+        return $this->model->newQuery()
             ->with($this->withRelations())
             ->find($id);
     }
 
-    public function filtrar(array $filters = [])
+    public function filtrar(Request $request): Collection
     {
-        $query = Intervencion::query()->with($this->withRelations());
+        $query = $this->model->newQuery()->with($this->withRelations());
 
-        if (!empty($filters['tipo_intervencion'])) {
-            $query->where('tipo_intervencion', $filters['tipo_intervencion']);
+        //filtrar por tipo intervencion
+        if ($tipo = $request->get('tipo_intervencion')) {
+            $query->where('tipo_intervencion', $tipo);
         }
 
-        if (!empty($filters['nombre'])) {
-            $nombre = $this->normalizarTexto($filters['nombre']);
+        //filtrar por alumnos
+        if ($nombre = $request->get('nombre')) {
+            $nombre = $this->normalizarTexto($nombre);
             $query->whereHas('alumnos.persona', function ($q) use ($nombre) {
                 $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
                 ->orWhereRaw("LOWER(unaccent(apellido::text)) LIKE ?", ["%{$nombre}%"])
@@ -57,21 +67,22 @@ class IntervencionRepository implements IntervencionRepositoryInterface
             });
         }
 
-        if (!empty($filters['aula_id'])) {
-            $query->whereHas('aulas', fn($q) => $q->where('id_aula', $filters['aula_id']));
+        if ($cursoId = $request->get('aula')) {
+            $query->whereHas('aulas', fn($q) => $q->where('aulas.id_aula', $cursoId));
         }
 
-        if (!empty($filters['fecha_desde'])) {
-            $query->where('fecha_hora_intervencion', '>=', $filters['fecha_desde']);
+        if ($desde = $request->get('fecha_desde')) {
+            $query->where('fecha_hora_intervencion', '>=', $desde);
         }
 
-        if (!empty($filters['fecha_hasta'])) {
-            $query->where('fecha_hora_intervencion', '<=', $filters['fecha_hasta']);
+        if ($hasta = $request->get('fecha_hasta')) {
+            $query->where('fecha_hora_intervencion', '<=', $hasta);
         }
 
-        return $query->where('activo', true)
-                    ->orderBy('fecha_hora_intervencion', 'desc')
-                    ->get();
+        $query->where('activo', true)
+          ->orderBy('fecha_hora_intervencion', 'desc');
+
+        return $query->get();
     }
 
     private function normalizarTexto(string $texto): string
@@ -84,7 +95,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         $tipo = strtoupper($data['tipo_intervencion'] ?? '');
 
         // 1. Crear la intervencion base
-        $intervencion = Intervencion::create([
+        $intervencion = $this->model->create([
             'fecha_hora_intervencion' => $data['fecha_hora_intervencion'],
             'lugar' => $data['lugar'] ?? null, 
             'modalidad' => $data['modalidad'] ?? null,
@@ -106,47 +117,48 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         }
 
         //alumnos destinatarios
-        if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
+        if (!empty($data['alumnos'])) {
             $intervencion->alumnos()->sync(array_map('intval', $data['alumnos']));
         }
 
         //aulas destinatarias
-        if (!empty($data['aulas']) && is_array($data['aulas'])) {
+        if (!empty($data['aulas'])) {
             $intervencion->aulas()->sync(array_map('intval', $data['aulas']));
         }
 
         //profesionales participantes
-        if (!empty($data['profesionales']) && is_array($data['profesionales'])) {
+        if (!empty($data['profesionales'])) {
             $intervencion->profesionales()->sync(array_map('intval', $data['profesionales']));
         }
 
         //otros asistentes
         if (!empty($data['otros_asistentes_i'])) {
             $intervencion->otros_asistentes_i()->createMany(
-                collect($data['otros_asistentes_i'])->map(fn($id) => ['fk_id_profesional' => (int) $id])->toArray()
+                collect($data['otros_asistentes_i'])->map(fn($fila) => [
+                    'nombre' => $fila['nombre'] ?? '',
+                    'apellido' => $fila['apellido'] ?? '',
+                    'descripcion' => $fila['descripcion'] ?? '',
+                ])->toArray()
             );
         }
 
         return $intervencion;
     }
 
-    public function editar(int $id, array $data): bool
+    public function actualizar(int $id, array $data): Intervencion
     {
         $intervencion = $this->buscarPorId($id);
 
         if (!$intervencion) {
-            return false;
+            return null;
         }
-
-        return $intervencion->update($data);
+        $intervencion->update($data);
+        return $intervencion->fresh($this->withRelations());
     }
 
     public function eliminar(int $id): bool
     {
-        $intervencion = $this->buscarPorId($id);
-        if (!$intervencion) return false;
-
-        return $intervencion->delete();
+        return $this->model->destroy($id) > 0;
     }
 
     public function cambiarActivo(int $id): bool
@@ -158,15 +170,33 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         return $intervencion->update(['activo' => $nuevoEstado]);
     }
 
-    public function obtenerAulasParaFiltro(): Collection
+    public function obtenerAulas(): Collection
     {
         return Aula::select('id_aula', 'curso', 'division')
             ->orderBy('curso')
             ->orderBy('division')
-            ->get()
-            ->map(fn($aula) => (object)[
-                'id' => $aula->id_aula,
-                'descripcion' => $aula->curso . ' ° ' . $aula->division
-            ]);
+            ->get();
     }
+
+    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas): Intervencion
+    {
+        $intervencion->otros_asistentes_i()->delete();
+
+        // Filtrar y mapear las filas válidas
+        $data = collect($filas)
+            ->filter(fn($fila) => !empty($fila['nombre']) || !empty($fila['apellido']) || !empty($fila['descripcion']))
+            ->map(fn($fila) => [
+                'nombre' => $fila['nombre'] ?? '',
+                'apellido' => $fila['apellido'] ?? '',
+                'descripcion' => $fila['descripcion'] ?? '',
+            ])
+            ->toArray();
+
+        // Crear en lote
+        if (!empty($data)) {
+            $intervencion->otros_asistentes_i()->createMany($data);
+        }
+        return $intervencion->fresh('otros_asistentes_i');
+    }
+
 }
