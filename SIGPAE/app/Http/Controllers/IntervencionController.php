@@ -20,16 +20,16 @@ class IntervencionController extends Controller
 
     public function __construct(IntervencionServiceInterface $intervencionService)
     {
-        $this->service = $intervencionService;
+        $this->intervencionService = $intervencionService;
     }
 
     //vista intervenciones filtradas
     public function vista (Request $request):View
     {
-        $intervencionesFiltradas = $this->service->filtrar($request);
-        $intervenciones = $this->service->formatearParaVista($intervencionesFiltradas);
-        $tiposIntervencion = $this->service->obtenerTipos();
-        $aulas = $this->service->obtenerAulas();
+        $intervencionesFiltradas = $this->intervencionService->filtrar($request);
+        $intervenciones = $this->intervencionService->formatearParaVista($intervencionesFiltradas);
+        $tiposIntervencion = $this->intervencionService->obtenerTipos();
+        $aulas = $this->intervencionService->obtenerAulas();
 
         return view('intervenciones.principal', compact('intervenciones', 'tiposIntervencion', 'aulas'));
     }
@@ -37,7 +37,7 @@ class IntervencionController extends Controller
     //metodos de creacion y almacenamiento
     public function iniciarCreacion(): View
     {
-        $data = $this->service->datosParaFormulario();
+        $data = $this->intervencionService->datosParaFormulario();
         return view('intervenciones.crear-editar', $data + [
             'modo' => 'crear',
             'otrosAsistentes' => [],
@@ -70,12 +70,12 @@ class IntervencionController extends Controller
         $data['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
 
         try {
-            $intervencion = $this->service->crear($data);
+            $intervencion = $this->intervencionService->crear($data);
 
             //guardar otros asistentes si vienen en el request
             if ($request->filled('otros_asistentes_json')) {
                 $otrosAsistentes = json_decode($request->otros_asistentes_json, true);
-                $this->service->guardarOtrosAsistentes($intervencion, $otrosAsistentes);
+                $this->intervencionService->guardarOtrosAsistentes($intervencion, $otrosAsistentes);
             }
 
             return redirect()
@@ -89,7 +89,7 @@ class IntervencionController extends Controller
     //metodos de edicion y almacenamiento
     public function iniciarEdicion(int $id): View
     {
-        $data = $this->service->datosParaFormulario($id);
+        $data = $this->intervencionService->datosParaFormulario($id);
 
         if (!$data['intervencion']) {
             return redirect()
@@ -123,11 +123,11 @@ class IntervencionController extends Controller
         $data['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
 
         try {
-            $this->service->actualizar($id, $data);
+            $intervencion= $this->intervencionService->actualizar($id, $data);
 
             if ($request->filled('otros_asistentes_json')) {
                 $otrosAsistentes = json_decode($request->otros_asistentes_json, true);
-                $this->service->guardarOtrosAsistentes($intervencion, $otrosAsistentes);
+                $this->intervencionService->guardarOtrosAsistentes($intervencion, $otrosAsistentes);
             }
             
             return redirect()
@@ -140,7 +140,7 @@ class IntervencionController extends Controller
 
     public function eliminar(int $id)
     {
-        $ok = $this->service->eliminar($id);
+        $ok = $this->intervencionService->eliminar($id);
 
         return redirect()->route('intervenciones.principal')
                         ->with($ok ? 'success' : 'error', $ok ? 'Intervención eliminada.' : 'No se pudo eliminar.');
@@ -148,10 +148,9 @@ class IntervencionController extends Controller
 
     public function cambiarActivo(int $id): RedirectResponse
     {
-        $ok = $this->service->cambiarActivo($id);
+        $ok = $this->intervencionService->cambiarActivo($id);
 
         return redirect()->route('intervenciones.principal')
                         ->with($ok ? 'success' : 'error', $ok ? 'Intervención actualizada.' : 'No se pudo actualizar.');
     }
-
 }

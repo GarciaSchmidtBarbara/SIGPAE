@@ -3,24 +3,24 @@
     'titulo' => null,
 ])
 
-<div x-data="{
-        filas: (() => {
-            try {
-                const data = @json($listado);
-                return Array.isArray(data) && data.length > 0
-                    ? data
-                    : [{ nombre: '', apellido: '', descripcion: '' }];
-            } catch (e) {
-                return [{ nombre: '', apellido: '', descripcion: '' }];
-            }
-        })(),
+{{-- Campo oculto para inicializar Alpine sin problemas de escape --}}
+<input type="hidden" x-ref="listadoJson" value='@json($listado)'>
+
+<div 
+    x-data="{
+        filas: [],
         nuevaFila() { return { nombre: '', apellido: '', descripcion: '' }; },
         agregarFila() { this.filas.push(this.nuevaFila()); },
         eliminarFila(index) { this.filas.splice(index, 1); }
-    }" class="mt-8">
+    }" 
+    x-init="filas = JSON.parse($refs.listadoJson.value)"
+    class="mt-8"
+>
 
+    {{-- Título dinámico --}}
     <h3 class="font-medium text-base text-gray-700 mb-2">{{ $titulo }}</h3>
 
+    {{-- Tabla de asistentes --}}
     <div class="overflow-x-auto rounded-t-lg">
         <table class="w-full border-collapse border border-gray-400">
             <thead>

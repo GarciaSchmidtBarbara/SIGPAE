@@ -128,7 +128,7 @@
     }">
 
         <form method="POST" action="{{ $esEdicion 
-                ? route('intervenciones.editar', $intervencion->id_intervencion)
+                ? route('intervenciones.actualizar', $intervencion->id_intervencion)
                 : route('intervenciones.guardar') 
             }}">
             @csrf

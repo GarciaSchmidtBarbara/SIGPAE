@@ -145,15 +145,15 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         return $intervencion;
     }
 
-    public function actualizar(int $id, array $data): ?Intervencion
+    public function actualizar(int $id, array $data): Intervencion
     {
         $intervencion = $this->buscarPorId($id);
 
         if (!$intervencion) {
             return null;
         }
-
-        return $intervencion->update($data);
+        $intervencion->update($data);
+        return $intervencion->fresh($this->withRelations());
     }
 
     public function eliminar(int $id): bool
@@ -178,7 +178,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
             ->get();
     }
 
-    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas)
+    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas): Intervencion
     {
         $intervencion->otros_asistentes_i()->delete();
 
@@ -196,6 +196,7 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         if (!empty($data)) {
             $intervencion->otros_asistentes_i()->createMany($data);
         }
+        return $intervencion->fresh('otros_asistentes_i');
     }
 
 }
