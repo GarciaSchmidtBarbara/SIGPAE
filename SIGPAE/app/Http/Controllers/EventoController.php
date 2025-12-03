@@ -101,6 +101,12 @@ class EventoController extends Controller
         ));
     }
 
+    public function editar(int $id)
+    {
+        // El método editar es idéntico a ver, ya que usan la misma vista
+        return $this->ver($id);
+    }
+
     public function guardar(Request $request): RedirectResponse
     {
         try {

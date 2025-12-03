@@ -122,6 +122,7 @@ Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function (
     Route::get('/vista', [EventoController::class, 'vista'])->name('principal');
     Route::get('/crear', [EventoController::class, 'crear'])->name('crear');
     Route::get('/{id}/ver', [EventoController::class, 'ver'])->name('ver');
+    Route::get('/{id}/editar', [EventoController::class, 'editar'])->name('editar');
     Route::post('/guardar', [EventoController::class, 'guardar'])->name('guardar');
     Route::put('/{id}/actualizar', [EventoController::class, 'actualizar'])->name('actualizar');
     Route::get('/crear-derivacion', [EventoController::class, 'crearDerivacion'])->name('crear-derivacion');

@@ -169,3 +169,18 @@
         background: #b91c1c;
     }
 }
+/* --- CALENDARIO --- */
+#calendar .fc-toolbar-title {
+    margin: 0 2rem !important;
+    flex: 1;
+    text-align: center;
+}
+
+#calendar .fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+}
+
+#calendar .fc-toolbar-title {
+    text-transform: capitalize;
+}

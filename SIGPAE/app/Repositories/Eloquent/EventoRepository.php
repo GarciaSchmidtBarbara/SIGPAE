@@ -3,8 +3,10 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Evento;
+use App\Enums\TipoEvento;
 use App\Repositories\Interfaces\EventoRepositoryInterface;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
 
 class EventoRepository implements EventoRepositoryInterface
 {
@@ -87,5 +89,79 @@ class EventoRepository implements EventoRepositoryInterface
             ->with(['profesionalCreador.persona'])
             ->orderBy('fecha_hora', 'asc')
             ->get();
+    }
+
+    public function findWithRelations(int $eventoId): ?Evento
+    {
+        return Evento::with([
+            'profesionalCreador.persona',
+            'esInvitadoA.profesional.persona',
+            'alumnos.persona',
+            'alumnos.aula',
+            'aulas'
+        ])->find($eventoId);
+    }
+
+    public function getFuturos(): Collection
+    {
+        return Evento::where('fecha_hora', '>', now())
+            ->orderBy('fecha_hora', 'asc')
+            ->get();
+    }
+
+    public function getPasados(): Collection
+    {
+        return Evento::where('fecha_hora', '<', now())
+            ->orderBy('fecha_hora', 'desc')
+            ->get();
+    }
+
+    public function getByTipo(TipoEvento $tipo): Collection
+    {
+        return Evento::where('tipo_evento', $tipo)
+            ->latest('fecha_hora')
+            ->get();
+    }
+
+    public function getBetweenDates(Carbon $inicio, Carbon $fin): Collection
+    {
+        return Evento::whereBetween('fecha_hora', [$inicio, $fin])
+            ->orderBy('fecha_hora', 'asc')
+            ->get();
+    }
+
+    public function getWithAlumnos(): Collection
+    {
+        return Evento::has('alumnos')
+            ->with('alumnos')
+            ->latest('fecha_hora')
+            ->get();
+    }
+
+    public function getByAlumno(int $alumnoId): Collection
+    {
+        return Evento::whereHas('alumnos', function ($query) use ($alumnoId) {
+            $query->where('id_alumno', $alumnoId);
+        })
+        ->with('alumnos')
+        ->latest('fecha_hora')
+        ->get();
+    }
+
+    public function getWithRecordatorio(): Collection
+    {
+        return Evento::whereNotNull('periodo_recordatorio')
+            ->latest('fecha_hora')
+            ->get();
+    }
+
+    public function countByTipo(TipoEvento $tipo): int
+    {
+        return Evento::where('tipo_evento', $tipo)->count();
+    }
+
+    public function exists(int $eventoId): bool
+    {
+        return Evento::where('id_evento', $eventoId)->exists();
     }
 }

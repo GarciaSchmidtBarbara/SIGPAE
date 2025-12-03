@@ -212,12 +212,14 @@ class EventoService implements EventoServiceInterface
             return [
                 'id' => $evento->id_evento,
                 'title' => $this->formatearTituloEvento($evento),
-                'start' => $evento->fecha_hora->toIso8601String(),
+                'start' => $evento->fecha_hora->format('Y-m-d'),
+                'allDay' => true,
                 'extendedProps' => [
                     'tipo' => $evento->tipo_evento?->value ?? 'general',
                     'lugar' => $evento->lugar,
                     'notas' => $evento->notas,
                     'creador' => $evento->profesionalCreador?->persona?->nombre ?? 'Sin asignar',
+                    'hora' => $evento->fecha_hora->format('H:i'),
                 ],
             ];
         })->toArray();
@@ -225,8 +227,18 @@ class EventoService implements EventoServiceInterface
 
     private function formatearTituloEvento(Evento $evento): string
     {
-        $tipo = $evento->tipo_evento?->name ?? 'Evento';
-        $lugar = $evento->lugar ? " - {$evento->lugar}" : '';
-        return "{$tipo}{$lugar}";
+        // Mapeo de tipos a nombres legibles
+        $tipos = [
+            'BANDA' => 'Banda',
+            'RG' => 'Reunión Gabinete',
+            'RD' => 'Reunión Directivos',
+            'CITA_FAMILIAR' => 'Cita Familiar',
+            'DERIVACION_EXTERNA' => 'Derivación Externa'
+        ];
+        
+        $tipoValue = $evento->tipo_evento?->value ?? 'general';
+        $tipo = $tipos[$tipoValue] ?? 'Evento';
+        
+        return $tipo;
     }
 }

@@ -29,10 +29,20 @@ document.addEventListener('DOMContentLoaded', function() {
         editable: true,
         selectable: true,
         selectMirror: true,
-        dayMaxEvents: 2,
+        dayMaxEvents: 3,
         weekends: true,
         dayHeaderFormat: { weekday: 'short' },
-        titleFormat: { year: 'numeric', month: 'short' },
+        titleFormat: function(date) {
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            return `${months[date.date.month]} ${date.date.year}`;
+        },
+        displayEventTime: false,
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false
+        },
         
         // Cargar eventos desde el servidor
         events: function(info, successCallback, failureCallback) {
@@ -56,21 +66,39 @@ document.addEventListener('DOMContentLoaded', function() {
         // Click en un día para crear evento
         dateClick: function(info) {
             const fecha = info.dateStr;
-            alert(`Crear evento para: ${fecha}\n(Próximamente se abrirá un formulario)`);
+            const eventosDelDia = calendar.getEvents().filter(evento => {
+                const fechaEvento = evento.start.toISOString().split('T')[0];
+                return fechaEvento === fecha;
+            });
             
-            // TODO: Abrir modal para crear evento
-            // const titulo = prompt('Título del evento:');
-            // if (titulo) {
-            //     crearEvento(fecha, titulo);
-            // }
+            // Disparar evento personalizado
+            window.dispatchEvent(new CustomEvent('mostrar-eventos-dia', {
+                detail: {
+                    fecha: fecha,
+                    eventos: eventosDelDia.map(e => ({
+                        id: e.id,
+                        title: e.title,
+                        hora: e.extendedProps?.hora || ''
+                    }))
+                }
+            }));
         },
 
         // Click en un evento existente
         eventClick: function(info) {
             const evento = info.event;
-            alert(`Evento: ${evento.title}\n${evento.extendedProps.lugar || ''}\n${evento.extendedProps.notas || ''}`);
             
-            // TODO: Abrir modal con detalles del evento
+            // Disparar evento personalizado para el modal
+            window.dispatchEvent(new CustomEvent('mostrar-detalle-evento', {
+                detail: {
+                    id: evento.id,
+                    title: evento.title,
+                    hora: evento.extendedProps?.hora || '',
+                    lugar: evento.extendedProps?.lugar || '',
+                    creador: evento.extendedProps?.creador || '',
+                    notas: evento.extendedProps?.notas || ''
+                }
+            }));
         },
 
         // Arrastrar y soltar eventos

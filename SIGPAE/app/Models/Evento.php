@@ -15,6 +15,7 @@ use App\Models\Asiste;
 use App\Enums\TipoEvento;
 
 class Evento extends Model{
+        use HasFactory;
 
         protected $primaryKey = 'id_evento';
 

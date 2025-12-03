@@ -185,23 +185,28 @@
                 <label class="block text-sm font-medium text-gray-700 mb-2">Alumnos</label>
                 <div class="space-y-2">
                     <!-- Buscador de alumnos -->
-                    <div class="relative" x-show="!esEventoFinalizado">
-                        <input type="text" 
-                               x-model.debounce.400ms="searchQuery" 
-                               @input="buscarAlumnos()"
-                               placeholder="Buscar alumno por DNI, nombre o apellido"
-                               class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        
-                        <div x-show="resultadosAlumnos.length > 0" 
-                             class="absolute z-10 mt-1 w-full bg-white border rounded shadow-lg max-h-48 overflow-y-auto">
-                            <template x-for="alumno in resultadosAlumnos" :key="alumno.id_alumno">
-                                <button type="button"
-                                        @click="agregarAlumno(alumno)"
-                                        class="w-full text-left px-3 py-2 hover:bg-gray-100">
-                                    <span x-text="`${alumno.persona.apellido}, ${alumno.persona.nombre} - DNI: ${alumno.persona.dni}`"></span>
-                                </button>
-                            </template>
+                    <div class="flex items-end gap-3" x-show="!esEventoFinalizado">
+                        <div class="flex-1">
+                            <div class="relative">
+                                <input type="text" 
+                                       x-model.debounce.400ms="searchQuery" 
+                                       placeholder="DNI / Nombre / Apellido"
+                                       class="w-full border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                
+                                <div x-show="resultadosAlumnos.length" 
+                                     class="absolute z-10 mt-1 w-full bg-white border rounded shadow">
+                                    <template x-for="alumno in resultadosAlumnos" :key="alumno.id_alumno">
+                                        <button type="button"
+                                                @click="agregarAlumno(alumno)"
+                                                class="w-full text-left px-3 py-2 hover:bg-gray-100">
+                                            <span x-text="alumno.persona.apellido + ', ' + alumno.persona.nombre"></span>
+                                            <span class="text-xs text-gray-500" x-text="' - DNI ' + alumno.persona.dni"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
                         </div>
+                        <button type="button" class="btn-aceptar" @click="buscarAlumnos()">Buscar</button>
                     </div>
 
                     <!-- Lista de alumnos seleccionados -->
@@ -220,9 +225,8 @@
                                     <input type="hidden" :name="`alumnos[${index}][id]`" :value="alumno.id_alumno">
                                     <button type="button" 
                                             @click="alumnosSeleccionados.splice(index, 1)"
-                                            :disabled="esEventoFinalizado"
-                                            class="text-red-600 hover:text-red-800">
-                                        <i class="fas fa-times"></i>
+                                            class="text-red-600 hover:text-red-800 text-lg">
+                                        🗑️
                                     </button>
                                 </div>
                             </div>
@@ -248,7 +252,7 @@
             <button type="submit" class="btn-aceptar">
                 <span x-text="esEventoFinalizado ? 'Guardar cambios' : 'Guardar'"></span>
             </button>
-            <button type="button" class="btn-eliminar" @click="window.history.back()">Cancelar</button>
+            <a href="{{ route('eventos.principal') }}" class="btn-eliminar">Cancelar</a>
             <a href="{{ route('eventos.principal') }}" class="btn-volver">Volver</a>
         </div>
     </form>
@@ -284,6 +288,11 @@ function eventoForm(esEdicion = false, esFinalizado = false) {
                 const todosCursos = @json($cursos->map(fn($c) => ['id' => $c->id_aula, 'descripcion' => $c->descripcion]));
                 this.cursosSeleccionados = todosCursos.filter(c => cursosEventoIds.includes(c.id));
             @endif
+            
+            // Watch para búsqueda en tiempo real
+            this.$watch('searchQuery', () => {
+                this.buscarAlumnos();
+            });
         },
 
         agregarCurso() {
@@ -305,7 +314,9 @@ function eventoForm(esEdicion = false, esFinalizado = false) {
         },
         
         async buscarAlumnos() {
-            if (!this.searchQuery || this.searchQuery.length < 2) {
+            const q = this.searchQuery ? this.searchQuery.trim() : '';
+            
+            if (!q) {
                 this.resultadosAlumnos = [];
                 return;
             }

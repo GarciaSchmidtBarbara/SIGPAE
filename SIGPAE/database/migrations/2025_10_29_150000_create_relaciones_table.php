@@ -189,8 +189,10 @@ return new class extends Migration
             $table->timestamps();
       });
 
-      // Crea la extensión unaccent si no existe
-      DB::statement('CREATE EXTENSION IF NOT EXISTS unaccent;');
+      // Crea la extensión unaccent si no existe (solo para PostgreSQL)
+      if (DB::getDriverName() === 'pgsql') {
+          DB::statement('CREATE EXTENSION IF NOT EXISTS unaccent;');
+      }
     }
 
     public function down(): void
@@ -208,6 +210,8 @@ return new class extends Migration
       Schema::dropIfExists('intervencion_alumno');
       Schema::dropIfExists('reune');
 
-      DB::statement('DROP EXTENSION IF EXISTS unaccent;');
+      if (DB::getDriverName() === 'pgsql') {
+          DB::statement('DROP EXTENSION IF EXISTS unaccent;');
+      }
     }
 };
