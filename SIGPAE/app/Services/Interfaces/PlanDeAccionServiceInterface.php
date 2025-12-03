@@ -13,6 +13,8 @@ interface PlanDeAccionServiceInterface
     public function eliminar(int $id): bool;
     public function buscarPorId(int $id): ?PlanDeAccion;
     public function filtrar(Request $request): Collection;
+    public function obtenerTodos(): Collection;
+    public function obtenerTodosConRelaciones(): Collection;
     public function obtenerAulas(): Collection;
     public function obtenerTipos(): Collection;
     public function datosParaFormulario(?int $id = null): array;
