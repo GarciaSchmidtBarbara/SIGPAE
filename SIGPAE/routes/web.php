@@ -43,27 +43,17 @@ Route::get('/planillas', [PlanillaController::class, 'index'])
     ->name('planillas.principal');
 
 // Subrutas de creación de planillas (usadas por planillas.principal)
-
 Route::prefix('planillas')->middleware('auth')->group(function () {
 
-   
     Route::get('/acta-equipo-indisciplinario/crear', [PlanillaController::class, 'crearActaIndisciplinario'])
         ->name('planillas.acta-equipo-indisciplinario.create');
-
     Route::post('/acta-equipo-indisciplinario/guardar', [PlanillaController::class, 'guardarActaIndisciplinario'])
         ->name('planillas.acta-equipo-indisciplinario.store');
-
     // --- ACTA REUNIÓN TRABAJO (EI SIN DIRECTIVOS) ---
-    
     Route::get('/acta-reunion-trabajo/crear', [PlanillaController::class, 'crearActaReunionTrabajo'])
         ->name('planillas.acta-reunion-trabajo.create');
-
     Route::post('/acta-reunion-trabajo/guardar', [PlanillaController::class, 'guardarActaReunionTrabajo'])
         ->name('planillas.acta-reunion-trabajo.store');
-
-    // --- ACTA BANDA (COMPLETA) ---
-    
-    // 1. Formulario
     Route::get('/acta-reuniones-banda/crear', [PlanillaController::class, 'crearActaBanda'])
         ->name('planillas.acta-reuniones-banda.create');
 
@@ -84,29 +74,18 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
     Route::post('/planilla-final/guardar', [PlanillaController::class, 'guardarPlanillaFinal'])
         ->name('planillas.planilla-final.store');
    
-    
-    // papelera
     Route::delete('/planillas/{id}/eliminar', [PlanillaController::class, 'eliminar'])
         ->name('planillas.eliminar');
-
-    // Ver papelera
     Route::get('/planillas/papelera', [PlanillaController::class, 'verPapelera'])
         ->name('planillas.papelera');
-
-    // Restaurar
     Route::post('/planillas/{id}/restaurar', [PlanillaController::class, 'restaurar'])
         ->name('planillas.restaurar');
-
-    // eliminado definitivo
     Route::delete('/planillas/{id}/destruir', [PlanillaController::class, 'forzarEliminacion'])
         ->name('planillas.destruir');
-
-    
-    // abre el archivo o planilla para editarlo 
-    Route::get('/planillas/{id}/editar', [PlanillaController::class, 'editar'])
-        ->name('planillas.editar');
-
-    // guarda los cambios realizados en la planilla editada
+    Route::get('/planillas/{id}/ver', [PlanillaController::class, 'ver'])->name('planillas.ver');
+    Route::get('/planillas/{id}/editar', [PlanillaController::class, 'editar'])->name('planillas.editar');
+    Route::put('/planillas/{id}', [PlanillaController::class, 'actualizar'])->name('planillas.actualizar');
+    Route::get('/planillas/{id}/descargar', [PlanillaController::class, 'descargar'])->name('planillas.descargar');
     Route::put('/planillas/{id}/actualizar', [PlanillaController::class, 'actualizar'])
         ->name('planillas.actualizar');
     
