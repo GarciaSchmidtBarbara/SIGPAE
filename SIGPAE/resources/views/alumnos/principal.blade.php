@@ -1,6 +1,7 @@
 @extends('layouts.base')
 
 @section('encabezado', 'Alumnos')
+<h2 class="page-title-print" style="display: none;">@yield('encabezado') </h2>
 
 @section('contenido')
 
@@ -56,7 +57,7 @@
         };
     @endphp
     
-
+<div class="data-table-to-print">
     <x-tabla-dinamica 
         :columnas="[
             ['key' => 'persona.nombre', 'label' => 'Nombre'],
@@ -75,6 +76,7 @@
         ])->render()"
 
         idCampo="id_alumno"
+        class="tabla-imprimir"
         :filaEnlace="fn($fila) => route('alumnos.editar', data_get($fila, 'id_alumno'))"
     >
         <x-slot:accionesPorFila>
@@ -95,8 +97,10 @@
             @endonce
         </x-slot:accionesPorFila>
     </x-tabla-dinamica>
+</div>
 
     <div class="fila-botones mt-8">
+        <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir listado</button>
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
 </div>

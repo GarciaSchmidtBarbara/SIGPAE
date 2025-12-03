@@ -1,6 +1,7 @@
 @extends('layouts.base')
 
 @section('encabezado', 'Planes de acción')
+<h2 class="page-title-print" style="display: none;">@yield('encabezado') </h2>
 
 @section('contenido')
 
@@ -106,12 +107,13 @@
         ]
     @endphp
     {{-- Lógica de la Tabla Dinámica --}}
+<div class="data-table-to-print">
     <x-tabla-dinamica 
         
         :filas="$planesDeAccion"
         :columnas="$columnas"
         idCampo="id_plan_de_accion"
-
+        class="tabla-imprimir"
         :filaEnlace="fn($plan) => route('planDeAccion.iniciar-edicion', $plan->id_plan_de_accion)"
 
         :acciones="fn($plan) => view('components.boton-estado', [
@@ -121,9 +123,10 @@
             'text_inactivo' => 'Abrir',
         ])->render()"
     />
-
+</div>
 
     <div class="fila-botones mt-8">
+        <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir listado</button>
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
 </div>

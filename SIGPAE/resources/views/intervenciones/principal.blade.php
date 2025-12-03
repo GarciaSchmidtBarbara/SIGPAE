@@ -50,12 +50,10 @@
         <input type="date" name="fecha_hasta" class="border px-2 py-1 rounded" value="{{ request('fecha_hasta') }}">
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>
-
-        {{--ESTE BOTON BUSCA LA TABLA A IMPRIMIR--}}
-        <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir</button>    
+        <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>   
     </form>
 
+    {{--ENVOLVER LA TABLA A IMPRIMIR--}}
     <div class="data-table-to-print">
         <x-tabla-dinamica 
             :columnas="[
@@ -91,6 +89,8 @@
     </div>
 
     <div class="fila-botones mt-8">
+        {{--ESTE BOTON BUSCA LA TABLA A IMPRIMIR--}}
+        <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir listado</button> 
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
 </div>
