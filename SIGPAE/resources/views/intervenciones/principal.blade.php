@@ -48,6 +48,7 @@
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
         <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>
+        <button type="button" id="btn-imprimir" class="btn-aceptar">Imprimir</button>
     </form>
 
     <x-tabla-dinamica 
@@ -63,12 +64,10 @@
             'texto' => 'Eliminar'
         ])->render()"
         idCampo="id_intervencion"
+        class="tabla-imprimir"
         :filaEnlace="fn($fila) => route('intervenciones.editar', data_get($fila, 'id_intervencion'))"
     >
         <x-slot:accionesPorFila>
-            @php
-                // función anónima que recibirá $fila
-            @endphp
             @once
                 @php
                     $accionesPorFila = function ($fila) {
@@ -90,3 +89,55 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.getElementById('btn-imprimir').addEventListener('click', function() {
+        // 1. Selecciona el elemento de la tabla que deseas imprimir
+        const contenidoTabla = document.querySelector('.tabla-imprimir') || document.querySelector('table');
+
+        if (contenidoTabla) {
+            // 2. Crea una nueva ventana
+            const ventanaImpresion = window.open('', '', 'height=600,width=800');
+            
+            // 3. Escribe el contenido HTML en la nueva ventana
+            ventanaImpresion.document.write('<html><head><title>Intervenciones</title>');
+            
+            // Copia los estilos de la página actual para que la tabla se vea bien.
+            ventanaImpresion.document.write('<style>');
+            
+            // Estilos básicos para la impresión
+            ventanaImpresion.document.write(`
+                body { font-family: sans-serif; margin: 20px; }
+                h1 { text-align: center; margin-bottom: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+
+                /* Oculta las columnas de "Acciones" en la impresión*/
+                table thead th:last-child {display: none !important;}
+                .accion-col {display: none !important;}
+            `);
+            
+            ventanaImpresion.document.write('</style>');
+            ventanaImpresion.document.write('</head><body>');
+            ventanaImpresion.document.write('<h2>Historial Intervenciones</h2>');
+            
+            // Agrega el HTML de la tabla, incluyendo el encabezado
+            ventanaImpresion.document.write(contenidoTabla.outerHTML); 
+            
+            ventanaImpresion.document.write('</body></html>');
+            ventanaImpresion.document.close();
+            
+            // 4. Llama a la función de impresión del navegador
+            ventanaImpresion.print();
+            
+            // 5. Cierra la ventana después de la impresión (opcional)
+            setTimeout(() => { ventanaImpresion.close(); }, 10);
+
+        } else {
+            alert('No se encontró la tabla para imprimir.');
+        }
+    });
+</script>
+@endpush
