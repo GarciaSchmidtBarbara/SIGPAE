@@ -13,8 +13,6 @@ use App\Models\Intervencion;
 use App\Enums\TipoIntervencion;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Exception;
 
 class IntervencionService implements IntervencionServiceInterface
 {
@@ -36,7 +34,7 @@ class IntervencionService implements IntervencionServiceInterface
         return $this->repository->crear($data);
     }
 
-    public function actualizar(int $id, array $data): ?Intervencion
+    public function actualizar(int $id, array $data): Intervencion
     {
         return $this->repository->actualizar($id, $data);
     }
@@ -98,7 +96,7 @@ class IntervencionService implements IntervencionServiceInterface
         });
     }
 
-    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas)
+    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas): Intervencion
     {
         return $this->repository->guardarOtrosAsistentes($intervencion, $filas);
     }
@@ -172,7 +170,7 @@ class IntervencionService implements IntervencionServiceInterface
             'alumnosSeleccionados' => $alumnosSeleccionados,
             'profesionalesSeleccionados' => $profesionalesSeleccionados,
             'aulasSeleccionadas' => $aulasSeleccionadas,
-            'otrosAsistentes' => $otrosAsistentes,
+            'otrosAsistentes' => $otrosAsistentes->values()->toArray(),
         ];
     }
 
