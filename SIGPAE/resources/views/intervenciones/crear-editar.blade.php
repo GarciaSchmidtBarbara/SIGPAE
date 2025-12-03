@@ -351,6 +351,7 @@
                             <x-tabla-editable :listado="$otrosAsistentes" titulo="Otros asistentes externos" /> 
                         </div>
                         
+                        
                         {{-- Inputs Ocultos para profesionales --}}
                         <template x-for="p in profesionalesSeleccionados" :key="p.id">
                             <input type="hidden" name="profesionales[]" :value="p.id">
