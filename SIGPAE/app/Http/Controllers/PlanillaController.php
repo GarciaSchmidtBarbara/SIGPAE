@@ -295,57 +295,72 @@ class PlanillaController extends Controller
     // --- LÓGICA DE EDICIÓN ---
 
     // 1. SEMÁFORO DE EDICIÓN
-    public function editar($id)
+    private function renderizarPlanilla(Planilla $planilla, bool $soloLectura = false, bool $autoImprimir = false)
     {
-        $planilla = Planilla::findOrFail($id);
-        $datos = $planilla->datos_planilla; // El JSON con toda la info
+        $datos = $planilla->datos_planilla;
 
-        // Según el tipo, elegimos qué archivo abrir
-        // NOTA: Usamos los mismos archivos de 'crear', pero les pasamos la variable $planilla
-        
+        $data = compact('planilla', 'datos', 'soloLectura', 'autoImprimir');
+
         switch ($planilla->tipo_planilla) {
             case 'ACTA REUNIÓN EQUIPO INTERDISCIPLINARIO- equipo directivo':
-                return view('planillas.acta-equipo-indisciplinario', compact('planilla'));
+                return view('planillas.acta-equipo-indisciplinario', $data);
 
             case 'ACTA REUNIÓN EQUIPO INTERDISCIPLINARIO':
-                return view('planillas.acta-reunion-trabajo', compact('planilla'));
+                return view('planillas.acta-reunion-trabajo', $data);
 
             case 'ACTA REUNIÓN DE TRABAJO - EQUIPO DIRECTIVO - EI - DOCENTES (BANDA)':
-                return view('planillas.acta-reuniones-banda', compact('planilla'));
+                return view('planillas.acta-reuniones-banda', $data);
 
             case 'PLANILLA MEDIAL':
-                return view('planillas.planilla-medial', compact('planilla'));
+                return view('planillas.planilla-medial', $data);
 
             case 'PLANILLA FINAL':
-                return view('planillas.planilla-final', compact('planilla'));
+                return view('planillas.planilla-final', $data);
 
             default:
                 return redirect()->back()->with('error', 'Tipo de planilla desconocido.');
         }
     }
 
+    public function ver($id)
+    {
+        $planilla = Planilla::findOrFail($id);
+        return $this->renderizarPlanilla($planilla, true, false);
+    }
+
+     public function editar($id)
+    {
+        $planilla = Planilla::findOrFail($id);
+        return $this->renderizarPlanilla($planilla, false, false);
+    }
+
+    public function descargar($id)
+    {
+        $planilla = Planilla::findOrFail($id);
+        return $this->renderizarPlanilla($planilla, true, true);
+    }
 
     public function actualizar(Request $request, $id)
     {
         $planilla = Planilla::findOrFail($id);
 
-        // Dependiendo del tipo, reconstruimos el JSON
-        // (Aquí simplificamos: Si es medial usa una lógica, si es acta usa otra)
-        
         $contenido = [];
 
         if (str_contains($planilla->tipo_planilla, 'PLANILLA')) {
-            // Lógica para MEDIAL y FINAL (tienen tabla_medial)
+            // Lógica para MEDIAL y FINAL
             $tabla = json_decode($request->medial_json, true);
+
             $contenido = [
                 'anio_escolar' => $request->anio,
                 'fecha'        => $request->fecha,
                 'escuela'      => $request->escuela,
-                'tabla_medial' => $tabla, // o tabla_final, da igual el nombre interno
+                // podés usar tabla_medial / tabla_final, como prefieras
+                'tabla_medial' => $tabla,
             ];
         } else {
-        
+            // Actas
             $participantes = json_decode($request->participantes_json, true);
+
             $contenido = [
                 'grado'           => $request->grado,
                 'fecha'           => $request->fecha,
