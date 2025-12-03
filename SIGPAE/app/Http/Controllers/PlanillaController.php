@@ -10,20 +10,24 @@ class PlanillaController extends Controller
     public function index(Request $request)
     {
         // 1. Iniciamos la consulta
-        $query = Planilla::query();      
-        if ($request->has('buscar') && $request->buscar != '') {
-            $busqueda = $request->buscar;
+        $query = Planilla::query();  
+
+        if ($request->filled('buscar')) {
+            $busqueda = trim($request->buscar);
+
             $query->where(function($q) use ($busqueda) {
-                $q->where('nombre_planilla', 'like', "%{$busqueda}%")
-                  ->orWhere('tipo_planilla', 'like', "%{$busqueda}%")
+                $q->where('nombre_planilla', 'ILIKE', "%{$busqueda}%")
+                  ->orWhere('tipo_planilla', 'ILIKE', "%{$busqueda}%")
                 
-                  ->orWhere('datos_planilla->escuela', 'like', "%{$busqueda}%") 
-                  ->orWhere('datos_planilla->grado', 'like', "%{$busqueda}%");
+                  ->orWhereRaw("datos_planilla->>'escuela' ILIKE ?", ["%{$busqueda}%"]) 
+                  ->orWhereRaw("datos_planilla->>'grado' ILIKE ?", ["%{$busqueda}%"]);
             });
         }
 
         // 3. Ordenamos: Las más nuevas primero (la "pila")
-        $planillas = $query->orderBy('created_at', 'desc')->paginate(10);
+        $planillas = $query->orderBy('created_at', 'desc')
+                           ->paginate(10)
+                           ->withQueryString();
 
         return view('planillas.principal', compact('planillas'));
     }
