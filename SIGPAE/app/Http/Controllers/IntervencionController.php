@@ -58,7 +58,7 @@ class IntervencionController extends Controller
             'modalidad' => 'required|string',
             'otra_modalidad' => 'nullable|string',
             'temas_tratados' => 'nullable|string',
-            'compromisos_asumidos' => 'nullable|string',
+            'compromisos' => 'required|string',
             'observaciones' => 'nullable|string',
             'activo' => 'boolean',
             'tipo_intervencion' => 'required|string',
@@ -67,7 +67,7 @@ class IntervencionController extends Controller
             'fk_id_profesional_generador' => 'required|integer|exists:profesionales,id_profesional',
             'plan_de_accion' => 'nullable|integer|exists:plan_de_accion,id_plan_de_accion',
         ]);
-        $validated['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
+        $data['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
 
         try {
             $intervencion = $this->service->crear($data);
@@ -111,7 +111,7 @@ class IntervencionController extends Controller
             'modalidad' => 'required|string',
             'otra_modalidad' => 'nullable|string',
             'temas_tratados' => 'nullable|string',
-            'compromisos_asumidos' => 'nullable|string',
+            'compromisos' => 'required|string',
             'observaciones' => 'nullable|string',
             'alumnos' => 'nullable|array',
             'alumnos.*' => 'integer|exists:alumnos,id_alumno',
@@ -120,7 +120,8 @@ class IntervencionController extends Controller
             'profesionales' => 'nullable|array',
             'profesionales.*' => 'integer|exists:profesionales,id_profesional',
         ]);
-        $validated['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
+        $data['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
+
         try {
             $this->service->actualizar($id, $data);
 

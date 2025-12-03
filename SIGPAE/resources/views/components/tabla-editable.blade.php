@@ -1,5 +1,6 @@
 @props([
-    'listado' => [] // lista existente (si es edición)
+    'listado' => [], // lista existente (si es edición)
+    'titulo' => null,
 ])
 
 <div x-data="{
@@ -18,7 +19,7 @@
         eliminarFila(index) { this.filas.splice(index, 1); }
     }" class="mt-8">
 
-    <h3 class="font-bold text-lg mb-2 text-gray-800">Otros Asistentes:</h3>
+    <h3 class="font-medium text-base text-gray-700 mb-2">{{ $titulo }}</h3>
 
     <div class="overflow-x-auto rounded-t-lg">
         <table class="w-full border-collapse border border-gray-400">

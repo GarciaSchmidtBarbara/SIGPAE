@@ -286,12 +286,20 @@
                 x-data="datosPersonas({ profesionalesData: @js($profesionalesJson), profesionalesIniciales: @js($profesionalesSeleccionados ?? []) })" >
                     <div class="space-y-6 mb-6">
                         <p class="separador">Asistentes</p>
+
+                        {{-- Mostrar profesional generador--}}
+                        @if($profesionalGenerador)
+                            <div class="font-medium text-base text-gray-500 mb-2">
+                                Profesional Creador: {{ $profesionalGenerador }}
+                            </div>
+                        @endif
+
+                        <h3 class="font-medium text-base text-gray-700 mb-2">Otros profesionales participantes</h3>
                         <div class="selectors-row">
                             {{-- Selector de profesional--}}
                             <div class="selector-box" style="width: 35%;">
-                                <label class="text-sm font-medium">Agregar profesional</label>
                                 <select x-model="profesionalSeleccionado" @change="agregarProfesional()">
-                                    <option value="">-- Seleccionar profesional --</option>
+                                    <option value="">Agregar profesional</option>
                                     @foreach($profesionales as $prof)
                                         <option value="{{ $prof->id_profesional }}">
                                             {{ $prof->persona->nombre }} {{ $prof->persona->apellido }}
@@ -301,16 +309,8 @@
                             </div>
                         </div>
 
-                        {{-- Mostrar profesional generador--}}
-                        @if($profesionalGenerador)
-                            <div class="font-medium text-base text-gray-700 mb-2">
-                                <strong>Profesional Creador: {{ $profesionalGenerador }}</strong>
-                            </div>
-                        @endif
-
                         {{-- TABLA DINÁMICA DE PROFESIONALES SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
-                        <div class="mt-6">
-                            <h3 class="font-medium text-base text-gray-700 mb-2">Otros profesionales participantes</h3>
+                        <div class="mt-6">    
                             <table class="modern-table">
                                 <thead>
                                     <tr>
@@ -348,13 +348,7 @@
                             </table>
 
                             {{-- TABLA EDITABLE DE OTROS ASISTENTES EXTERNOS --}}
-                        
-                            {{-- DEBUG TEMPORAL --}}
-                            <h3 class="font-medium text-base text-gray-700 mb-2">Otros participantes externos</h3>
-                            <x-tabla-editable :listado="$otrosAsistentes" />
-                            
-
-                            
+                            <x-tabla-editable :listado="$otrosAsistentes" titulo="Otros asistentes externos" /> 
                         </div>
                         
                         {{-- Inputs Ocultos para profesionales --}}
@@ -413,8 +407,8 @@
 
                     <div class="block text-sm font-medium text-gray-700">
                         <x-campo-requerido text="Compromisos asumidos" required />
-                        <textarea name="compromisos_asumidos" rows="3"
-                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('compromisos_asumidos', $esEdicion ? ($intervencion->compromisos_asumidos ?? '') : '') }}</textarea>
+                        <textarea name="compromisos" rows="3"
+                                  class="w-full p-2 border border-gray-300 rounded-md">{{ old('compromisos', $esEdicion ? ($intervencion->compromisos ?? '') : '') }}</textarea>
                     </div>
 
                     <div class="block text-sm font-medium text-gray-700">
