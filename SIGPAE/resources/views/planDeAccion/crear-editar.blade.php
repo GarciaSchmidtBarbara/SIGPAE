@@ -267,9 +267,8 @@
                         <div class="selectors-row">
                             {{-- Selector de alumno--}}
                             <div class="selector-box" style="width: 35%;">
-                                <label class="text-sm font-medium">Seleccionar alumno</label>
                                 <select x-model="alumnoSeleccionado" @change="agregarAlumno()">
-                                    <option value="">-- Seleccionar alumno --</option>
+                                    <option value="">Agregar alumno</option>
                                     @foreach($alumnos as $al)
                                         <option value="{{ $al->id_alumno }}">
                                             {{ $al->persona->nombre }} {{ $al->persona->apellido }}
@@ -280,9 +279,8 @@
 
                             {{-- Selección de aula --}}
                             <div class="selector-box" style="width: 20%;">
-                                <label class="text-sm font-medium">Aula</label>
                                 <select x-model="aulaSeleccionada" @change="agregarAula()">
-                                    <option value="">-- Seleccionar aula --</option>
+                                    <option value="">Agregar aula</option>
                                     @foreach($aulas as $a)
                                         <option value="{{ $a->id_aula }}">
                                             {{ $a->curso }}°{{ $a->division }}
@@ -294,7 +292,6 @@
 
                         {{-- TABLA DINÁMICA DE ALUMNOS SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
                         <div class="mt-6">
-                            <h3 class="font-medium text-base text-gray-700 mb-2">Alumnos Seleccionados</h3>
                             <table class="modern-table">
                                 <thead>
                                     <tr>
@@ -384,12 +381,19 @@
                 style="{{ ($esEdicion && in_array(($planDeAccion->tipo_plan->value ?? ''), ['INDIVIDUAL','GRUPAL'])) ? '' : 'display:none;' }}">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Profesionales participantes</p>
+
+                        {{-- Mostrar profesional generador--}}
+                        @if($profesionalGenerador)
+                            <div class="font-medium text-base text-gray-700 mb-2">
+                                <strong>Profesional Creador: {{ $profesionalGenerador }}</strong>
+                            </div>
+                        @endif
+                        
                         <div class="selectors-row">
                             {{-- Selector de profesional--}}
                             <div class="selector-box" style="width: 35%;">
-                                <label class="text-sm font-medium">Agregar profesional</label>
                                 <select x-model="profesionalSeleccionado" @change="agregarProfesional()">
-                                    <option value="">-- Seleccionar profesional --</option>
+                                    <option value="">Agregar otros profesionales</option>
                                     @foreach($profesionales as $prof)
                                         <option value="{{ $prof->id_profesional }}">
                                             {{ $prof->persona->nombre }} {{ $prof->persona->apellido }}
@@ -398,17 +402,8 @@
                                 </select>
                             </div>
                         </div>
-
-                        {{-- Mostrar profesional generador--}}
-                        @if($profesionalGenerador)
-                            <div class="font-medium text-base text-gray-700 mb-2">
-                                <strong>Profesional Creador: {{ $profesionalGenerador }}</strong>
-                            </div>
-                        @endif
-
                         {{-- TABLA DINÁMICA DE PROFESIONALES SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
                         <div class="mt-6">
-                            <h3 class="font-medium text-base text-gray-700 mb-2">Otros profesionales participantes</h3>
                             <table class="modern-table">
                                 <thead>
                                     <tr>

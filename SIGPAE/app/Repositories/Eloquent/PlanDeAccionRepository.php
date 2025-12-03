@@ -16,6 +16,18 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     {
         $this->model = $model;
     }
+
+    public function obtenerTodos(): Collection
+    {
+        return $this->model->newQuery()->get();
+    }
+    public function obtenerTodosConRelaciones(): Collection
+    {
+        return $this->model->newQuery()
+            ->with($this->withRelations())
+            ->get();
+    }
+
     
     public function crear(array $data): PlanDeAccion
     {
@@ -32,30 +44,22 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             'fk_id_profesional_generador' => $data['fk_id_profesional_generador'],
         ]);
 
-        // ============================
-        // 2. ASOCIACIONES SEGÚN TIPO
-        // ============================
-
+        // 2. asociaciones segun tipo de plan
         if ($tipo === 'INDIVIDUAL') {
 
-            // ✔ Siempre 1 solo alumno
+            // 1 solo alumno y sin aula
             if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
                 $plan->alumnos()->sync([(int) $data['alumnos'][0]]);
             }
-
-            // Aulas → vacío siempre
             $plan->aulas()->sync([]);
 
         } elseif ($tipo === 'GRUPAL') {
-
-            // ✔ Si vienen alumnos (mínimo 2 según validación)
+            // minimo 2 alumnos y aula opcional
             if (!empty($data['alumnos']) && is_array($data['alumnos'])) {
                 $plan->alumnos()->sync(array_map('intval', $data['alumnos']));
             } else {
                 $plan->alumnos()->sync([]);
             }
-
-            // ✔ Si viene aula (opcional)
             if (!empty($data['aula'])) {
                 $plan->aulas()->sync([(int) $data['aula']]);
             } else {
@@ -63,24 +67,18 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             }
 
         } elseif ($tipo === 'INSTITUCIONAL') {
-
-            // ✔ Sin alumnos
+            //Sin alumnos ni aulas
             $plan->alumnos()->sync([]);
-
-            // ✔ Sin aulas
             $plan->aulas()->sync([]);
         }
 
-        // ============================
-        // 3. PROFESIONALES PARTICIPANTES (GENERAL)
-        // ============================
+        // 3. Profesionales participantes
         if (!empty($data['profesionales']) && is_array($data['profesionales'])) {
             $plan->profesionalesParticipantes()->sync(array_map('intval', $data['profesionales']));
         }
 
         return $plan;
     }
-
 
     public function actualizar(int $id, array $data): ?PlanDeAccion
     {
@@ -140,7 +138,6 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         return $plan->fresh();
     }
 
-
     public function eliminar(int $id): bool
     {
         return $this->model->destroy($id);
@@ -157,20 +154,13 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         return false;
     }
 
-    // El filtro completo se manejará mejor en el Service, como en tu módulo Alumno.
-    public function filtrar(array $filtros): \Illuminate\Database\Eloquent\Builder
-    {
-        // En este ejemplo, solo devolvemos la query base para que el Service aplique el resto de la lógica.
-        return PlanDeAccion::query();
-    }
-
     public function buscarPorIdPersona(int $idPersona): ?PlanDeAccion
     {
         // Lógica para buscar un plan asociado a una persona
         return $this->model->whereHas('alumnos', fn($q) => $q->where('fk_id_alumno', $idPersona))->first();
     }
 
-    public function obtenerPlanesFiltrados(Request $request): Collection
+    public function filtrar(Request $request): Collection
     {
         $query = $this->model->newQuery();
 
@@ -182,12 +172,12 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             'profesionalesParticipantes.persona',
         ]);
 
-        // 1. Filtrar por Tipo (tipo_plan)
+        // 1. Filtrar por tipo de plan
         if ($tipo = $request->get('tipo')) {
             $query->where('tipo_plan', $tipo);
         }
 
-        // 2. Filtrar por Estado (activo/inactivo, adaptado del módulo Alumnos)
+        // 2. Filtrar por Estado
         $estado = $request->get('estado', 'activos');
         if ($estado === 'activos') {
             $query->where('activo', true);
@@ -195,7 +185,7 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             $query->where('activo', false);
         }
 
-        // 3. Filtrar por Curso/Aula
+        // 3. Filtrar por Curso
         if ($cursoId = $request->get('curso')) {
             $query->whereHas('aulas', fn($q) => $q->where('aulas.id_aula', $cursoId));
         }
@@ -211,7 +201,7 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         
         $planes = $query->get();
 
-        // Ordenamiento por 'activo' (primero activos/abiertos) y luego por fecha.
+        // Ordenamiento por 'activo' (primero activos) y luego por fecha.
         return $planes->sort(function ($a, $b) {
             $activoA = $a->activo ? 1 : 0;
             $activoB = $b->activo ? 1 : 0;
@@ -225,7 +215,7 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         })->values();
     }
 
-    public function obtenerAulasParaFiltro(): Collection
+    public function obtenerAulas(): Collection
     {
         $aulasData = Aula::select('id_aula', 'curso', 'division') 
             ->orderBy('curso') 
@@ -239,18 +229,15 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
 
         return Collection::make($mappedCollection);
     }
-    
 
-    public function obtenerPorId(int $id): ?PlanDeAccion
+    public function obtenerModelosAulas():Collection
     {
-        return PlanDeAccion::find($id);
+        return Aula::all();
     }
 
-    public function obtenerTodos(): Collection
+    public function buscarPorId(int $id): ?PlanDeAccion
     {
-        return PlanDeAccion::all()
-            ->sortByDesc('activo') 
-            ->values();
+        return PlanDeAccion::find($id);
     }
 
     public function buscarPorIdConRelaciones(int $id)
