@@ -30,12 +30,12 @@
             @endforeach
         </select>
 
-        <input name="nombre" value="{{ request('nombre') }}" placeholder="Nombre/DNI" class="border px-2 py-1 rounded w-1/5">
+        <input name="nombre" placeholder="Nombre/DNI" class="border px-2 py-1 rounded w-1/5">
 
-        <select name="aula" class="border px-2 py-1 rounded w-1/5">
+        <select name="aula_id" class="border px-2 py-1 rounded w-1/5">
             <option value="">Todos los cursos</option>
-            @foreach($aulas as $curso)
-                <option value="{{ $curso->id }}" {{ request('aula') == $curso->id ? 'selected' : '' }}>
+            @foreach($cursos as $curso)
+                <option value="{{ $curso->id }}" {{ request('aula_id') == $curso->id ? 'selected' : '' }}>
                     {{ $curso->descripcion }}
                 </option>
             @endforeach
