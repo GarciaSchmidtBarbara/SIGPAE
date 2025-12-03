@@ -16,18 +16,6 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     {
         $this->model = $model;
     }
-
-    public function obtenerTodos(): Collection
-    {
-        return $this->model->newQuery()->get();
-    }
-    public function obtenerTodosConRelaciones(): Collection
-    {
-        return $this->model->newQuery()
-            ->with($this->withRelations())
-            ->get();
-    }
-
     
     public function crear(array $data): PlanDeAccion
     {

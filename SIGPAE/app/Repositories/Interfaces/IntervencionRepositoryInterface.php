@@ -8,13 +8,12 @@ use Illuminate\Support\Collection;
 
 interface IntervencionRepositoryInterface
 {
+    public function obtenerTodos ();
     public function buscarPorId (int $id): ?Intervencion;
-    public function buscarPorIdConRelaciones(int $id): ?Intervencion;
-    public function filtrar (Request $request): Collection;
+    public function filtrar (array $filters = []);
     public function crear (array $data): Intervencion;
-    public function actualizar (int $id, array $data): ?Intervencion;
+    public function editar (int $id, array $data): bool;
     public function eliminar (int $id): bool;
     public function cambiarActivo (int $id): bool;
-    public function obtenerAulas(): Collection;
-    public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas);
+    public function obtenerAulasParaFiltro(): Collection;
 }

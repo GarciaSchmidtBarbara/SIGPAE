@@ -16,7 +16,5 @@ interface PlanDeAccionRepositoryInterface
     public function obtenerModelosAulas():Collection; //devuelve modelos Eloquent
     public function buscarPorId(int $id): ?PlanDeAccion;
     public function buscarPorIdConRelaciones(int $id);
-    public function obtenerTodosConRelaciones(): Collection;
-    public function obtenerTodos(): Collection;
     
 }
