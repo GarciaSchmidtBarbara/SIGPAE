@@ -1,7 +1,10 @@
 @extends('layouts.base')
 
 @section('encabezado', 'Todas las Intervenciones')
-<h1 class="page-title-print" style="display: none;">@yield('encabezado') (Filtros Aplicados)</h1>
+
+{{--ESTE H2 COLOCA EL TITULO AL DOCUMENTO--}}
+<h2 class="page-title-print" style="display: none;">@yield('encabezado') </h2>
+
 @section('contenido')
 
     {{-- Mensajes de estado --}}
@@ -48,6 +51,8 @@
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
         <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>
+
+        {{--ESTE BOTON BUSCA LA TABLA A IMPRIMIR--}}
         <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir</button>    
     </form>
 
@@ -65,7 +70,7 @@
                 'texto' => 'Eliminar'
             ])->render()"
             idCampo="id_intervencion"
-            class="tabla-imprimir"
+            class="tabla-imprimir" {{--PONERLE LA CLASE A LA TABLA A IMPRIMIR--}}
             :filaEnlace="fn($fila) => route('intervenciones.editar', data_get($fila, 'id_intervencion'))"
         >
             <x-slot:accionesPorFila>
@@ -84,7 +89,7 @@
             </x-slot:accionesPorFila>
         </x-tabla-dinamica>
     </div>
-    
+
     <div class="fila-botones mt-8">
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
