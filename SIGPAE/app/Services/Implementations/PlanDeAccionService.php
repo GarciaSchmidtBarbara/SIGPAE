@@ -43,15 +43,6 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         return $this->repository->filtrar($request);
     }
 
-    public function obtenerTodos(): Collection
-    {
-        return $this->repository->obtenerTodos();
-    }
-    public function obtenerTodosConRelaciones(): Collection
-    {
-        return $this->repository->obtenerTodosConRelaciones();
-    }
-    
     public function obtenerAulas(): Collection
     {
         return $this->repository->obtenerAulas();

@@ -16,6 +16,7 @@ class OtroAsistenteI extends Model
         'descripcion'
     ];
 
+    // revisado
     public function intervencion(): belongsTo
     {
         return $this->belongsTo(Intervencion::class, 'fk_id_intervencion', 'id_intervencion');
