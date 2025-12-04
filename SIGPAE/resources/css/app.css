@@ -146,7 +146,7 @@
         font-weight: 700;
     }
 
-    .modern-table th, 
+    .modern-table th,
     .modern-table td {
         padding: 10px 12px;
         text-align: left;
@@ -155,7 +155,7 @@
     .modern-table tbody tr {
         background: white;
         border-radius: 6px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .modern-table tbody tr td:last-child {
@@ -175,6 +175,7 @@
         background: #b91c1c;
     }
 }
+
 /* --- CALENDARIO --- */
 #calendar .fc-toolbar-title {
     margin: 0 2rem !important;
@@ -191,75 +192,87 @@
     text-transform: capitalize;
 }
 
-    
 
-    /* uso para no imprimir el borde del costado */
-    .solo-imprimir {
-        display: none;
+
+/* uso para no imprimir el borde del costado */
+.solo-imprimir {
+    display: none;
+}
+
+
+
+@media print {
+
+    /* 1. Configuración básica */
+    .no-imprimir,
+    nav,
+    aside,
+    header,
+    button,
+    .btn-volver {
+        display: none !important;
+    }
+
+    @page {
+        margin: 1.5cm;
+        size: A4;
+    }
+
+    body {
+        background-color: white !important;
+        margin: 0 !important;
+        font-family: 'Times New Roman', serif;
+        font-size: 11pt;
+    }
+
+    /* 2. Limpiar contenedores */
+    .bg-white,
+    .shadow-lg,
+    .rounded-lg {
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* 3. REGLAS PARA LA TABLA */
+
+    table {
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        font-size: 10pt !important;
+        /* Un tamaño seguro */
+    }
+
+    table th,
+    table td {
+        border: 1px solid #000 !important;
+        padding: 4px !important;
+        text-align: left;
+        vertical-align: top;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        white-space: normal !important;
     }
 
 
+    table input {
+        border: none !important;
+        background: transparent !important;
+        width: 100% !important;
+        overflow: visible !important;
+        white-space: normal !important;
+    }
 
-    @media print {
-            /* 1. Configuración básica */
-            .no-imprimir, nav, aside, header, button, .btn-volver {
-                display: none !important;
-            }
-            
-            @page { margin: 1.5cm; size: A4; }
-
-            body {
-                background-color: white !important;
-                margin: 0 !important;
-                font-family: 'Times New Roman', serif;
-                font-size: 11pt; 
-            }
-
-            /* 2. Limpiar contenedores */
-            .bg-white, .shadow-lg, .rounded-lg {
-                box-shadow: none !important;
-                border: none !important;
-                border-radius: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-            }
-
-            /* 3. REGLAS PARA LA TABLA */
-
-            table {
-                width: 100% !important;
-                table-layout: fixed !important; 
-                border-collapse: collapse !important;
-                margin-top: 10px;
-                margin-bottom: 10px;
-                font-size: 10pt !important; /* Un tamaño seguro */
-            }
-
-            table th, table td {
-                border: 1px solid #000 !important; 
-                padding: 4px !important;
-                text-align: left;
-                vertical-align: top;
-                overflow-wrap: break-word; 
-                word-wrap: break-word;     
-                white-space: normal !important;
-            }
-
-        
-            table input {
-                border: none !important;
-                background: transparent !important;
-                width: 100% !important;
-                overflow: visible !important;
-                white-space: normal !important;
-            }
-
-            /* 4. AQUÍ ACTIVAMOS LA CLASE SOLO PARA IMPRIMIR */
-            .solo-imprimir {
-                display: block !important; 
-                text-align: justify;
-            }
-   }
+    /* 4. AQUÍ ACTIVAMOS LA CLASE SOLO PARA IMPRIMIR */
+    .solo-imprimir {
+        display: block !important;
+        text-align: justify;
+    }
 }

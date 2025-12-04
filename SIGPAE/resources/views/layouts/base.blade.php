@@ -15,71 +15,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
+    <!--FullCalendar CSS desde CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/main.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.8/main.min.css">
+
+
     @stack('estilos')
 
     @stack('scripts')
 </head>
-<body>
-    <div class="layout min-h-screen w-full flex flex-row">
-        <!-- Menú lateral -->
-        <nav class="sidebar bg-fondo basis-1/5 rounded-r-3xl p-[20px] flex flex-col">
-            <p class="text-white text-3xl font-bold my-3 text-shadow-lg ">SIGPAE</p>
-            <div class="menu flex flex-col justify-between flex-1 text-white">
-                <div class="menu-superior flex flex-col">
-                    <hr>
-                    <x-nav-item
-                        route="welcome"
-                        label=" Principal"
-                        icon="icons.icono-home"
-                        exact
-                    ></x-nav-item>
-                    <x-nav-item
-                        route="alumnos.principal"
-                        label=" Alumnos"
-                        icon="icons.icono-alumno"
-                        exact
-                    ></x-nav-item>
-                    <x-nav-item
-                        route="eventos.principal"
-                        label=" Eventos"
-                        icon="icons.icono-evento"
-                        exact
-                    ></x-nav-item>
-                   <x-nav-item
-                        route="intervenciones.principal"
-                        label=" Intervenciones"
-                        icon="icons.icono-intervencion"
-                        exact
-                    ></x-nav-item>
-                   <x-nav-item
-                       route="planDeAccion.principal"
-                       label=" Plan de Acción"
-                       icon="icons.icono-planDeAccion"
-                       exact
-                    ></x-nav-item>
-                    <x-nav-item
-                     route="planillas.principal"
-                     label=" Planillas"
-                     icon="icons.icono-planilla"
-                     exact
-                     ></x-nav-item>
-                    <x-nav-item
-                        label=" Documentos"
-                        icon="icons.icono-documento"
-                        exact
-                    ></x-nav-item>
-                     <x-nav-item
-                        label=" Reportes"
-                        icon="icons.icono-reporte"
-                        exact
-                    ></x-nav-item>
-                     <x-nav-item
-                        label=" Notificaciones"
-                        icon="icons.icono-notificacion"
-                        exact
-                    ></x-nav-item>
-                     <x-nav-item
-                        route="usuarios.principal"
+
 <body class="bg-gray-50 font-sans text-slate-600" x-data="{ sidebarOpen: true }">
     <div class="flex h-screen overflow-hidden">
         
@@ -114,7 +61,7 @@
                 
                 <x-nav-item route="welcome" label="Principal" icon="icons.icono-home" exact class="mb-1"></x-nav-item>
                 <x-nav-item route="alumnos.principal" label="Alumnos" icon="icons.icono-alumno" exact></x-nav-item>
-                <x-nav-item label="Eventos" icon="icons.icono-evento" exact></x-nav-item>
+                <x-nav-item route="eventos.principal" label="Eventos" icon="icons.icono-evento" exact></x-nav-item>
                 <x-nav-item route="intervenciones.principal" label="Intervenciones" icon="icons.icono-intervencion" exact></x-nav-item>
                 <x-nav-item route="planDeAccion.principal" label="Plan de Acción" icon="icons.icono-planDeAccion" exact></x-nav-item>
 

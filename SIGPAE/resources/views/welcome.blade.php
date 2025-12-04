@@ -5,7 +5,7 @@
 @section('contenido')
     <div class="h-full flex items-end justify-end pb-6" x-data="modalEventoData()" x-init="init()">
         <!-- Contenedor del calendario en esquina inferior derecha -->
-        <div class="w-96">
+        <div class="fixed bottom-6 right-6 w-96">
             <div id="calendar" class="bg-white rounded-lg shadow-md p-3 text-sm"></div>
         </div>
 
