@@ -4,7 +4,7 @@
 
 @section('contenido')
 <div class="p-6">
-    <form id="form-alumno" method="GET" action="{{ route('usuarios.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+    <form id="form-usuario" method="GET" action="{{ route('usuarios.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('usuarios.crear-editar') }}">Registrar Usuario</a>
         <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
         <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
@@ -38,7 +38,6 @@
         'text_activo' => 'Desactivar',
         'text_inactivo' => 'Activar',
         ])->render()"
-        :filaEnlace="fn($fila) => route('usuarios.editar', data_get($fila, 'id_profesional'))"
     >
     </x-tabla-dinamica>
 
