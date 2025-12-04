@@ -8,9 +8,10 @@ use App\Models\Planilla;
 require __DIR__.'/auth.php';
 
 // Ruta protegida
-Route::get('/welcome', function () {
-    return view('welcome');
-})->middleware('auth')->name('welcome');
+use App\Http\Controllers\HomeController;
+Route::get('/welcome', [HomeController::class, 'index'])
+    ->middleware('auth')
+    ->name('welcome');
 
 Route::post('/probar-post', function () {
     return 'POST recibido correctamente';

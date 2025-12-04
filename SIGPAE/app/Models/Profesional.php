@@ -7,7 +7,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Models\Persona;
+use App\Models\Evento;
+use App\Models\EsInvitadoA;
+use App\Mail\ResetPasswordMail;
+use Illuminate\Support\Facades\Mail;
 
 class Profesional extends Authenticatable
 {
@@ -57,7 +63,7 @@ class Profesional extends Authenticatable
         'contrasenia' => 'hashed',
         'siglas' => Siglas::class,
         'google_token_expires_at' => 'datetime',
-        'hora_envio_resumen_diario' => 'datatime',
+        'hora_envio_resumen_diario' => 'time',
     ];
 
     // revisado
@@ -138,5 +144,27 @@ class Profesional extends Authenticatable
     public function googleTokenExpirado():bool
     {
         return $this->google_token_expires_at && $this->google_token_expires_at->isPast();
+    }
+
+    public function eventosCreados(): HasMany
+    {
+        return $this->hasMany(Evento::class, 'fk_id_profesional_creador', 'id_profesional');
+    }
+
+    public function eventosInvitado(): BelongsToMany
+    {
+        return $this->belongsToMany(Evento::class, 'es_invitado_a', 'fk_id_profesional', 'fk_id_evento')
+            ->using(esInvitadoA::class);
+    }
+
+
+    public function sendPasswordResetNotification($token)
+    {
+        $url = url(route('password.reset', [
+            'token' => $token,
+            'email' => $this->email,
+        ], false));
+    
+        Mail::to($this->email)->send(new ResetPasswordMail($url));
     }
 }

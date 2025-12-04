@@ -22,7 +22,7 @@ return new class extends Migration
                   ->comment('Minutos antes del evento para notificar al usuario.');
             
             //hora de envío del resumen diario 
-            $table->dateTime('hora_envio_resumen_diario')->nullable();
+            $table->time('hora_envio_resumen_diario')->nullable();
         });
     }
 
