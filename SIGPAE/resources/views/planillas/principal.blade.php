@@ -39,7 +39,7 @@
                 </a>
             </div>
 
-            {{-- MODAL DE SELECCIÓN (Tu código original mejorado visualmente) --}}
+            {{-- MODAL DE SELECCIÓN --}}
             <x-ui.modal x-data="{ open: false }"
                 x-effect="open = abrirPlanilla; if (!open && abrirPlanilla) abrirPlanilla = false" @click.stop
                 title="Seleccione el tipo de documento" size="lg" :closeOnBackdrop="true">
@@ -48,11 +48,11 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Documento:</label>
                     <select x-model="tipo" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3">
                         <option value="" disabled selected>— Seleccione una opción —</option>
-                        <option value="acta-trabajo">📄 Acta Reunión de Trabajo (EI)</option>
-                        <option value="acta-equipo">👥 Acta Equipo Interdisciplinario (Directivos)</option>
-                        <option value="acta-banda">🏫 Acta Reunión Banda (Completa)</option>
-                        <option value="planilla-medial">📊 Planilla Medial</option>
-                        <option value="planilla-final">🎓 Planilla Final</option>
+                        <option value="acta-trabajo">Acta Reunión de Trabajo (EI)</option>
+                        <option value="acta-equipo">Acta Equipo Interdisciplinario (Directivos)</option>
+                        <option value="acta-banda">Acta Reunión Banda (Completa)</option>
+                        <option value="planilla-medial">Planilla Medial</option>
+                        <option value="planilla-final">Planilla Final</option>
                     </select>
                 </div>
 
@@ -89,6 +89,7 @@
                             <th class="p-4">Tipo</th>
                             <th class="p-4">Nombre / Descripción</th>
                             <th class="p-4">Detalles (Escuela/Grado)</th>
+                            <th class="p-4">Escuela/Grado</th>
                             <th class="p-4">Fecha Creación</th>
                             <th class="p-4 text-center">Acciones</th>
                         </tr>

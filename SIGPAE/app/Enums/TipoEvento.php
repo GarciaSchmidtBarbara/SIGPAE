@@ -8,4 +8,5 @@ enum TipoEvento: string
     case RG = 'RG';
     case RD = 'RD';
     case CITA_FAMILIAR = 'CITA_FAMILIAR';
+    case DERIVACION_EXTERNA = 'DERIVACION_EXTERNA';
 }

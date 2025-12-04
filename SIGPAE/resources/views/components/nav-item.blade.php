@@ -22,19 +22,19 @@
                   )
                 : false);
 
-    // clases base + activo
-    $baseClasses = 'links flex items-center';
-    $activeClass = $computedActive ? 'activo' : '';
-
-    // mergea con $attributes->merge() para permitir pasar más attrs/clases desde afuera
+    $baseClasses = 'flex items-center w-full px-4 py-3 mb-2 text-white transition-colors duration-200 rounded-lg hover:bg-white/10 group';
+    $activeClass = $computedActive ? 'bg-white/20 shadow-inner' : '';
     $classes = trim("$baseClasses $activeClass $class");
+
 @endphp
 
 <a href="{{ $url }}" {{ $attributes->merge(['class' => $classes]) }}>
     @if($icon)
         {{-- Renderiza cualquier componente como icono --}}
-        <x-dynamic-component :component="$icon" class="mr-2" />
+        <div class="mr-3 w-6 flex justify-center text-lg opacity-90 group-hover:opacity-100">
+        <x-dynamic-component :component="$icon" />
+        </div>
     @endif
 
-    <span>{{ $label ?? $slot }}</span>
+    <span class="font-medium tracking-wide">{{ $label ?? $slot }}</span>
 </a>
