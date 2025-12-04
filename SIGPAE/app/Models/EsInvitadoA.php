@@ -2,6 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\Pivot;
+
+class EsInvitadoA extends Pivot
+{
+    protected $table = 'es_invitado_a';
+
+    protected $primaryKey = null; // porque es pivot
+    public $incrementing = false;
+
+    protected $fillable = [
+        'fk_id_evento',
+        'fk_id_profesional',
+        'asistio',
+    ];
+}
+
+//<?php
+/*
+namespace App\Models;
+
 use Illuminate\Database\Eloquent\Model;
 
 class EsInvitadoA extends Model
@@ -38,3 +58,4 @@ class EsInvitadoA extends Model
 
     public $timestamps = true;
 }
+*/

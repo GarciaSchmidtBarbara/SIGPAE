@@ -8,9 +8,10 @@ use App\Models\Planilla;
 require __DIR__.'/auth.php';
 
 // Ruta protegida
-Route::get('/welcome', function () {
-    return view('welcome');
-})->middleware('auth')->name('welcome');
+use App\Http\Controllers\HomeController;
+Route::get('/welcome', [HomeController::class, 'index'])
+    ->middleware('auth')
+    ->name('welcome');
 
 Route::post('/probar-post', function () {
     return 'POST recibido correctamente';
@@ -149,6 +150,14 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
 });
+
+
+//Rutas OAuth google
+use App\Http\Controllers\GoogleCalendarController;
+
+Route::get('auth/google', [GoogleCalendarController::class, 'redirectToGoogle'])
+    ->name('google.login');
+Route::get('auth/google/callback', [GoogleCalendarController::class, 'handleGoogleCallback']);
 
 //Rutas Eventos (Calendario)
 use App\Http\Controllers\EventoController;

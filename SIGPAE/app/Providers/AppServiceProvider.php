@@ -31,6 +31,7 @@ use App\Repositories\Eloquent\PlanDeAccionRepository;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
 // Models
 use App\Models\Profesional; 
 //Intervencion
@@ -82,6 +83,7 @@ class AppServiceProvider extends ServiceProvider
         Auth::extend('web', function ($app, $name, array $config) {
             return new \Illuminate\Auth\SessionGuard($name, Profesional::class, $app['session.store']);
         });
+        
         
     }
 }
