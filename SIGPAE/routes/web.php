@@ -84,10 +84,8 @@ Route::prefix('planillas')->middleware('auth')->group(function () {
         ->name('planillas.destruir');
     Route::get('/planillas/{id}/ver', [PlanillaController::class, 'ver'])->name('planillas.ver');
     Route::get('/planillas/{id}/editar', [PlanillaController::class, 'editar'])->name('planillas.editar');
-    Route::put('/planillas/{id}', [PlanillaController::class, 'actualizar'])->name('planillas.actualizar');
+    Route::put('/planillas/{id}/actualizar', [PlanillaController::class, 'actualizar'])->name('planillas.actualizar');
     Route::get('/planillas/{id}/descargar', [PlanillaController::class, 'descargar'])->name('planillas.descargar');
-    Route::put('/planillas/{id}/actualizar', [PlanillaController::class, 'actualizar'])
-        ->name('planillas.actualizar');
     
 });
 
