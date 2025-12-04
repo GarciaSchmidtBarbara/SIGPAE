@@ -2,6 +2,9 @@
 
 @section('encabezado', 'Todas las Intervenciones')
 
+{{--ESTE H2 COLOCA EL TITULO AL DOCUMENTO--}}
+<h2 class="page-title-print" style="display: none;">@yield('encabezado') </h2>
+
 @section('contenido')
 
     {{-- Mensajes de estado --}}
@@ -47,46 +50,49 @@
         <input type="date" name="fecha_hasta" class="border px-2 py-1 rounded" value="{{ request('fecha_hasta') }}">
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>
+        <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>   
     </form>
 
-    <x-tabla-dinamica 
-        :columnas="[
-            ['key' => 'fecha_hora_intervencion', 'label' => 'Fecha y Hora'],
-            ['key' => 'tipo_intervencion', 'label' => 'Tipo'],
-            ['key' => 'alumnos', 'label' => 'Destinatarios'],
-            ['key' => 'profesionales', 'label' => 'Intervinientes'],
-        ]"
-        :filas="$intervenciones"
-        :acciones="fn($fila) => view('components.boton-eliminar', [
-            'route' => route('intervenciones.eliminar', $fila['id_intervencion']),
-            'texto' => 'Eliminar'
-        ])->render()"
-        idCampo="id_intervencion"
-        :filaEnlace="fn($fila) => route('intervenciones.editar', data_get($fila, 'id_intervencion'))"
-    >
-        <x-slot:accionesPorFila>
-            @php
-                // función anónima que recibirá $fila
-            @endphp
-            @once
-                @php
-                    $accionesPorFila = function ($fila) {
-                        $activo = data_get($fila, 'activo');
-                        $ruta = route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'));
-                        return view('components.boton-estado', [
-                            'activo' => $activo,
-                            'route' => $ruta
-                        ])->render();
-                    };
-                @endphp
-            @endonce
-        </x-slot:accionesPorFila>
-
-    </x-tabla-dinamica>
+    {{--ENVOLVER LA TABLA A IMPRIMIR--}}
+    <div class="data-table-to-print">
+        <x-tabla-dinamica 
+            :columnas="[
+                ['key' => 'fecha_hora_intervencion', 'label' => 'Fecha y Hora'],
+                ['key' => 'tipo_intervencion', 'label' => 'Tipo'],
+                ['key' => 'alumnos', 'label' => 'Destinatarios'],
+                ['key' => 'profesionales', 'label' => 'Intervinientes'],
+            ]"
+            :filas="$intervenciones"
+            :acciones="fn($fila) => view('components.boton-eliminar', [
+                'route' => route('intervenciones.eliminar', $fila['id_intervencion']),
+                'texto' => 'Eliminar'
+            ])->render()"
+            idCampo="id_intervencion"
+            class="tabla-imprimir" {{--PONERLE LA CLASE A LA TABLA A IMPRIMIR--}}
+            :filaEnlace="fn($fila) => route('intervenciones.editar', data_get($fila, 'id_intervencion'))"
+        >
+            <x-slot:accionesPorFila>
+                @once
+                    @php
+                        $accionesPorFila = function ($fila) {
+                            $activo = data_get($fila, 'activo');
+                            $ruta = route('intervenciones.cambiarActivo', data_get($fila, 'id_intervencion'));
+                            return view('components.boton-estado', [
+                                'activo' => $activo,
+                                'route' => $ruta
+                            ])->render();
+                        };
+                    @endphp
+                @endonce
+            </x-slot:accionesPorFila>
+        </x-tabla-dinamica>
+    </div>
 
     <div class="fila-botones mt-8">
+        {{--ESTE BOTON BUSCA LA TABLA A IMPRIMIR--}}
+        <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir listado</button> 
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
 </div>
 @endsection
+
