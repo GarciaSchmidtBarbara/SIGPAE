@@ -174,6 +174,10 @@
     .btn-quitar:hover {
         background: #b91c1c;
     }
+    .solo-imprimir {
+    display: none;
+}
+
 }
 
 /* --- CALENDARIO --- */
@@ -195,21 +199,32 @@
 
 
 /* uso para no imprimir el borde del costado */
-.solo-imprimir {
-    display: none;
-}
 
 
 
 @media print {
-
     /* 1. Configuración básica */
+    * {
+        background: transparent !important;
+        color: #000 !important;
+    }
+
+    body {
+        background-color: white !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        font-family: 'Times New Roman', serif;
+        font-size: 11pt;
+    }
+
+    /* Ocultamos cosas solo para pantalla */
     .no-imprimir,
+    .fila-botones,
     nav,
     aside,
     header,
-    button,
-    .btn-volver {
+    .btn-volver,
+    .titulo-seccion {
         display: none !important;
     }
 
@@ -218,14 +233,7 @@
         size: A4;
     }
 
-    body {
-        background-color: white !important;
-        margin: 0 !important;
-        font-family: 'Times New Roman', serif;
-        font-size: 11pt;
-    }
-
-    /* 2. Limpiar contenedores */
+    /* 2. Contenedor principal de la planilla */
     .bg-white,
     .shadow-lg,
     .rounded-lg {
@@ -238,8 +246,7 @@
         max-width: 100% !important;
     }
 
-    /* 3. REGLAS PARA LA TABLA */
-
+    /* 3. Tablas de la planilla */
     table {
         width: 100% !important;
         table-layout: fixed !important;
@@ -247,7 +254,6 @@
         margin-top: 10px;
         margin-bottom: 10px;
         font-size: 10pt !important;
-        /* Un tamaño seguro */
     }
 
     table th,
@@ -261,7 +267,6 @@
         white-space: normal !important;
     }
 
-
     table input {
         border: none !important;
         background: transparent !important;
@@ -270,7 +275,7 @@
         white-space: normal !important;
     }
 
-    /* 4. AQUÍ ACTIVAMOS LA CLASE SOLO PARA IMPRIMIR */
+    /* 4. Truco textarea/div: mostrar solo la versión para impresión */
     .solo-imprimir {
         display: block !important;
         text-align: justify;
