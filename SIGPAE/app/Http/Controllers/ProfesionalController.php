@@ -123,9 +123,11 @@ class ProfesionalController extends Controller {
         if ($validator->fails()) {
             return redirect()->back()
             ->with('errors', 'error al actualizar datos.')
-            ->withErros($validator)
-            ->withInputs();
+            ->withErrors($validator)
+            ->withInput();
         }
+
+        $validated = $validator->validated();
 
         try {
             // Actualizar persona

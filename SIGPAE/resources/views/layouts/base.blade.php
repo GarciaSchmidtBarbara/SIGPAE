@@ -21,7 +21,7 @@
 <body>
     <div class="layout min-h-screen w-full flex flex-row">
         <!-- Menú lateral -->
-        <nav class="sidebar bg-fondo basis-1/5 rounded-r-3xl p-[20px] flex flex-col no-imprimir">
+        <nav class="sidebar fixed top-0 left-0 h-screen bg-fondo w-64 rounded-r-3xl p-[20px] flex flex-col no-imprimir">
             <p class="text-white text-3xl font-bold my-3 text-shadow-lg ">SIGPAE</p>
             <div class="menu flex flex-col justify-between flex-1 text-white">
                 <div class="menu-superior flex flex-col">
@@ -71,11 +71,11 @@
                         icon="icons.icono-reporte"
                         exact
                     ></x-nav-item>
-                     <x-nav-item
+                    <!-- <x-nav-item
                         label=" Notificaciones"
                         icon="icons.icono-notificacion"
                         exact
-                    ></x-nav-item>
+                    ></x-nav-item>-->
                      <x-nav-item
                         route="usuarios.principal"
 
@@ -102,7 +102,7 @@
         </nav>
 
         <!-- Contenido principal -->
-        <main class="contenido p-[30px] w-full">
+        <main class="contenido p-[30px] ml-64 w-full overflow-y-auto">
             <div class="titulo-seccion">
                 @yield('encabezado', 'Sección')
             </div>

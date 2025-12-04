@@ -151,3 +151,11 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
 });
+
+
+//Rutas OAuth google
+use App\Http\Controllers\GoogleCalendarController;
+
+Route::get('auth/google', [GoogleCalendarController::class, 'redirectToGoogle'])
+    ->name('google.login');
+Route::get('auth/google/callback', [GoogleCalendarController::class, 'handleGoogleCallback']);
