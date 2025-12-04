@@ -172,3 +172,10 @@ Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function (
     Route::put('/{id}', [EventoController::class, 'update'])->name('update');
     Route::delete('/{id}', [EventoController::class, 'destroy'])->name('destroy');
 });
+
+//Rutas OAuth google
+use App\Http\Controllers\GoogleCalendarController;
+
+Route::get('auth/google', [GoogleCalendarController::class, 'redirectToGoogle'])
+    ->name('google.login');
+Route::get('auth/google/callback', [GoogleCalendarController::class, 'handleGoogleCallback']);

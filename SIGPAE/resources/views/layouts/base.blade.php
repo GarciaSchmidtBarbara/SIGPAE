@@ -44,6 +44,66 @@
 
     @stack('scripts')
 </head>
+<body>
+    <div class="layout min-h-screen w-full flex flex-row">
+        <!-- Menú lateral -->
+        <nav class="sidebar fixed top-0 left-0 h-screen bg-fondo w-64 rounded-r-3xl p-[20px] flex flex-col no-imprimir">
+            <p class="text-white text-3xl font-bold my-3 text-shadow-lg ">SIGPAE</p>
+            <div class="menu flex flex-col justify-between flex-1 text-white">
+                <div class="menu-superior flex flex-col">
+                    <hr>
+                    <x-nav-item
+                        route="welcome"
+                        label=" Principal"
+                        icon="icons.icono-home"
+                        exact
+                    ></x-nav-item>
+                    <x-nav-item
+                        route="alumnos.principal"
+                        label=" Alumnos"
+                        icon="icons.icono-alumno"
+                        exact
+                    ></x-nav-item>
+                    <x-nav-item
+                        label=" Eventos"
+                        icon="icons.icono-evento"
+                        exact
+                    ></x-nav-item>
+                   <x-nav-item
+                        route="intervenciones.principal"
+                        label=" Intervenciones"
+                        icon="icons.icono-intervencion"
+                        exact
+                    ></x-nav-item>
+                   <x-nav-item
+                       route="planDeAccion.principal"
+                       label=" Plan de Acción"
+                       icon="icons.icono-planDeAccion"
+                       exact
+                    ></x-nav-item>
+                    <x-nav-item
+                     route="planillas.principal"
+                     label=" Planillas"
+                     icon="icons.icono-planilla"
+                     exact
+                     ></x-nav-item>
+                    <x-nav-item
+                        label=" Documentos"
+                        icon="icons.icono-documento"
+                        exact
+                    ></x-nav-item>
+                     <x-nav-item
+                        label=" Reportes"
+                        icon="icons.icono-reporte"
+                        exact
+                    ></x-nav-item>
+                    <!-- <x-nav-item
+                        label=" Notificaciones"
+                        icon="icons.icono-notificacion"
+                        exact
+                    ></x-nav-item>-->
+                     <x-nav-item
+                        route="usuarios.principal"
 
 <body class="bg-gray-50 font-sans text-slate-600" x-data="{ sidebarOpen: true }">
     <div class="flex h-screen overflow-hidden">
@@ -72,6 +132,7 @@
                 </button>
             </div>
 
+<<<<<<< HEAD
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-w-[16rem]">
                 <div class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2 ml-2">
                     General
@@ -112,6 +173,12 @@
                     Cerrar Sesión
                 </a>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">@csrf</form>
+=======
+        <!-- Contenido principal -->
+        <main class="contenido p-[30px] ml-64 w-full overflow-y-auto">
+            <div class="titulo-seccion">
+                @yield('encabezado', 'Sección')
+>>>>>>> 5c04cc6 (guardo cambios)
             </div>
         </aside>
 
