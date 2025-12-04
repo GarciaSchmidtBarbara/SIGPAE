@@ -13,6 +13,8 @@ class EsInvitadoA extends Model
 
     // permitir asignación masiva para los campos pivot
     protected $fillable = [
+        'fk_id_evento',
+        'fk_id_profesional',
         'asistio',
         'confirmacion',
     ];

@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('titulo', 'SIGPAE')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -16,10 +17,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     
     
+
+    <!--FullCalendar CSS desde CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/main.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.8/main.min.css">
+
+
     @stack('estilos')
 
     @stack('scripts')
 </head>
+
 <body class="bg-gray-50 font-sans text-slate-600" x-data="{ sidebarOpen: true }">
     <div class="flex h-screen overflow-hidden">
         
@@ -54,7 +63,7 @@
                 
                 <x-nav-item route="welcome" label="Principal" icon="icons.icono-home" exact class="mb-1"></x-nav-item>
                 <x-nav-item route="alumnos.principal" label="Alumnos" icon="icons.icono-alumno" exact></x-nav-item>
-                <x-nav-item label="Eventos" icon="icons.icono-evento" exact></x-nav-item>
+                <x-nav-item route="eventos.principal" label="Eventos" icon="icons.icono-evento" exact></x-nav-item>
                 <x-nav-item route="intervenciones.principal" label="Intervenciones" icon="icons.icono-intervencion" exact></x-nav-item>
                 <x-nav-item route="planDeAccion.principal" label="Plan de Acción" icon="icons.icono-planDeAccion" exact></x-nav-item>
 

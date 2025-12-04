@@ -51,7 +51,7 @@
 
                 {{-- Si se pasó una función, se ejecuta --}}
                 @if (is_callable($acciones))
-                    <td class="px-4 py-2 text-sm flex gap-2">
+                    <td class="px-4 py-2 text-sm flex gap-2 accion-col">
                         {!! $acciones($fila) !!}
                     </td>
                 @endif
