@@ -127,7 +127,7 @@ Sigue los pasos a continuación
         ```php
         php artisan db:seed
         ```
-      Esto pobla la base con una persona y un profesional de prueba.
+      Esto pobla la base con datos de prueba.
    * Validar datos creados: Debería devolver “Lucía González”.
       ```php
         php artisan tinker
