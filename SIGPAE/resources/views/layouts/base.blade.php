@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('titulo', 'SIGPAE')</title>
+     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Estilos globales -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-
+    
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
