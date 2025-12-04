@@ -4,25 +4,43 @@
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('titulo', 'SIGPAE')</title>
+     
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Estilos globales -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-
+    
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 
+    {{-- Estilos de impresión para Vista Previa --}}
+    <style>
+        @media print {
+            * { background: transparent !important; color: #000 !important; }
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            .no-imprimir { display: none !important; }
+            .fila-botones { display: none !important; }
+            .sidebar { display: none !important; }
+            aside { display: none !important; }
+            header { display: none !important; }
+            .titulo-seccion { display: none !important; }
+            .bg-white { background: white !important; }
+            table { border-collapse: collapse; width: 100%; }
+            table, th, td { border: 1px solid #000 !important; }
+            th, td { padding: 8px !important; text-align: left; }
+        }
+    </style>
+
+    @stack('estilos')
+
     <!--FullCalendar CSS desde CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/main.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.8/main.min.css">
-
-
-    @stack('estilos')
 
     @stack('scripts')
 </head>
