@@ -56,16 +56,22 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sessions', function (Blueprint $table) {
-            if (! Schema::hasColumn('sessions', 'profesional_id')) {
-                $table->unsignedBigInteger('profesional_id')->nullable()->after('id')->index();
-            }
-
             if (Schema::hasColumn('sessions', 'user_id')) {
                 try {
-                    $table->dropConstrainedForeignId('user_id');
+                    $table->dropForeign(['user_id']);
                 } catch (\Throwable $e) {
-                    $table->dropColumn('user_id');
+                    // Si falla, intentar eliminar solo la columna
                 }
+                
+                try {
+                    $table->dropColumn('user_id');
+                } catch (\Throwable $e) {
+                    // Columna ya eliminada
+                }
+            }
+            
+            if (! Schema::hasColumn('sessions', 'profesional_id')) {
+                $table->unsignedBigInteger('profesional_id')->nullable()->after('id')->index();
             }
         });
 

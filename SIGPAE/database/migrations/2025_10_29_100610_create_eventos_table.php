@@ -12,7 +12,7 @@ return new class extends Migration
             //
             $table->id('id_evento');
 
-            $table->enum('tipo_evento', ['BANDA', 'RG', 'RD', 'CITA_FAMILIAR']);
+            $table->enum('tipo_evento', ['BANDA', 'RG', 'RD', 'CITA_FAMILIAR', 'DERIVACION_EXTERNA']);
             $table->string('lugar');
             $table->date('fecha_hora');
             $table->string('notas')->nullable();

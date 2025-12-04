@@ -151,3 +151,26 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
 });
+
+//Rutas Eventos (Calendario)
+use App\Http\Controllers\EventoController;
+Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function () {
+    // Vistas del CRUD
+    Route::get('/vista', [EventoController::class, 'vista'])->name('principal');
+    Route::get('/crear', [EventoController::class, 'crear'])->name('crear');
+    Route::get('/{id}/ver', [EventoController::class, 'ver'])->name('ver');
+    Route::get('/{id}/editar', [EventoController::class, 'editar'])->name('editar');
+    Route::post('/guardar', [EventoController::class, 'guardar'])->name('guardar');
+    Route::put('/{id}/actualizar', [EventoController::class, 'actualizar'])->name('actualizar');
+    Route::get('/crear-derivacion', [EventoController::class, 'crearDerivacion'])->name('crear-derivacion');
+    Route::post('/guardar-derivacion', [EventoController::class, 'guardarDerivacion'])->name('guardar-derivacion');
+    Route::post('/{id}/confirmar', [EventoController::class, 'actualizarConfirmacion'])->name('actualizar-confirmacion');
+    
+    // API para calendario
+    Route::get('/calendario', [EventoController::class, 'getEventosCalendario'])->name('calendario');
+    Route::get('/', [EventoController::class, 'index'])->name('index');
+    Route::get('/{id}', [EventoController::class, 'show'])->name('show');
+    Route::post('/', [EventoController::class, 'store'])->name('store');
+    Route::put('/{id}', [EventoController::class, 'update'])->name('update');
+    Route::delete('/{id}', [EventoController::class, 'destroy'])->name('destroy');
+});
