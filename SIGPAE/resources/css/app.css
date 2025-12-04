@@ -181,69 +181,86 @@
     .solo-imprimir {
         display: none;
     }
+}
 
+/* ===== ESTILOS DE IMPRESIÓN ===== */
 
+@media print {
+    /* 1. Configuración básica */
+    * {
+        background: transparent !important;
+        color: #000 !important;
+    }
 
-    @media print {
-            /* 1. Configuración básica */
-            .no-imprimir, nav, aside, header, button, .btn-volver {
-                display: none !important;
-            }
-            
-            @page { margin: 1.5cm; size: A4; }
+    body {
+        background-color: white !important;
+        margin: 0 !important;
+        padding: 20px !important;
+        font-family: 'Times New Roman', serif;
+        font-size: 11pt;
+    }
 
-            body {
-                background-color: white !important;
-                margin: 0 !important;
-                font-family: 'Times New Roman', serif;
-                font-size: 11pt; 
-            }
+    /* Ocultamos cosas solo para pantalla */
+    .no-imprimir,
+    .fila-botones,
+    nav,
+    aside,
+    header,
+    .btn-volver,
+    .titulo-seccion {
+        display: none !important;
+    }
 
-            /* 2. Limpiar contenedores */
-            .bg-white, .shadow-lg, .rounded-lg {
-                box-shadow: none !important;
-                border: none !important;
-                border-radius: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-            }
+    @page {
+        margin: 1.5cm;
+        size: A4;
+    }
 
-            /* 3. REGLAS PARA LA TABLA */
+    /* 2. Contenedor principal de la planilla */
+    .bg-white,
+    .shadow-lg,
+    .rounded-lg {
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
 
-            table {
-                width: 100% !important;
-                table-layout: fixed !important; 
-                border-collapse: collapse !important;
-                margin-top: 10px;
-                margin-bottom: 10px;
-                font-size: 10pt !important; /* Un tamaño seguro */
-            }
+    /* 3. Tablas de la planilla */
+    table {
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        font-size: 10pt !important;
+    }
 
-            table th, table td {
-                border: 1px solid #000 !important; 
-                padding: 4px !important;
-                text-align: left;
-                vertical-align: top;
-                overflow-wrap: break-word; 
-                word-wrap: break-word;     
-                white-space: normal !important;
-            }
+    table th,
+    table td {
+        border: 1px solid #000 !important;
+        padding: 4px !important;
+        text-align: left;
+        vertical-align: top;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        white-space: normal !important;
+    }
 
-        
-            table input {
-                border: none !important;
-                background: transparent !important;
-                width: 100% !important;
-                overflow: visible !important;
-                white-space: normal !important;
-            }
+    table input {
+        border: none !important;
+        background: transparent !important;
+        width: 100% !important;
+        overflow: visible !important;
+        white-space: normal !important;
+    }
 
-            /* 4. AQUÍ ACTIVAMOS LA CLASE SOLO PARA IMPRIMIR */
-            .solo-imprimir {
-                display: block !important; 
-                text-align: justify;
-            }
-   }
+    /* 4. Truco textarea/div: mostrar solo la versión para impresión */
+    .solo-imprimir {
+        display: block !important;
+        text-align: justify;
+    }
 }
