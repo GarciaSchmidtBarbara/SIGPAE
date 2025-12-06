@@ -8,5 +8,5 @@ interface AulaServiceInterface
 {
     public function obtenerCursos(): Collection;
 
-    public function resolverIdPorDescripcion(string $descripcion): int;
+    public function buscarAulaPorDescripcion(string $descripcion): int;
 }
