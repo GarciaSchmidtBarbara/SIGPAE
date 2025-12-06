@@ -44,12 +44,8 @@
     
     init() {
         this.isFilled = false;
-
-        if (this.parentesco === 'hermano' && this.formData.fk_id_persona) {
-            this.formData.asiste_a_institucion = true;
-        } else {
-            this.formData.asiste_a_institucion = !!this.formData.asiste_a_institucion;
-        }
+        
+        this.formData.asiste_a_institucion = !!this.formData.asiste_a_institucion;
 
         if (this.soloLectura) {
             this.isFilled = true;

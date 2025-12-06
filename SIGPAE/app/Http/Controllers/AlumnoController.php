@@ -181,6 +181,7 @@ class AlumnoController extends Controller
             } else {
                 // Si tiene parentesco, lo pasamos a minúscula para el radio button
                 $data['parentesco'] = strtolower($data['parentesco']);
+                $data['asiste_a_institucion'] = 0;
             }
 
             return $data;
