@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repositories\Implementations;
+namespace App\Repositories\Eloquent;
 
 use App\Models\Aula;
 use App\Repositories\Interfaces\AulaRepositoryInterface;
