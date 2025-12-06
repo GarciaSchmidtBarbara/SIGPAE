@@ -11,9 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->web(append: [
-            \App\Http\Middleware\SessionAlumnoCrearEditar::class,
-        ]);
+        // El middleware SessionAlumnoCrearEditar se aplica solo en rutas específicas
+        // Ver routes/web.php para ver dónde se usa
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
