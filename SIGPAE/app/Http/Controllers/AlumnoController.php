@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
 use App\Services\Interfaces\AlumnoServiceInterface;
 use App\Services\Interfaces\PersonaServiceInterface;
+use App\Services\Interfaces\AulaServiceInterface;
 
 use App\Models\Alumno;
 use App\Models\Aula;
@@ -23,11 +24,14 @@ class AlumnoController extends Controller
 {
     protected AlumnoServiceInterface $alumnoService;
     protected PersonaServiceInterface $personaService;
+    protected AulaServiceInterface $aulaService;
 
-    public function __construct(AlumnoServiceInterface $alumnoService, PersonaServiceInterface $personaService)
+    public function __construct(AlumnoServiceInterface $alumnoService,
+        AulaServiceInterface $aulaService, PersonaServiceInterface $personaService)
     {
         $this->alumnoService = $alumnoService;
         $this->personaService = $personaService;
+        $this->aulaService = $aulaService;
     }
 
     public function index(): JsonResponse
@@ -58,7 +62,7 @@ class AlumnoController extends Controller
     public function vista(Request $request)
     {
         $alumnos = $this->alumnoService->filtrar($request);
-        $cursos = $this->alumnoService->obtenerCursos();
+        $cursos = $this->aulaService->obtenerCursos();
 
         return view('alumnos.principal', compact('alumnos', 'cursos'));
     }
@@ -74,7 +78,7 @@ class AlumnoController extends Controller
         // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
         session()->forget('asistente');
 
-        $cursos = $this->alumnoService->obtenerCursos();
+        $cursos = $this->aulaService->obtenerCursos();
         
         // Preparamos la sesión con la estructura vacía del asistente
         session([
@@ -105,7 +109,7 @@ class AlumnoController extends Controller
         // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
         session()->forget('asistente');
 
-        $cursos = $this->alumnoService->obtenerCursos();
+        $cursos = $this->aulaService->obtenerCursos();
 
         //Convertir datos del modelo en un array simple para la vista
         $alumnoData = [
@@ -201,7 +205,7 @@ class AlumnoController extends Controller
     public function continuar()
     {
         // 1. Obtenemos dependencias básicas para la vista (selects)
-        $cursos = $this->alumnoService->obtenerCursos();
+        $cursos = $this->aulaService->obtenerCursos();
 
         // leo los datos del alumno de la sesión para saber en qué modo estamos
         $alumnoData = session('asistente.alumno', []);
