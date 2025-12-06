@@ -13,4 +13,6 @@ interface AlumnoRepositoryInterface
     public function buscarPorPersonaId(int $idPersona): ?Alumno;
     public function buscarParaEditar(int $id): ?Alumno;
     public function vincularHermanos(int $idAlumno, int $idHermano, ?string $observaciones): void;
+    public function buscarPorTermino(string $termino): \Illuminate\Support\Collection;
+    public function filtrar(array $criterios): \Illuminate\Support\Collection;
 }

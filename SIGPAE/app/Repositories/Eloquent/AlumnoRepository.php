@@ -123,4 +123,81 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         }
     }
 
+    public function buscarPorTermino(string $termino): \Illuminate\Support\Collection
+    {
+        // Preparamos el string para SQL LIKE
+        // esto se hace para evitar inyecciones SQL
+        // y no en el servicio porque es algo propio de postgres
+        $like = '%' . str_replace('%', '', $termino) . '%';
+
+        return Alumno::with(['persona', 'aula'])
+            ->whereHas('persona', function ($sub) use ($like) {
+                $sub->where('dni', 'like', $like)
+                    ->orWhere('nombre', 'ilike', $like) // ilike es para Postgres (insensible a mayúsculas)
+                    ->orWhere('apellido', 'ilike', $like);
+            })
+            ->limit(10)
+            ->get();
+    }
+
+    public function filtrar(array $criterios): \Illuminate\Support\Collection
+    {
+        $query = Alumno::with('persona', 'aula');
+
+        // 1. Filtro por Nombre (Normalizado)
+        if (!empty($criterios['nombre'])) {
+            $nombre = $criterios['nombre'];
+            $query->whereHas('persona', fn($q) =>
+                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
+            );
+        }
+
+        // 2. Filtro por Apellido
+        if (!empty($criterios['apellido'])) {
+            $apellido = $criterios['apellido'];
+            $query->whereHas('persona', fn($q) =>
+                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"])
+            );
+        }
+
+        // 3. Filtro por Documento
+        if (!empty($criterios['dni'])) {
+            $query->whereHas('persona', fn($q) =>
+                $q->where('dni', 'like', '%' . $criterios['dni'] . '%')
+            );
+        }
+
+        // 4. Filtro por Aula
+        if (!empty($criterios['curso']) && !empty($criterios['division'])) {
+            $query->whereHas('aula', fn($q) =>
+                $q->where('curso', $criterios['curso'])
+                  ->where('division', $criterios['division'])
+            );
+        }
+
+        // 5. Filtro por Estado
+        $estado = $criterios['estado'] ?? 'activos';
+        if ($estado === 'activos') {
+            $query->whereHas('persona', fn($q) => $q->where('activo', true));
+        } elseif ($estado === 'inactivos') {
+            $query->whereHas('persona', fn($q) => $q->where('activo', false));
+        }
+
+        // 6. Ejecución y Ordenamiento
+        // (Mantenemos tu lógica de ordenamiento en memoria por ahora para no complicar el SQL con JOINS)
+        return $query->get()->sort(function ($a, $b) {
+            $activoA = data_get($a, 'persona.activo') ? 1 : 0;
+            $activoB = data_get($b, 'persona.activo') ? 1 : 0;
+
+            if ($activoA !== $activoB) {
+                return $activoA > $activoB ? -1 : 1;
+            }
+
+            $nombreA = mb_strtolower(data_get($a, 'persona.nombre', ''));
+            $nombreB = mb_strtolower(data_get($b, 'persona.nombre', ''));
+
+            return $nombreA <=> $nombreB;
+        })->values();
+    }
+
 }
