@@ -514,7 +514,6 @@
                                 
                                 if (nacimiento > hoy) {
                                     this.errorFuturo = true;
-                                    formData.fecha_nacimiento = ''; 
                                     formData.edad = '';
                                     return;
                                 }
