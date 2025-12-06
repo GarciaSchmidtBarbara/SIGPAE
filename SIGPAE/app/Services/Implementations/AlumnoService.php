@@ -3,8 +3,10 @@ namespace App\Services\Implementations;
 
 use App\Repositories\Interfaces\AlumnoRepositoryInterface;
 use App\Services\Interfaces\AlumnoServiceInterface;
-//Familiares
+// Se importa otros servicios para delegar tareas específicas
+use App\Services\Interfaces\PersonaServiceInterface;
 use App\Services\Interfaces\FamiliarServiceInterface;
+use App\Services\Interfaces\AulaServiceInterface;
 // Models
 use App\Models\Alumno;
 use App\Models\Aula;
@@ -19,11 +21,17 @@ use Illuminate\Support\Facades\DB;
 class AlumnoService implements AlumnoServiceInterface
 {
     protected AlumnoRepositoryInterface $repo;
+    protected PersonaServiceInterface $personaService;
+    protected FamiliarServiceInterface $familiarService;
+    protected AulaServiceInterface $aulaService;
 
-    public function __construct(AlumnoRepositoryInterface $repo, FamiliarServiceInterface $familiarService)
+    public function __construct(AlumnoRepositoryInterface $repo, PersonaServiceInterface $personaService,
+        FamiliarServiceInterface $familiarService, AulaServiceInterface $aulaService)
     {
         $this->repo = $repo;
+        $this->personaService = $personaService;
         $this->familiarService = $familiarService;
+        $this->aulaService = $aulaService;
     }
 
     public function listar(): \Illuminate\Support\Collection
@@ -35,42 +43,22 @@ class AlumnoService implements AlumnoServiceInterface
     {
         return DB::transaction(function () use ($data) {
             try {
-                $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
-                $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
-                $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
-
-                $persona = Persona::create([
+                $persona = $this->personaService->createPersona([
                     'dni' => $data['dni'],
                     'nombre' => $data['nombre'],
                     'apellido' => $data['apellido'],
                     'fecha_nacimiento' => $data['fecha_nacimiento'],
                     'nacionalidad' => $data['nacionalidad'],
+                    'domicilio' => $data['domicilio'] ?? null,
                     'activo' => true,
                 ]);
-
-                if (!$persona) {
-                    throw new \Exception('Error al crear la persona asociada');
-                }
-
-                if (!str_contains($data['aula'], '°')) {
-                    throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
-                }
-
-                [$curso, $division] = explode('°', $data['aula']);
-                $aula = Aula::where('curso', $curso)
-                            ->where('division', $division)
-                            ->first();
-
-                if (!$aula) {
-                    throw new \Exception('No se encontró el aula con la descripción: ' . $data['aula']);
-                }
                 
-                $cud = $data['cud'] === 'Sí' ? 1 : 0;
+                $aulaId = $this->aulaService->resolverIdPorDescripcion($data['aula']);
                 
-                $alumno = new Alumno([
+                $datosParaGuardar = [
                     'fk_id_persona' => $persona->id_persona,
                     'fk_id_aula' => $aula->id_aula,
-                    'cud' => $cud,
+                    'cud' => ($data['cud'] ?? 'No') === 'Sí' ? 1 : 0,
                     'inasistencias' => $data['inasistencias'] ?? null,
                     'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
                     'situacion_familiar' => $data['situacion_familiar'] ?? null,
@@ -80,9 +68,9 @@ class AlumnoService implements AlumnoServiceInterface
                     'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
                     'antecedentes' => $data['antecedentes'] ?? null,
                     'observaciones' => $data['observaciones'] ?? null,
-                ]);
+                ];
 
-                $alumno->save();
+                $alumno = $this->repo->crear($datosParaGuardar);
                 
                 if (!$alumno->exists) {
                     throw new \Exception('El alumno no se guardó correctamente');
@@ -205,11 +193,6 @@ class AlumnoService implements AlumnoServiceInterface
         })->values();
 
         return $alumnos;
-    }
-
-    public function obtenerCursos(): \Illuminate\Support\Collection
-    {
-        return Aula::all()->map(fn($a) => $a->descripcion)->unique();
     }
 
     private function buscarAulaPorDescripcion(string $descripcion): ?Aula
@@ -346,6 +329,26 @@ class AlumnoService implements AlumnoServiceInterface
 
             return true;
         });
+    }
+
+    private function resolverIdAula(string $aulaString): int
+    {
+        if (!str_contains($aulaString, '°')) {
+            throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
+        }
+
+        [$curso, $division] = explode('°', $aulaString);
+        
+        // Buscamos el aula (Esto es lógica de negocio, está bien en el servicio)
+        $aula = Aula::where('curso', $curso)
+                    ->where('division', $division)
+                    ->first();
+
+        if (!$aula) {
+            throw new \Exception("No se encontró el aula: $aulaString");
+        }
+
+        return $aula->id_aula;
     }
 
 }
