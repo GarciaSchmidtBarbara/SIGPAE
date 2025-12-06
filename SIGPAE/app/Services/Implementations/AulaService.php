@@ -19,7 +19,7 @@ class AulaService implements AulaServiceInterface
     public function obtenerCursos(): Collection
     {
         // Asumimos que tu modelo tiene un accessor 'descripcion'
-        return $this->aulaRepository->getAll()
+        return $this->aulaRepository->obtenerCursos()
                     ->map(fn($a) => $a->descripcion) 
                     ->unique();
     }
@@ -32,7 +32,7 @@ class AulaService implements AulaServiceInterface
 
         [$curso, $division] = explode('°', $descripcion);
 
-        $aula = $this->aulaRepository->findByCursoDivision($curso, $division);
+        $aula = $this->aulaRepository->buscarPorCursoYDivision($curso, $division);
 
         if (!$aula) {
             throw new Exception("No se encontró el aula: $descripcion");
