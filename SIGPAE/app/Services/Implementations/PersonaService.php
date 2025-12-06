@@ -36,7 +36,7 @@ class PersonaService implements PersonaServiceInterface
         $validator = Validator::make($data, [
             'nombre'            => 'required|string|max:255',
             'apellido'          => 'required|string|max:255',
-            'dni'               => 'required|string|unique:personas,dni',
+            'dni'               => 'required|max:20|unique:personas,dni',
             'fecha_nacimiento'  => 'required|date',
             'domicilio'         => 'nullable|string|max:255',
             'nacionalidad'      => 'nullable|string|max:100',
@@ -54,7 +54,7 @@ class PersonaService implements PersonaServiceInterface
         $validator = Validator::make($data, [
             'nombre'            => 'sometimes|string|max:255',
             'apellido'          => 'sometimes|string|max:255',
-            'dni'               => 'sometimes|string|unique:personas,dni,' . $id . ',id_persona',
+            'dni'               => 'sometimes|max:20|unique:personas,dni,' . $id . ',id_persona',
             'fecha_nacimiento'  => 'sometimes|date',
             'domicilio'         => 'nullable|string|max:255',
             'nacionalidad'      => 'nullable|string|max:100',
