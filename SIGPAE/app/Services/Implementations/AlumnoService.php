@@ -57,7 +57,7 @@ class AlumnoService implements AlumnoServiceInterface
                 
                 $datosParaGuardar = [
                     'fk_id_persona' => $persona->id_persona,
-                    'fk_id_aula' => $aula->id_aula,
+                    'fk_id_aula' => $aulaId,
                     'cud' => ($data['cud'] ?? 'No') === 'Sí' ? 1 : 0,
                     'inasistencias' => $data['inasistencias'] ?? null,
                     'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
@@ -219,49 +219,6 @@ class AlumnoService implements AlumnoServiceInterface
         return strtolower(strtr(iconv('UTF-8', 'ASCII//TRANSLIT', $texto), "´`^~¨", "     "));
     }
 
-    private function procesarRelaciones(Alumno $alumno, array $listaFamiliares)
-    {
-        foreach ($listaFamiliares as $datos) {
-            
-            $esHermanoAlumno = !empty($datos['fk_id_persona']) && !empty($datos['asiste_a_institucion']);
-
-            // Extraemos la observación para la tabla PIVOTE
-            $observacionPivot = $datos['observaciones'] ?? null;
-
-            if ($esHermanoAlumno) {
-                // 1. Buscamos al hermano
-                $hermano = $this->repo->buscarPorPersonaId($datos['fk_id_persona']);
-                // (O usá Alumno::where si no querés crear método en repo para esto solo)
-
-                if ($hermano && $hermano->id_alumno !== $alumno->id_alumno) {
-                    
-                    // 2. DELEGAMOS LA VINCULACIÓN AL REPOSITORIO
-                    // Le decimos: "Vinculá A con B de forma segura y guardá la observación"
-                    $this->repo->vincularHermanos(
-                        $alumno->id_alumno, 
-                        $hermano->id_alumno, 
-                        $observacionPivot
-                    );
-                }
-
-            } else {
-                // --- CAMINO B: FAMILIAR PURO ---
-                
-                // 1. Delegamos al FamiliarService la creación/update de Persona y Familiar
-                $familiarModel = $this->familiarService->crearOActualizarDesdeArray($datos);
-
-                // 2. Vinculamos en tabla 'tiene_familiar'
-                // Si ya existe, actualizamos 'activa' a true (reactivación) y la observación
-                $alumno->familiares()->syncWithoutDetaching([
-                    $familiarModel->id_familiar => [
-                        'activa' => true,
-                        'observaciones' => $observacionPivot
-                    ]
-                ]);
-            }
-        }
-    }
-
     //Actualiza los datos básicos del alumno y su persona asociada.
     public function actualizar(int $id, array $data, array $listaFamiliares, array $familiaresAEliminar, array $hermanosAEliminar): bool
     {
@@ -331,24 +288,50 @@ class AlumnoService implements AlumnoServiceInterface
         });
     }
 
-    private function resolverIdAula(string $aulaString): int
+    private function procesarRelaciones(Alumno $alumno, array $listaFamiliares)
     {
-        if (!str_contains($aulaString, '°')) {
-            throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
+        foreach ($listaFamiliares as $datos) {
+            
+            $esHermanoAlumno = !empty($datos['fk_id_persona']) && !empty($datos['asiste_a_institucion']);
+
+            // Extraemos la observación para la tabla PIVOTE
+            $observacionPivot = $datos['observaciones'] ?? null;
+
+            if ($esHermanoAlumno) {
+                // 1. Buscamos al hermano
+                $hermano = $this->repo->buscarPorPersonaId($datos['fk_id_persona']);
+                // (O usá Alumno::where si no querés crear método en repo para esto solo)
+
+                if ($hermano && $hermano->id_alumno !== $alumno->id_alumno) {
+                    
+                    // 2. DELEGAMOS LA VINCULACIÓN AL REPOSITORIO
+                    // Le decimos: "Vinculá A con B de forma segura y guardá la observación"
+                    $this->repo->vincularHermanos(
+                        $alumno->id_alumno, 
+                        $hermano->id_alumno, 
+                        $observacionPivot
+                    );
+                }
+
+            } else {
+                // --- CAMINO B: FAMILIAR PURO ---
+                
+                // 1. Delegamos al FamiliarService la creación/update de Persona y Familiar
+                $familiarModel = $this->familiarService->crearOActualizarDesdeArray($datos);
+
+                // 2. Vinculamos en tabla 'tiene_familiar'
+                // Si ya existe, actualizamos 'activa' a true (reactivación) y la observación
+
+                // aca si utizo syncWithoutDetaching, porque sino requeriria logica adicional en el repo,
+                // y no vale la pena por ser un caso tan puntual
+                $alumno->familiares()->syncWithoutDetaching([
+                    $familiarModel->id_familiar => [
+                        'activa' => true,
+                        'observaciones' => $observacionPivot
+                    ]
+                ]);
+            }
         }
-
-        [$curso, $division] = explode('°', $aulaString);
-        
-        // Buscamos el aula (Esto es lógica de negocio, está bien en el servicio)
-        $aula = Aula::where('curso', $curso)
-                    ->where('division', $division)
-                    ->first();
-
-        if (!$aula) {
-            throw new \Exception("No se encontró el aula: $aulaString");
-        }
-
-        return $aula->id_aula;
     }
 
 }
