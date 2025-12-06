@@ -21,8 +21,8 @@ use App\Models\Aula;
 
 class AlumnoController extends Controller
 {
-    protected $alumnoService;
-    protected $personaService;
+    protected AlumnoServiceInterface $alumnoService;
+    protected PersonaServiceInterface $personaService;
 
     public function __construct(AlumnoServiceInterface $alumnoService, PersonaServiceInterface $personaService)
     {
