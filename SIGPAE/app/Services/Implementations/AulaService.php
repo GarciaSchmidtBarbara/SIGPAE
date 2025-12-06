@@ -24,7 +24,7 @@ class AulaService implements AulaServiceInterface
                     ->unique();
     }
 
-    public function resolverIdPorDescripcion(string $descripcion): int
+    public function buscarAulaPorDescripcion(string $descripcion): int
     {
         if (!str_contains($descripcion, '°')) {
             throw new Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
