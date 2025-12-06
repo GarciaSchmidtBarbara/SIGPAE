@@ -36,86 +36,84 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
 
 
 
-//Rutas Planillas
-// Rutas Planillas (Conectada al Controlador)
 use App\Http\Controllers\PlanillaController;
-Route::get('/planillas', [PlanillaController::class, 'index'])
-    ->middleware('auth')
-    ->name('planillas.principal');
 
-// Subrutas de creación de planillas (usadas por planillas.principal)
-Route::prefix('planillas')->middleware('auth')->group(function () {
+// Lo dejo todo unificado en el mismo grupo
+Route::prefix('planillas')->middleware('auth')->name('planillas.')->group(function () {
 
+    // principal
+    Route::get('/', [PlanillaController::class, 'index'])->name('principal');
+
+    // ACTAS
     Route::get('/acta-equipo-indisciplinario/crear', [PlanillaController::class, 'crearActaIndisciplinario'])
-        ->name('planillas.acta-equipo-indisciplinario.create');
+        ->name('acta-equipo-indisciplinario.create');
     Route::post('/acta-equipo-indisciplinario/guardar', [PlanillaController::class, 'guardarActaIndisciplinario'])
-        ->name('planillas.acta-equipo-indisciplinario.store');
-    // --- ACTA REUNIÓN TRABAJO (EI SIN DIRECTIVOS) ---
+        ->name('acta-equipo-indisciplinario.store');
+
     Route::get('/acta-reunion-trabajo/crear', [PlanillaController::class, 'crearActaReunionTrabajo'])
-        ->name('planillas.acta-reunion-trabajo.create');
+        ->name('acta-reunion-trabajo.create');
     Route::post('/acta-reunion-trabajo/guardar', [PlanillaController::class, 'guardarActaReunionTrabajo'])
-        ->name('planillas.acta-reunion-trabajo.store');
+        ->name('acta-reunion-trabajo.store');
+
     Route::get('/acta-reuniones-banda/crear', [PlanillaController::class, 'crearActaBanda'])
-        ->name('planillas.acta-reuniones-banda.create');
-
-    // 2. Guardar
+        ->name('acta-reuniones-banda.create');
     Route::post('/acta-reuniones-banda/guardar', [PlanillaController::class, 'guardarActaBanda'])
-        ->name('planillas.acta-reuniones-banda.store');
+        ->name('acta-reuniones-banda.store');
 
-        // --- PLANILLA MEDIAL ---
+    // PLANILLA MEDIAL
     Route::get('/planilla-medial/crear', [PlanillaController::class, 'crearPlanillaMedial'])
-        ->name('planillas.planilla-medial.create');
-
+        ->name('planilla-medial.create');
     Route::post('/planilla-medial/guardar', [PlanillaController::class, 'guardarPlanillaMedial'])
-        ->name('planillas.planilla-medial.store');
-    // --- PLANILLA FINAL ---
-    Route::get('/planilla-final/crear', [PlanillaController::class, 'crearPlanillaFinal'])
-        ->name('planillas.planilla-final.create');
+        ->name('planilla-medial.store');
 
+    // PLANILLA FINAL
+    Route::get('/planilla-final/crear', [PlanillaController::class, 'crearPlanillaFinal'])
+        ->name('planilla-final.create');
     Route::post('/planilla-final/guardar', [PlanillaController::class, 'guardarPlanillaFinal'])
-        ->name('planillas.planilla-final.store');
-   
-    Route::delete('/planillas/{id}/eliminar', [PlanillaController::class, 'eliminar'])
-        ->name('planillas.eliminar');
-    Route::get('/planillas/papelera', [PlanillaController::class, 'verPapelera'])
-        ->name('planillas.papelera');
-    Route::post('/planillas/{id}/restaurar', [PlanillaController::class, 'restaurar'])
-        ->name('planillas.restaurar');
-    Route::delete('/planillas/{id}/destruir', [PlanillaController::class, 'forzarEliminacion'])
-        ->name('planillas.destruir');
-    Route::get('/planillas/{id}/ver', [PlanillaController::class, 'ver'])->name('planillas.ver');
-    Route::get('/planillas/{id}/editar', [PlanillaController::class, 'editar'])->name('planillas.editar');
-    Route::put('/planillas/{id}/actualizar', [PlanillaController::class, 'actualizar'])->name('planillas.actualizar');
-    Route::get('/planillas/{id}/descargar', [PlanillaController::class, 'descargar'])->name('planillas.descargar');
-    
+        ->name('planilla-final.store');
+
+    // CRUD genérico de planillas
+    Route::delete('/{id}/eliminar', [PlanillaController::class, 'eliminar'])->name('eliminar');
+    Route::get('/papelera', [PlanillaController::class, 'verPapelera'])->name('papelera');
+    Route::post('/{id}/restaurar', [PlanillaController::class, 'restaurar'])->name('restaurar');
+    Route::delete('/{id}/destruir', [PlanillaController::class, 'forzarEliminacion'])->name('destruir');
+    Route::get('/{id}/ver', [PlanillaController::class, 'ver'])->name('ver');
+    Route::get('/{id}/editar', [PlanillaController::class, 'editar'])->name('editar');
+    Route::put('/{id}/actualizar', [PlanillaController::class, 'actualizar'])->name('actualizar');
+    Route::get('/{id}/descargar', [PlanillaController::class, 'descargar'])->name('descargar');
 });
 
 //Rutas Alumnos
 use App\Http\Controllers\AlumnoController;
-Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
-Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear');
-Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
-
-//con item me refiero a que puede ser un familiar o un hermano alumno
-Route::delete('/alumnos/asistente/item/eliminar/{indice}', [AlumnoController::class, 'eliminarItemDeSesion'])->name('asistente.item.eliminar');
-Route::post('/alumnos/asistente/sincronizar', [AlumnoController::class, 'sincronizarEstado'])->name('asistente.sincronizar');
-
-Route::get('/alumnos/asistente/continuar', [AlumnoController::class, 'continuar'])->name('alumnos.continuar');
-Route::post('/alumnos/validar-dni', [AlumnoController::class, 'validarDniAjax'])->name('alumnos.validar-dni');
-Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
-Route::post('/alumnos/store', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
-Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
-
-Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
-
-
-
-//Rutas familiares
 use App\Http\Controllers\FamiliarController;
-Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
-Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
-Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardarYVolver'])->name('familiares.guardarYVolver');
-Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
+
+// Ruta principal de listado (SIN el middleware)
+Route::get('/alumnos', [AlumnoController::class, 'vista'])->name('alumnos.principal');
+
+// Rutas del flujo de creación/edición de alumno (CON el middleware SessionAlumnoCrearEditar)
+Route::middleware(['auth', \App\Http\Middleware\SessionAlumnoCrearEditar::class])->group(function () {
+    Route::get('/alumnos/crear', [AlumnoController::class, 'crear'])->name('alumnos.crear');
+    Route::get('/alumnos/{id}/editar', [AlumnoController::class, 'editar'])->name('alumnos.editar');
+    
+    // con item me refiero a que puede ser un familiar o un hermano alumno
+    Route::delete('/alumnos/asistente/item/eliminar/{indice}', [AlumnoController::class, 'eliminarItemDeSesion'])->name('asistente.item.eliminar');
+    Route::post('/alumnos/asistente/sincronizar', [AlumnoController::class, 'sincronizarEstado'])->name('asistente.sincronizar');
+    
+    Route::get('/alumnos/asistente/continuar', [AlumnoController::class, 'continuar'])->name('alumnos.continuar');
+    Route::post('/alumnos/validar-dni', [AlumnoController::class, 'validarDniAjax'])->name('alumnos.validar-dni');
+    Route::post('/alumnos/store', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
+    Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
+    
+    // Sub-módulo Familiar
+    Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
+    Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
+    Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardarYVolver'])->name('familiares.guardarYVolver');
+    Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
+});
+
+// Rutas sin el middleware del asistente
+Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
+Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
 
 //Rutas de los usuarios (profesionales)
