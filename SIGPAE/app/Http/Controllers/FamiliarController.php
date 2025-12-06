@@ -223,7 +223,7 @@ class FamiliarController extends Controller
 
     public function validarDniAjax(Request $request): JsonResponse
     {
-        $dniIngresado = $request->input('dni');
+        $dniIngresado = (string) $request->input('dni');
         
         // CORRECCIÓN: Usamos el ID de la Persona del familiar (no del alumno)
         $idPersonaFamiliar = $request->input('fk_id_persona'); 

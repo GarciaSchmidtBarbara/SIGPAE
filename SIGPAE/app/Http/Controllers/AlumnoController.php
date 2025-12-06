@@ -291,7 +291,7 @@ class AlumnoController extends Controller
 
     public function validarDniAjax(Request $request): JsonResponse
     {
-        $dniIngresado = $request->input('dni');
+        $dniIngresado = (string) $request->input('dni');
         $idAlumnoActual = $request->input('id_alumno');
 
         $familiares = session('asistente.familiares', []);
@@ -321,7 +321,7 @@ class AlumnoController extends Controller
         // 1. Validación del Alumno
         // A diferencia de la vista, aquí sí validamos contra la BBDD que el DNI sea único.
         $datosAlumno = $request->validate([
-            'dni' => 'required|numeric|unique:personas,dni',
+            'dni' => 'required|string|unique:personas,dni',
             'nombre' => 'required|string|max:191',
             'apellido' => 'required|string|max:191',
             'fecha_nacimiento' => 'required|date',
@@ -368,7 +368,7 @@ class AlumnoController extends Controller
 
         // 1. Validación del Alumno
         $datosAlumno = $request->validate([
-            'dni' => 'required|numeric|unique:personas,dni,'. $idPersona . ',id_persona',
+            'dni' => 'required|string|unique:personas,dni,'. $idPersona . ',id_persona',
             'nombre' => 'required|string|max:191',
             'apellido' => 'required|string|max:191',
             'fecha_nacimiento' => 'required|date',
