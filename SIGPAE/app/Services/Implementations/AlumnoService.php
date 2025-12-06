@@ -53,7 +53,7 @@ class AlumnoService implements AlumnoServiceInterface
                     'activo' => true,
                 ]);
                 
-                $aulaId = $this->aulaService->resolverIdPorDescripcion($data['aula']);
+                $aulaId = $this->aulaService->buscarAulaPorDescripcion($data['aula']);
                 
                 $datosParaGuardar = [
                     'fk_id_persona' => $persona->id_persona,
@@ -102,16 +102,12 @@ class AlumnoService implements AlumnoServiceInterface
 
     public function buscar(string $q): \Illuminate\Support\Collection
     {
-        if (trim($q) === '') return collect();
-        $like = '%' . str_replace('%','', $q) . '%';
-        return Alumno::with(['persona','aula'])
-            ->whereHas('persona', function($sub) use ($like){
-                $sub->where('dni','like',$like)
-                    ->orWhere('nombre','ilike',$like)
-                    ->orWhere('apellido','ilike',$like);
-            })
-            ->limit(10)
-            ->get();
+        // Si está vacío, no consultamos a la bbdd
+        if (trim($q) === '') {
+            return collect();
+        }
+
+        return $this->repo->buscarPorTermino($q);
     }
 
     public function eliminar(int $id): bool
@@ -134,84 +130,29 @@ class AlumnoService implements AlumnoServiceInterface
         return $this->repo->cambiarActivo($id);
     }
 
-    // Nueva función: lógica de búsqueda y filtrado
     public function filtrar(Request $request): \Illuminate\Support\Collection
     {
-        $query = Alumno::with('persona', 'aula');
+        $criterios = [
+            'dni'    => $request->get('documento'), // Mapeamos input 'documento' a criterio 'dni'
+            'estado' => $request->get('estado', 'activos'),
+        ];
 
+        // Normalización de textos
         if ($request->filled('nombre')) {
-            $nombre = $this->normalizarTexto($request->nombre);
-            $query->whereHas('persona', fn($q) =>
-                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
-            );
+            $criterios['nombre'] = $this->normalizarTexto($request->nombre);
         }
-
         if ($request->filled('apellido')) {
-            $apellido = $this->normalizarTexto($request->apellido);
-            $query->whereHas('persona', fn($q) =>
-                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"])
-            );
+            $criterios['apellido'] = $this->normalizarTexto($request->apellido);
         }
 
-        if ($request->filled('documento')) {
-            $query->whereHas('persona', fn($q) =>
-                $q->where('dni', 'like', '%' . $request->documento . '%')
-            );
-        }
-
+        // Lógica de Aula (Separar string)
         if ($request->filled('aula') && str_contains($request->aula, '°')) {
             [$curso, $division] = explode('°', $request->aula);
-            $query->whereHas('aula', fn($q) =>
-                $q->where('curso', $curso)->where('division', $division)
-            );
-        }
-        
-        $estado = $request->get('estado', 'activos');
-        if ($estado === 'activos') {
-            $query->whereHas('persona', fn($q) => $q->where('activo', true));
-        } elseif ($estado === 'inactivos') {
-            $query->whereHas('persona', fn($q) => $q->where('activo', false));
+            $criterios['curso'] = $curso;
+            $criterios['division'] = $division;
         }
 
-        $alumnos = $query->get();
-
-        // Ordenamiento compuesto: primero activos (desc), luego apellido asc dentro de cada grupo.
-        $alumnos = $alumnos->sort(function ($a, $b) {
-            $activoA = data_get($a, 'persona.activo') ? 1 : 0;
-            $activoB = data_get($b, 'persona.activo') ? 1 : 0;
-
-            // Queremos activos arriba 
-            if ($activoA !== $activoB) {
-                return $activoA > $activoB ? -1 : 1;
-            }
-
-            //orden alfabético
-            $nombreA = mb_strtolower(data_get($a, 'persona.nombre', ''));
-            $nombreB = mb_strtolower(data_get($b, 'persona.nombre', ''));
-
-            return $nombreA <=> $nombreB;
-        })->values();
-
-        return $alumnos;
-    }
-
-    private function buscarAulaPorDescripcion(string $descripcion): ?Aula
-    {
-        if (!str_contains($descripcion, '°')) {
-            throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
-        }
-
-        [$curso, $division] = explode('°', $descripcion);
-
-        $aula = Aula::where('curso', $curso)
-                    ->where('division', $division)
-                    ->first();
-
-        if (!$aula) {
-            throw new \Exception('No se encontró el aula con la descripción: ' . $descripcion);
-        }
-
-        return $aula;
+        return $this->repo->filtrar($criterios);
     }
 
     private function normalizarTexto(string $texto): string
