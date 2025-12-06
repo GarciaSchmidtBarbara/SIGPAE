@@ -3,7 +3,6 @@
 namespace App\Services\Implementations;
 
 use App\Models\Familiar;
-use App\Models\Persona;
 use InvalidArgumentException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -30,7 +29,7 @@ class FamiliarService implements FamiliarServiceInterface
      * Recibe un array de datos (del wizard), gestiona la Persona asociada
      * y crea o actualiza el Familiar.
      */
-    public function crearOActualizarDesdeArray(array $datos): \App\Models\Familiar
+    public function crearOActualizarDesdeArray(array $datos): Familiar
     {
         // 1. Gestionar la PERSONA
         // Preparamos los datos de la persona
@@ -46,21 +45,23 @@ class FamiliarService implements FamiliarServiceInterface
 
         $persona = null;
         
-        // 1. Plan A: Buscar por ID (Si viene en la sesión)
+        // Plan A: Buscar por ID
         if (!empty($datos['fk_id_persona'])) {
-            $persona = \App\Models\Persona::find($datos['fk_id_persona']);
-        } 
+            $this->personaService->getPersonaById($datos['fk_id_persona']); 
+        }
 
         // 2. Plan B: Si falló el ID, Buscar por DNI (La Red de Seguridad)
         if (!$persona) {
-            $persona = \App\Models\Persona::where('dni', $datos['dni'])->first();
+            $persona = $this->personaService->findPersonaByDni($datos['dni']);
         }
 
         // 3. Ejecución Final: Decidir si Actualizar o Crear (UNA SOLA VEZ)
         if ($persona) {
-            $persona->update($personaData);
+            $this->personaService->updatePersona($persona->id_persona, $personaData);
+            // Refrescamos el modelo para devolverlo actualizado
+            $persona->refresh();
         } else {
-            $persona = \App\Models\Persona::create($personaData);
+            $persona = $this->personaService->createPersona($personaData);
         }
 
         // 2. Gestionar el FAMILIAR
@@ -72,23 +73,22 @@ class FamiliarService implements FamiliarServiceInterface
             'lugar_de_trabajo' => $datos['lugar_de_trabajo'] ?? null,
             'parentesco' => strtoupper($datos['parentesco']),
             'otro_parentesco' => $datos['otro_parentesco'] ?? null,
-            // Nota: Las observaciones ACÁ son las propias del familiar (si tu tabla lo tiene),
-            // no las de la relación con el alumno.
+            'observaciones' => $datos['observaciones'] ?? null,
         ];
 
         $familiar = null;
 
         // Si viene 'id_familiar', actualizamos
         if (!empty($datos['id_familiar'])) {
-            $familiar = \App\Models\Familiar::find($datos['id_familiar']);
+            $familiar = $this->familiarRepository->find($datos['id_familiar']);
             if ($familiar) {
-                $familiar->update($familiarData);
+                $familiar = $this->familiarRepository->update($familiar->id_familiar, $familiarData);
             }
         }
 
         // Si no existe, creamos
         if (!$familiar) {
-            $familiar = \App\Models\Familiar::create($familiarData);
+            $familiar = $this->familiarRepository->create($familiarData);
         }
 
         return $familiar;
@@ -120,78 +120,45 @@ class FamiliarService implements FamiliarServiceInterface
         return $this->familiarRepository->delete($id);
     }
 
-    // Método Legacy: Crea usando transacción y separando campos (usado por otras vistas)
     public function createFamiliar(array $data): Familiar
     {
-        // Filtramos campos para Persona
-        $personaFields = array_intersect_key($data, array_flip([
-            'nombre', 'apellido', 'dni', 'fecha_nacimiento', 'domicilio', 'nacionalidad'
-        ]));
+        return DB::transaction(function () use ($data) {
+            $idPersona = $data['fk_id_persona'] ?? null;
 
-        // Filtramos campos para Familiar
-        $familiarFields = array_intersect_key($data, array_flip([
-            'fk_id_persona', 'lugar_de_trabajo', 'observaciones', 'telefono_personal', 'telefono_laboral', 'lugar_de_trabajo', 'otro_parentesco', 'parentesco'
-        ]));
-
-        try {
-            DB::beginTransaction();
-
-            if (!empty($data['fk_id_persona'])) {
-                $familiarFields['fk_id_persona'] = $data['fk_id_persona'];
-            }
-            else if (!empty($personaFields)) {
-                $persona = $this->personaService->createPersona($personaFields);
-                $familiarFields['fk_id_persona'] = $persona->id_persona;
-            } 
-            else {
-                throw new InvalidArgumentException('Se requiere fk_id_persona o datos de persona');
+            if (empty($idPersona)) {
+                // Si no hay ID, intentamos crear la persona con TODOS los datos.
+                // El Service/Repo de Persona sabrá ignorar los campos que no son suyos (como 'parentesco')
+                // gracias al $fillable del modelo Persona.
+                try {
+                    $persona = $this->personaService->createPersona($data);
+                    $idPersona = $persona->id_persona;
+                } catch (\Exception $e) {
+                    throw new InvalidArgumentException('No se pudo crear la persona asociada: ' . $e->getMessage());
+                }
             }
 
-            $familiar = $this->familiarRepository->create($familiarFields);
-
-            DB::commit();
-            return $familiar;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+            // Inyectamos el ID que acabamos de resolver (o que ya venía)
+            $data['fk_id_persona'] = $idPersona;
+            
+            return $this->familiarRepository->create($data);
+        });
     }
 
-    // Método Legacy: Actualiza usando transacción
     public function updateFamiliar(int $id, array $data): Familiar
     {
         $familiar = $this->getFamiliarById($id);
+
         if (!$familiar) {
             throw new InvalidArgumentException('Familiar no encontrado');
         }
-        
-        $personaFields = array_intersect_key($data, array_flip([
-            'nombre', 'apellido', 'dni', 'fecha_nacimiento', 'domicilio', 'nacionalidad'
-        ]));
 
-        $familiarFields = array_intersect_key($data, array_flip([
-            'lugar_de_trabajo', 'observaciones', 'telefono_personal', 'telefono_laboral', 'lugar_de_trabajo', 'otro_parentesco', 'parentesco'
-        ]));
-
-        try {
-            DB::beginTransaction();
-            
-            if (!empty($personaFields)) {
-                $personaId = $familiar->fk_id_persona ?? null;
-                if ($personaId) {
-                    $this->personaService->updatePersona($personaId, $personaFields);
-                }
+        // Si hay datos de persona, actualizamos también la persona asociada, excluyendo campos
+        // no pertinentes segun marca el $fillable en los modelos Persona y Familiar
+        return DB::transaction(function () use ($familiar, $data, $id) {
+            if ($familiar->fk_id_persona) {
+                $this->personaService->updatePersona($familiar->fk_id_persona, $data);
             }
-            
-            if (!empty($familiarFields)) {
-                $familiar = $this->familiarRepository->update($id, $familiarFields);
-            }
-
-            DB::commit();
-            return $familiar;
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+            return $this->familiarRepository->update($id, $data);
+        });
     }
 }
