@@ -260,7 +260,6 @@
 
                             if (nacimiento > hoy) {
                                 this.errorFuturo = true;
-                                alumnoData.fecha_nacimiento = ''; // Borramos
                                 alumnoData.edad = '';
                                 return;
                             }
