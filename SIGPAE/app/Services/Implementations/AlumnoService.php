@@ -160,6 +160,13 @@ class AlumnoService implements AlumnoServiceInterface
         return strtolower(strtr(iconv('UTF-8', 'ASCII//TRANSLIT', $texto), "´`^~¨", "     "));
     }
 
+    public function esAlumno(int $idPersona): bool
+    {
+        $alumno = $this->repo->buscarPorPersonaId($idPersona);
+        
+        return $alumno !== null;
+    }
+
     //Actualiza los datos básicos del alumno y su persona asociada.
     public function actualizar(int $id, array $data, array $listaFamiliares, array $familiaresAEliminar, array $hermanosAEliminar): bool
     {

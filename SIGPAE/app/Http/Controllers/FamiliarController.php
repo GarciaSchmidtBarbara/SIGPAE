@@ -9,15 +9,21 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
 use App\Services\Interfaces\FamiliarServiceInterface;
+use App\Services\Interfaces\AlumnoServiceInterface;
+use App\Services\Interfaces\PersonaServiceInterface;
 
 
 class FamiliarController extends Controller
 {
-    protected $familiarService;
+    protected FamiliarServiceInterface $familiarService;
+    protected AlumnoServiceInterface $alumnoService;
+    protected PersonaServiceInterface $personaService;
 
-    public function __construct(FamiliarServiceInterface $familiarService)
+    public function __construct(FamiliarServiceInterface $familiarService, AlumnoServiceInterface $alumnoService, PersonaServiceInterface $personaService)
     {
         $this->familiarService = $familiarService;
+        $this->alumnoService = $alumnoService;
+        $this->personaService = $personaService;
     }
 
     public function crear()
@@ -152,7 +158,7 @@ class FamiliarController extends Controller
         if ($fkPersona) {
             // Buscamos en la tabla 'alumnos' si existe una foranea para esta persona.
             // Si existe, entonces es un "Hermano Alumno" (o un alumno vinculado).
-            $esAlumno = \App\Models\Alumno::where('fk_id_persona', $fkPersona)->exists();
+            $esAlumno = $this->alumnoService->esAlumno($fkPersona);
             
             if ($esAlumno) {
                 $asiste = 1;
@@ -242,7 +248,7 @@ class FamiliarController extends Controller
         }
 
         // 3. Validar contra la Base de Datos
-        $personaEnBBDD = \App\Models\Persona::where('dni', $dniIngresado)->first();
+        $personaEnBBDD = $this->personaService->findPersonaByDni($dniIngresado);
 
         if ($personaEnBBDD) {
             // Si el DNI existe...

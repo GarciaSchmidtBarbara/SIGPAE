@@ -27,4 +27,5 @@ interface AlumnoServiceInterface
     public function actualizar(int $id, array $data, array $listaFamiliares, 
     array $familiaresAEliminar, array $hermanosAEliminar): bool;
 
+    public function esAlumno(int $idPersona): bool;
 }
