@@ -7,7 +7,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
 use App\Services\Interfaces\AlumnoServiceInterface;
-
+use App\Services\Interfaces\PersonaServiceInterface;
+use App\Services\Interfaces\AulaServiceInterface;
 
 use App\Models\Alumno;
 use App\Models\Aula;
@@ -21,9 +22,16 @@ use App\Models\Aula;
 
 class AlumnoController extends Controller
 {
-    public function __construct(AlumnoServiceInterface $alumnoService)
+    protected AlumnoServiceInterface $alumnoService;
+    protected PersonaServiceInterface $personaService;
+    protected AulaServiceInterface $aulaService;
+
+    public function __construct(AlumnoServiceInterface $alumnoService,
+        AulaServiceInterface $aulaService, PersonaServiceInterface $personaService)
     {
         $this->alumnoService = $alumnoService;
+        $this->personaService = $personaService;
+        $this->aulaService = $aulaService;
     }
 
     public function index(): JsonResponse
@@ -41,75 +49,6 @@ class AlumnoController extends Controller
         return response()->json($alumno);
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'dni' => 'required|numeric',
-            'nombre' => 'required|string|max:191',
-            'apellido' => 'required|string|max:191',
-            'fecha_nacimiento' => 'required|date|before_or_equal:today',
-            'nacionalidad' => 'required|string|max:191',
-            'aula' => 'required|string',
-        ], [
-            'required' => 'Este campo es obligatorio.',
-            'date' => 'Debe ingresar una fecha válida.',
-            'numeric' => 'Debe ingresar un número válido.',
-            'before_or_equal' => 'La fecha de nacimiento no puede ser posterior a hoy.',
-        ]);
-        try {
-            //Verificar si estamos editando un alumno existente o si estamos creando
-            $editandoAlumnoId = Session::get('editando_alumno_id');
-            
-            if ($editandoAlumnoId) {
-                //Estamos editando, actualizar en lugar de crear
-                $this->alumnoService->actualizar($editandoAlumnoId, $request->all());
-                
-                //Procesar familiares temporales si existen
-                $familiaresTemp = Session::get('familiares_temp', []);
-                if (!empty($familiaresTemp)) {
-                    $this->alumnoService->procesarFamiliaresTemporales($editandoAlumnoId, $familiaresTemp);
-                }
-                
-                //Limpiar las sesiones temporales
-                Session::forget('familiares_temp');
-                Session::forget('alumno_temp');
-                Session::forget('editando_alumno_id');
-                Session::forget('familiares_existentes');
-                
-                return redirect()->route('alumnos.principal')->with('success', 'Alumno actualizado correctamente');
-            }
-            
-            //Crear nuevo alumno
-            $familiaresTemp = Session::get('familiares_temp', []);
-            $alumno = $this->alumnoService->crearAlumnoConFamiliares($request->all(), $familiaresTemp);
-            
-            //Limpiar las sesiones temporales (basicamente para que no salgan los familiares de un alumno en los de otro)
-            Session::forget('familiares_temp');
-            Session::forget('alumno_temp');
-            Session::forget('editando_alumno_id');
-            Session::forget('familiares_existentes');
-            
-            //Si es una petición AJAX, retornar JSON
-            if ($request->expectsJson()) {
-                return response()->json($alumno, 201);
-            }
-            
-            //Si es una petición normal del formulario, redirigir
-            return redirect()->route('alumnos.principal')->with('success', 'Alumno creado correctamente');
-            
-        } catch (\Exception $e) {
-            //Si es una petición AJAX, retornar JSON error
-            if ($request->expectsJson()) {
-                return response()->json(['message' => $e->getMessage()], 400);
-            }
-            
-            //Si es una petición normal, redirigir con error
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error al crear el alumno: ' . $e->getMessage());
-        }
-    }
-
     public function cambiarActivo(int $id): RedirectResponse
     {
         $resultado = $this->alumnoService->cambiarActivo($id);
@@ -123,7 +62,7 @@ class AlumnoController extends Controller
     public function vista(Request $request)
     {
         $alumnos = $this->alumnoService->filtrar($request);
-        $cursos = $this->alumnoService->obtenerCursos();
+        $cursos = $this->aulaService->obtenerCursos();
 
         return view('alumnos.principal', compact('alumnos', 'cursos'));
     }
@@ -139,7 +78,7 @@ class AlumnoController extends Controller
         // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
         session()->forget('asistente');
 
-        $cursos = $this->alumnoService->obtenerCursos();
+        $cursos = $this->aulaService->obtenerCursos();
         
         // Preparamos la sesión con la estructura vacía del asistente
         session([
@@ -170,7 +109,7 @@ class AlumnoController extends Controller
         // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
         session()->forget('asistente');
 
-        $cursos = $this->alumnoService->obtenerCursos();
+        $cursos = $this->aulaService->obtenerCursos();
 
         //Convertir datos del modelo en un array simple para la vista
         $alumnoData = [
@@ -201,13 +140,12 @@ class AlumnoController extends Controller
         $hermanos_alumnos = $hermanos_que_lo_apuntan->merge($hermanos_que_el_apunta);
 
         $coleccionUnificada = $familiares_puros->merge($hermanos_alumnos);
-
-        // 3. [NUEVO] Normalización / Aplanado de Datos
+        
         // Transformamos la estructura anidada de BBDD a la estructura plana que espera la Vista
         $familiares_array = $coleccionUnificada->map(function ($item) {
             $data = $item->toArray();
 
-            // A. Aplanar datos de PERSONA (nombre, apellido, dni...)
+            // Aplanar datos de PERSONA (nombre, apellido, dni...)
             if (isset($data['persona'])) {
                 $data['nombre'] = $data['persona']['nombre'] ?? '';
                 $data['apellido'] = $data['persona']['apellido'] ?? '';
@@ -222,20 +160,20 @@ class AlumnoController extends Controller
                 $data['fk_id_persona'] = $data['persona']['id_persona'] ?? null;
             }
 
-            // B. Aplanar datos de AULA (Para Hermanos)
+            // Aplanar datos de AULA (Para Hermanos)
             if (isset($data['aula'])) {
                 $data['curso'] = $data['aula']['curso'] ?? '';
                 $data['division'] = $data['aula']['division'] ?? '';
             }
 
-            // C. Aplanar datos PIVOTE (Observaciones y Activa)
+            // Aplanar datos PIVOTE (Observaciones y Activa)
             // Eloquent pone los datos de la tabla intermedia en 'pivot'
             if (isset($data['pivot'])) {
                 $data['observaciones'] = $data['pivot']['observaciones'] ?? '';
                 // Nota: id_familiar o id_alumno ya vienen en el array base
             }
             
-            // D. Corrección de Parentesco para Hermanos BBDD
+            // Corrección de Parentesco para Hermanos BBDD
             if (!isset($data['parentesco'])) {
                 // Si no tiene parentesco, es un Hermano Alumno
                 $data['parentesco'] = null; // La marca de "hermano alumno de BBDD"
@@ -243,12 +181,13 @@ class AlumnoController extends Controller
             } else {
                 // Si tiene parentesco, lo pasamos a minúscula para el radio button
                 $data['parentesco'] = strtolower($data['parentesco']);
+                $data['asiste_a_institucion'] = 0;
             }
 
             return $data;
         })->toArray();
-
-        // 4. Guardamos en sesión
+         
+        // Preparamos la sesión con los datos del alumno y sus familiares
         session([
             'asistente.alumno' => $alumnoData,
             'asistente.familiares' => $familiares_array, // Array limpio y plano
@@ -267,7 +206,7 @@ class AlumnoController extends Controller
     public function continuar()
     {
         // 1. Obtenemos dependencias básicas para la vista (selects)
-        $cursos = $this->alumnoService->obtenerCursos();
+        $cursos = $this->aulaService->obtenerCursos();
 
         // leo los datos del alumno de la sesión para saber en qué modo estamos
         $alumnoData = session('asistente.alumno', []);
@@ -352,7 +291,7 @@ class AlumnoController extends Controller
 
     public function validarDniAjax(Request $request): JsonResponse
     {
-        $dniIngresado = $request->input('dni');
+        $dniIngresado = (string) $request->input('dni');
         $idAlumnoActual = $request->input('id_alumno');
 
         $familiares = session('asistente.familiares', []);
@@ -362,7 +301,7 @@ class AlumnoController extends Controller
             }
         }
 
-        $personaEnBBDD = \App\Models\Persona::where('dni', $dniIngresado)->first();
+        $personaEnBBDD = $this->personaService->findPersonaByDni($dniIngresado);
 
         if ($personaEnBBDD) {
             $alumnoAsociado = $personaEnBBDD->alumno; 
@@ -382,7 +321,7 @@ class AlumnoController extends Controller
         // 1. Validación del Alumno
         // A diferencia de la vista, aquí sí validamos contra la BBDD que el DNI sea único.
         $datosAlumno = $request->validate([
-            'dni' => 'required|numeric|unique:personas,dni',
+            'dni' => 'required|string|unique:personas,dni',
             'nombre' => 'required|string|max:191',
             'apellido' => 'required|string|max:191',
             'fecha_nacimiento' => 'required|date',
@@ -418,12 +357,18 @@ class AlumnoController extends Controller
 
     public function actualizar(Request $request, int $id)
     {
-        $alumno = Alumno::with('persona')->findOrFail($id);
+        $alumno = $this->alumnoService->obtener($id);
+
+        // Validación manual porque obtener() devuelve null si no encuentra, no lanza excepción automática
+        if (!$alumno) {
+            return redirect()->route('alumnos.principal')->with('error', 'Alumno no encontrado.');
+        }
+
         $idPersona = $alumno->persona->id_persona;
 
         // 1. Validación del Alumno
         $datosAlumno = $request->validate([
-            'dni' => 'required|numeric|unique:personas,dni,'. $idPersona . ',id_persona',
+            'dni' => 'required|string|unique:personas,dni,'. $idPersona . ',id_persona',
             'nombre' => 'required|string|max:191',
             'apellido' => 'required|string|max:191',
             'fecha_nacimiento' => 'required|date',

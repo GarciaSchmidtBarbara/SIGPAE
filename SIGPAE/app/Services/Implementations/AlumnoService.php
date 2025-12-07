@@ -3,8 +3,10 @@ namespace App\Services\Implementations;
 
 use App\Repositories\Interfaces\AlumnoRepositoryInterface;
 use App\Services\Interfaces\AlumnoServiceInterface;
-//Familiares
+// Se importa otros servicios para delegar tareas específicas
+use App\Services\Interfaces\PersonaServiceInterface;
 use App\Services\Interfaces\FamiliarServiceInterface;
+use App\Services\Interfaces\AulaServiceInterface;
 // Models
 use App\Models\Alumno;
 use App\Models\Aula;
@@ -19,11 +21,17 @@ use Illuminate\Support\Facades\DB;
 class AlumnoService implements AlumnoServiceInterface
 {
     protected AlumnoRepositoryInterface $repo;
+    protected PersonaServiceInterface $personaService;
+    protected FamiliarServiceInterface $familiarService;
+    protected AulaServiceInterface $aulaService;
 
-    public function __construct(AlumnoRepositoryInterface $repo, FamiliarServiceInterface $familiarService)
+    public function __construct(AlumnoRepositoryInterface $repo, PersonaServiceInterface $personaService,
+        FamiliarServiceInterface $familiarService, AulaServiceInterface $aulaService)
     {
         $this->repo = $repo;
+        $this->personaService = $personaService;
         $this->familiarService = $familiarService;
+        $this->aulaService = $aulaService;
     }
 
     public function listar(): \Illuminate\Support\Collection
@@ -35,42 +43,22 @@ class AlumnoService implements AlumnoServiceInterface
     {
         return DB::transaction(function () use ($data) {
             try {
-                $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
-                $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
-                $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
-
-                $persona = Persona::create([
+                $persona = $this->personaService->createPersona([
                     'dni' => $data['dni'],
                     'nombre' => $data['nombre'],
                     'apellido' => $data['apellido'],
                     'fecha_nacimiento' => $data['fecha_nacimiento'],
                     'nacionalidad' => $data['nacionalidad'],
+                    'domicilio' => $data['domicilio'] ?? null,
                     'activo' => true,
                 ]);
-
-                if (!$persona) {
-                    throw new \Exception('Error al crear la persona asociada');
-                }
-
-                if (!str_contains($data['aula'], '°')) {
-                    throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
-                }
-
-                [$curso, $division] = explode('°', $data['aula']);
-                $aula = Aula::where('curso', $curso)
-                            ->where('division', $division)
-                            ->first();
-
-                if (!$aula) {
-                    throw new \Exception('No se encontró el aula con la descripción: ' . $data['aula']);
-                }
                 
-                $cud = $data['cud'] === 'Sí' ? 1 : 0;
+                $aulaId = $this->aulaService->buscarAulaPorDescripcion($data['aula']);
                 
-                $alumno = new Alumno([
+                $datosParaGuardar = [
                     'fk_id_persona' => $persona->id_persona,
-                    'fk_id_aula' => $aula->id_aula,
-                    'cud' => $cud,
+                    'fk_id_aula' => $aulaId,
+                    'cud' => ($data['cud'] ?? 'No') === 'Sí' ? 1 : 0,
                     'inasistencias' => $data['inasistencias'] ?? null,
                     'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
                     'situacion_familiar' => $data['situacion_familiar'] ?? null,
@@ -80,9 +68,9 @@ class AlumnoService implements AlumnoServiceInterface
                     'intervenciones_externas' => $data['intervenciones_externas'] ?? null,
                     'antecedentes' => $data['antecedentes'] ?? null,
                     'observaciones' => $data['observaciones'] ?? null,
-                ]);
+                ];
 
-                $alumno->save();
+                $alumno = $this->repo->crear($datosParaGuardar);
                 
                 if (!$alumno->exists) {
                     throw new \Exception('El alumno no se guardó correctamente');
@@ -114,16 +102,12 @@ class AlumnoService implements AlumnoServiceInterface
 
     public function buscar(string $q): \Illuminate\Support\Collection
     {
-        if (trim($q) === '') return collect();
-        $like = '%' . str_replace('%','', $q) . '%';
-        return Alumno::with(['persona','aula'])
-            ->whereHas('persona', function($sub) use ($like){
-                $sub->where('dni','like',$like)
-                    ->orWhere('nombre','ilike',$like)
-                    ->orWhere('apellido','ilike',$like);
-            })
-            ->limit(10)
-            ->get();
+        // Si está vacío, no consultamos a la bbdd
+        if (trim($q) === '') {
+            return collect();
+        }
+
+        return $this->repo->buscarPorTermino($q);
     }
 
     public function eliminar(int $id): bool
@@ -146,89 +130,29 @@ class AlumnoService implements AlumnoServiceInterface
         return $this->repo->cambiarActivo($id);
     }
 
-    // Nueva función: lógica de búsqueda y filtrado
     public function filtrar(Request $request): \Illuminate\Support\Collection
     {
-        $query = Alumno::with('persona', 'aula');
+        $criterios = [
+            'dni'    => $request->get('documento'), // Mapeamos input 'documento' a criterio 'dni'
+            'estado' => $request->get('estado', 'activos'),
+        ];
 
+        // Normalización de textos
         if ($request->filled('nombre')) {
-            $nombre = $this->normalizarTexto($request->nombre);
-            $query->whereHas('persona', fn($q) =>
-                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
-            );
+            $criterios['nombre'] = $this->normalizarTexto($request->nombre);
         }
-
         if ($request->filled('apellido')) {
-            $apellido = $this->normalizarTexto($request->apellido);
-            $query->whereHas('persona', fn($q) =>
-                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"])
-            );
+            $criterios['apellido'] = $this->normalizarTexto($request->apellido);
         }
 
-        if ($request->filled('documento')) {
-            $query->whereHas('persona', fn($q) =>
-                $q->where('dni', 'like', '%' . $request->documento . '%')
-            );
-        }
-
+        // Lógica de Aula (Separar string)
         if ($request->filled('aula') && str_contains($request->aula, '°')) {
             [$curso, $division] = explode('°', $request->aula);
-            $query->whereHas('aula', fn($q) =>
-                $q->where('curso', $curso)->where('division', $division)
-            );
-        }
-        
-        $estado = $request->get('estado', 'activos');
-        if ($estado === 'activos') {
-            $query->whereHas('persona', fn($q) => $q->where('activo', true));
-        } elseif ($estado === 'inactivos') {
-            $query->whereHas('persona', fn($q) => $q->where('activo', false));
+            $criterios['curso'] = $curso;
+            $criterios['division'] = $division;
         }
 
-        $alumnos = $query->get();
-
-        // Ordenamiento compuesto: primero activos (desc), luego apellido asc dentro de cada grupo.
-        $alumnos = $alumnos->sort(function ($a, $b) {
-            $activoA = data_get($a, 'persona.activo') ? 1 : 0;
-            $activoB = data_get($b, 'persona.activo') ? 1 : 0;
-
-            // Queremos activos arriba 
-            if ($activoA !== $activoB) {
-                return $activoA > $activoB ? -1 : 1;
-            }
-
-            //orden alfabético
-            $nombreA = mb_strtolower(data_get($a, 'persona.nombre', ''));
-            $nombreB = mb_strtolower(data_get($b, 'persona.nombre', ''));
-
-            return $nombreA <=> $nombreB;
-        })->values();
-
-        return $alumnos;
-    }
-
-    public function obtenerCursos(): \Illuminate\Support\Collection
-    {
-        return Aula::all()->map(fn($a) => $a->descripcion)->unique();
-    }
-
-    private function buscarAulaPorDescripcion(string $descripcion): ?Aula
-    {
-        if (!str_contains($descripcion, '°')) {
-            throw new \Exception('Formato de aula inválido. Ejemplo esperado: "3°A".');
-        }
-
-        [$curso, $division] = explode('°', $descripcion);
-
-        $aula = Aula::where('curso', $curso)
-                    ->where('division', $division)
-                    ->first();
-
-        if (!$aula) {
-            throw new \Exception('No se encontró el aula con la descripción: ' . $descripcion);
-        }
-
-        return $aula;
+        return $this->repo->filtrar($criterios);
     }
 
     private function normalizarTexto(string $texto): string
@@ -236,47 +160,11 @@ class AlumnoService implements AlumnoServiceInterface
         return strtolower(strtr(iconv('UTF-8', 'ASCII//TRANSLIT', $texto), "´`^~¨", "     "));
     }
 
-    private function procesarRelaciones(Alumno $alumno, array $listaFamiliares)
+    public function esAlumno(int $idPersona): bool
     {
-        foreach ($listaFamiliares as $datos) {
-            
-            $esHermanoAlumno = !empty($datos['fk_id_persona']) && !empty($datos['asiste_a_institucion']);
-
-            // Extraemos la observación para la tabla PIVOTE
-            $observacionPivot = $datos['observaciones'] ?? null;
-
-            if ($esHermanoAlumno) {
-                // 1. Buscamos al hermano
-                $hermano = $this->repo->buscarPorPersonaId($datos['fk_id_persona']);
-                // (O usá Alumno::where si no querés crear método en repo para esto solo)
-
-                if ($hermano && $hermano->id_alumno !== $alumno->id_alumno) {
-                    
-                    // 2. DELEGAMOS LA VINCULACIÓN AL REPOSITORIO
-                    // Le decimos: "Vinculá A con B de forma segura y guardá la observación"
-                    $this->repo->vincularHermanos(
-                        $alumno->id_alumno, 
-                        $hermano->id_alumno, 
-                        $observacionPivot
-                    );
-                }
-
-            } else {
-                // --- CAMINO B: FAMILIAR PURO ---
-                
-                // 1. Delegamos al FamiliarService la creación/update de Persona y Familiar
-                $familiarModel = $this->familiarService->crearOActualizarDesdeArray($datos);
-
-                // 2. Vinculamos en tabla 'tiene_familiar'
-                // Si ya existe, actualizamos 'activa' a true (reactivación) y la observación
-                $alumno->familiares()->syncWithoutDetaching([
-                    $familiarModel->id_familiar => [
-                        'activa' => true,
-                        'observaciones' => $observacionPivot
-                    ]
-                ]);
-            }
-        }
+        $alumno = $this->repo->buscarPorPersonaId($idPersona);
+        
+        return $alumno !== null;
     }
 
     //Actualiza los datos básicos del alumno y su persona asociada.
@@ -346,6 +234,52 @@ class AlumnoService implements AlumnoServiceInterface
 
             return true;
         });
+    }
+
+    private function procesarRelaciones(Alumno $alumno, array $listaFamiliares)
+    {
+        foreach ($listaFamiliares as $datos) {
+            
+            $esHermanoAlumno = !empty($datos['fk_id_persona']) && !empty($datos['asiste_a_institucion']);
+
+            // Extraemos la observación para la tabla PIVOTE
+            $observacionPivot = $datos['observaciones'] ?? null;
+
+            if ($esHermanoAlumno) {
+                // 1. Buscamos al hermano
+                $hermano = $this->repo->buscarPorPersonaId($datos['fk_id_persona']);
+                // (O usá Alumno::where si no querés crear método en repo para esto solo)
+
+                if ($hermano && $hermano->id_alumno !== $alumno->id_alumno) {
+                    
+                    // 2. DELEGAMOS LA VINCULACIÓN AL REPOSITORIO
+                    // Le decimos: "Vinculá A con B de forma segura y guardá la observación"
+                    $this->repo->vincularHermanos(
+                        $alumno->id_alumno, 
+                        $hermano->id_alumno, 
+                        $observacionPivot
+                    );
+                }
+
+            } else {
+                // --- CAMINO B: FAMILIAR PURO ---
+                
+                // 1. Delegamos al FamiliarService la creación/update de Persona y Familiar
+                $familiarModel = $this->familiarService->crearOActualizarDesdeArray($datos);
+
+                // 2. Vinculamos en tabla 'tiene_familiar'
+                // Si ya existe, actualizamos 'activa' a true (reactivación) y la observación
+
+                // aca si utizo syncWithoutDetaching, porque sino requeriria logica adicional en el repo,
+                // y no vale la pena por ser un caso tan puntual
+                $alumno->familiares()->syncWithoutDetaching([
+                    $familiarModel->id_familiar => [
+                        'activa' => true,
+                        'observaciones' => $observacionPivot
+                    ]
+                ]);
+            }
+        }
     }
 
 }

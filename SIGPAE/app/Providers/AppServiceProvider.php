@@ -17,6 +17,11 @@ use App\Repositories\Interfaces\AlumnoRepositoryInterface;
 use App\Services\Interfaces\AlumnoServiceInterface;
 use App\Services\Implementations\AlumnoService;
 use App\Repositories\Eloquent\AlumnoRepository;
+// Aula
+use App\Repositories\Interfaces\AulaRepositoryInterface;
+use App\Services\Interfaces\AulaServiceInterface;
+use App\Services\Implementations\AulaService;
+use App\Repositories\Eloquent\AulaRepository;
 // Familiar
 use App\Repositories\Interfaces\FamiliarRepositoryInterface;
 use App\Services\Interfaces\FamiliarServiceInterface;
@@ -59,6 +64,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IntervencionRepositoryInterface::class,IntervencionRepository::class);
         $this->app->bind(PlanDeAccionRepositoryInterface::class, PlanDeAccionRepository::class);
         $this->app->bind(EventoRepositoryInterface::class, EventoRepository::class);
+        $this->app->bind(AulaRepositoryInterface::class, AulaRepository::class);
 
         // Services
         $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
@@ -68,6 +74,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IntervencionServiceInterface::class,IntervencionService::class);
         $this->app->bind(PlanDeAccionServiceInterface::class, PlanDeAccionService::class);
         $this->app->bind(EventoServiceInterface::class, EventoService::class);
+        $this->app->bind(AulaServiceInterface::class, AulaService::class);
     }
 
     /**

@@ -27,10 +27,16 @@ class PersonaService implements PersonaServiceInterface
 
     public function createPersona(array $data): Persona
     {
+        if (isset($data['fecha_nacimiento'])) {
+             $formato = str_contains($data['fecha_nacimiento'], '/') ? 'd/m/Y' : 'Y-m-d';
+             $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
+             $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
+        }
+
         $validator = Validator::make($data, [
             'nombre'            => 'required|string|max:255',
             'apellido'          => 'required|string|max:255',
-            'dni'               => 'required|string|unique:personas,dni',
+            'dni'               => 'required|max:20|unique:personas,dni',
             'fecha_nacimiento'  => 'required|date',
             'domicilio'         => 'nullable|string|max:255',
             'nacionalidad'      => 'nullable|string|max:100',
@@ -48,7 +54,7 @@ class PersonaService implements PersonaServiceInterface
         $validator = Validator::make($data, [
             'nombre'            => 'sometimes|string|max:255',
             'apellido'          => 'sometimes|string|max:255',
-            'dni'               => 'sometimes|string|unique:personas,dni,' . $id . ',id_persona',
+            'dni'               => 'sometimes|max:20|unique:personas,dni,' . $id . ',id_persona',
             'fecha_nacimiento'  => 'sometimes|date',
             'domicilio'         => 'nullable|string|max:255',
             'nacionalidad'      => 'nullable|string|max:100',
