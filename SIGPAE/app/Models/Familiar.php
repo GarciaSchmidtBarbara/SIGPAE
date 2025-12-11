@@ -16,17 +16,10 @@ class Familiar extends Model
     protected $fillable = [
         'fk_id_persona',
         'lugar_de_trabajo',
-        'observaciones',
         'telefono_personal',
         'telefono_laboral',
-        'otro_parentesco',
-        'parentesco',
     ];
 
-    protected $casts = [
-        'parentesco' => Parentesco::class,
-    ];
-    
     public function getDescripcionAttribute()
     {
         return $this->persona->nombre . ' ' . $this->persona->apellido . ' (' . $this->parentesco . ')';
@@ -39,6 +32,9 @@ class Familiar extends Model
 
     public function alumnos(): BelongsToMany
     {
-        return $this->belongsToMany(Alumno::class, 'tiene_familiar', 'fk_id_familiar', 'fk_id_alumno');
+        return $this->belongsToMany(Alumno::class, 'tiene_familiar', 'fk_id_familiar', 'fk_id_alumno')
+                    ->using(TieneFamiliar::class)
+                    ->withPivot('id_tiene_familiar', 'parentesco', 'otro_parentesco', 'activa', 'observaciones')
+                    ->withTimestamps();
     }
 }
