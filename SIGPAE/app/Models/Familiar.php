@@ -22,7 +22,13 @@ class Familiar extends Model
 
     public function getDescripcionAttribute()
     {
-        return $this->persona->nombre . ' ' . $this->persona->apellido . ' (' . $this->parentesco . ')';
+        $texto = $this->nombre . ' ' . $this->apellido;
+        
+        if ($this->pivot && $this->pivot->parentesco) {
+            $texto .= ' (' . $this->pivot->parentesco . ')';
+        }
+
+        return $texto;
     }
 
     public function persona(): BelongsTo
