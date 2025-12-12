@@ -55,8 +55,6 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
 
-            $table->enum('parentesco', ["PADRE",  "MADRE", "HERMANO", "TUTOR", "OTRO"]);
-
             // Utilizo php para obtener los valores del enum desde la clase Parentesco
             // Esto asegura que los valores esten sincronizados entre el modelo y la migracion
             // Es una buena practica para evitar errores de inconsistencia en Laravel
