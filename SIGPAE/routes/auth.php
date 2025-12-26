@@ -8,7 +8,7 @@ use App\Http\Controllers\Auth\PasswordController;
 
 Route::middleware('guest')->group(function () {
     //login
-    Route::get('/', [AuthenticatedSessionController::class, 'create'])
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
     Route::post('login', [AuthenticatedSessionController::class, 'store'])
         ->name('login.store');;

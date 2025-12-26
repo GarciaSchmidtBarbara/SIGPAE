@@ -7,6 +7,10 @@ use App\Models\Planilla;
 
 require __DIR__.'/auth.php';
 
+Route::get('/', function () {
+    return auth()->check() ? redirect('/welcome') : redirect('/login');
+})->name('home');
+
 // Ruta protegida
 use App\Http\Controllers\HomeController;
 Route::get('/welcome', [HomeController::class, 'index'])
