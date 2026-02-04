@@ -13,7 +13,7 @@ WORKDIR /var/www
 
 # Copiar archivos
 COPY . .
-
+ 
 # Instalar dependencias PHP
 RUN composer install --no-dev --optimize-autoloader
 
