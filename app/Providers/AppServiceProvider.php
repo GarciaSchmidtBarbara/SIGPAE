@@ -87,9 +87,9 @@ class AppServiceProvider extends ServiceProvider
         
         // Esto le dice a Laravel que 'Auth::user()' y la mayoría de las referencias a 'User' 
         // deben usar nuestro modelo Profesional.
-        Auth::extend('web', function ($app, $name, array $config) {
-            return new \Illuminate\Auth\SessionGuard($name, Profesional::class, $app['session.store']);
-        });
+       // Auth::extend('web', function ($app, $name, array $config) {
+        //    return new \Illuminate\Auth\SessionGuard($name, Profesional::class, $app['session.store']);
+        //});
         
         //forzar https para producción
         if (app()->environment('production')) { 
