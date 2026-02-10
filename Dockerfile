@@ -17,6 +17,15 @@ COPY . .
 # Instalar dependencias PHP
 RUN composer install --no-dev --optimize-autoloader
 
+# Instalar Node.js y npm
+RUN apt-get update && apt-get install -y nodejs npm
+
+# Copiar y construir assets
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
 # Exponer puerto
 EXPOSE 10000
 
