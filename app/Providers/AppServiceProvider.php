@@ -91,6 +91,10 @@ class AppServiceProvider extends ServiceProvider
             return new \Illuminate\Auth\SessionGuard($name, Profesional::class, $app['session.store']);
         });
         
+        //forzar https para producción
+        if (app()->environment('production')) { 
+            \URL::forceScheme('https'); 
+        }
         
     }
 }
