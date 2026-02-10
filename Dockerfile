@@ -23,6 +23,9 @@ RUN npm install && npm run build
 # Configurar permisos (si usas storage/bootstrap/cache)
 RUN chown -R www-data:www-data storage bootstrap/cache
 
+RUN php artisan config:clear && php artisan cache:clear && php artisan route:clear
+
+
 # Exponer puerto
 EXPOSE 10000
 
