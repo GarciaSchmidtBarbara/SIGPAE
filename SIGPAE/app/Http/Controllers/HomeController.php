@@ -35,9 +35,9 @@ class HomeController extends Controller
             ->values();
 
         $hoy = Carbon::today();
-        $fin = Carbon::now()->addDays(7)->endOfDay();
+        $fin = Carbon::now()->addMonths(2)->endOfDay();
 
-        // Próximos eventos: desde hoy  hasta 7 días después
+        // Próximos eventos: desde hoy hasta 2 meses después
         $eventosCreadosProximos = $profesional->eventosCreados()
             ->whereBetween('fecha_hora', [$hoy, $fin])
             ->orderBy('fecha_hora')
