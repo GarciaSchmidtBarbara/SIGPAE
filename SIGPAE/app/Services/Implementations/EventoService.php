@@ -206,8 +206,23 @@ class EventoService implements EventoServiceInterface
 
     public function obtenerEventosParaCalendario(string $start, string $end): array
     {
-        $eventos = $this->repo->getEventosByDateRange($start, $end);
-        
+        $profesional = auth()->user();
+        if (!$profesional) return [];
+
+        // Eventos creados por el usuario (pasados y futuros)
+        $eventosCreados = $this->repo->getEventosByDateRange('2000-01-01', $end)
+            ->where('fk_id_profesional_creador', $profesional->id_profesional);
+
+        // Eventos donde es invitado (pasados y futuros)
+        $eventosInvitado = $this->repo->getEventosByDateRange('2000-01-01', $end)
+            ->filter(function ($evento) use ($profesional) {
+                return $evento->esInvitadoA->contains(function ($inv) use ($profesional) {
+                    return $inv->fk_id_profesional == $profesional->id_profesional;
+                });
+            });
+
+        $eventos = $eventosCreados->merge($eventosInvitado)->unique('id_evento')->sortBy('fecha_hora');
+
         return $eventos->map(function ($evento) {
             return [
                 'id' => $evento->id_evento,
@@ -222,7 +237,7 @@ class EventoService implements EventoServiceInterface
                     'hora' => $evento->fecha_hora->format('H:i'),
                 ],
             ];
-        })->toArray();
+        })->values()->toArray();
     }
 
     private function formatearTituloEvento(Evento $evento): string

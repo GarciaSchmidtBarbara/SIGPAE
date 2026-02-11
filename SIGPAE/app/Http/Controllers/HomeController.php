@@ -58,6 +58,7 @@ class HomeController extends Controller
         $eventosProximos = $eventosCreadosProximos
             ->merge($eventosInvitadoProximos)
             ->sortBy('fecha_hora')
+            ->take(3)
             ->values();
 
         // -----------------------------------------------
