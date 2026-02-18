@@ -1,11 +1,16 @@
 @extends('layouts.base')
 
-@section('encabezado', 'Crear Derivación Externa')
+@section('encabezado', isset($evento) ? 'Editar Derivación Externa' : 'Crear Derivación Externa')
 
 @section('contenido')
 <div x-data="derivacionForm()" x-init="init()" class="space-y-6">
-    <form method="POST" action="{{ route('eventos.guardar-derivacion') }}" @submit.prevent="validarYGuardar">
+    <form method="POST"
+          action="{{ isset($evento) ? route('eventos.actualizar-derivacion', $evento->id_evento) : route('eventos.guardar-derivacion') }}"
+          @submit.prevent="validarYGuardar">
         @csrf
+        @if(isset($evento))
+            @method('PUT')
+        @endif
 
         <!-- Detalles de la derivación externa -->
         <div class="bg-white rounded-lg shadow p-6 space-y-4">
@@ -148,7 +153,7 @@
         <!-- Botones -->
         <div class="flex gap-4">
             <button type="submit" class="btn-aceptar">Guardar</button>
-            <button type="button" class="btn-eliminar" @click="window.history.back()">Eliminar</button>
+            <a href="{{ route('eventos.principal') }}" class="btn-eliminar">Cancelar</a>
             <a href="{{ route('eventos.principal') }}" class="btn-volver">Volver</a>
         </div>
     </form>
@@ -158,14 +163,14 @@
 function derivacionForm() {
     return {
         formData: {
-            descripcion: '',
-            fecha: '',
-            lugar: '',
-            profesional_tratante: '',
-            periodo_recordatorio: 1,
-            notas: ''
+            descripcion: '{{ old('descripcion_externa', $evento->notas ?? '') }}',
+            fecha: '{{ old('fecha', isset($evento) ? ($evento->fecha_hora?->format('Y-m-d') ?? '') : '') }}',
+            lugar: '{{ old('lugar', $evento->lugar ?? '') }}',
+            profesional_tratante: '{{ old('profesional_tratante', $evento->profesional_tratante ?? '') }}',
+            periodo_recordatorio: {{ old('periodo_recordatorio', $evento->periodo_recordatorio ?? 1) }},
+            notas: '{{ old('notas', '') }}'
         },
-        alumnosSeleccionados: [],
+        alumnosSeleccionados: @json(old('alumnos', $alumnosEvento ?? [])),
         searchQuery: '',
         resultadosAlumnos: [],
         errors: {

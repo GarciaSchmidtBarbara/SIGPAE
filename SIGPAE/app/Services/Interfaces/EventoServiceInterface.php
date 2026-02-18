@@ -22,6 +22,8 @@ interface EventoServiceInterface
     public function actualizarConParticipantes(int $id, array $data): bool;
     
     public function crearDerivacionExterna(array $data): Evento;
+
+    public function actualizarDerivacionExterna(int $id, array $data): bool;
     
     public function obtenerEventosParaCalendario(string $start, string $end): array;
 }

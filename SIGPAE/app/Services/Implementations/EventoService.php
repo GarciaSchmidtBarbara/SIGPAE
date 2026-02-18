@@ -159,45 +159,64 @@ class EventoService implements EventoServiceInterface
     {
         \DB::beginTransaction();
         try {
-            // Obtener el ID del profesional autenticado
             $profesionalId = auth()->check() ? auth()->user()->getAuthIdentifier() : null;
             
             if (!$profesionalId) {
                 throw new \Exception('Usuario no autenticado');
             }
             
-            // Construir las notas incluyendo el profesional tratante y la descripción externa
-            $notasCompletas = $data['notas'] ?? '';
-            
-            if (!empty($data['descripcion_externa'])) {
-                $notasCompletas = "DERIVACIÓN: " . $data['descripcion_externa'];
-                if (!empty($data['notas'])) {
-                    $notasCompletas .= "\n\nNOTAS: " . $data['notas'];
-                }
-            }
-            
-            if (!empty($data['profesional_tratante'])) {
-                $notasCompletas .= "\n\nPROFESIONAL TRATANTE: " . $data['profesional_tratante'];
-            }
-            
             $eventoData = [
                 'tipo_evento' => 'DERIVACION_EXTERNA',
                 'fecha_hora' => $data['fecha'] ?? now(),
                 'lugar' => $data['lugar'] ?? null,
-                'notas' => $notasCompletas,
+                'notas' => $data['descripcion_externa'],
+                'profesional_tratante' => $data['profesional_tratante'] ?? null,
                 'periodo_recordatorio' => $data['periodo_recordatorio'] ?? null,
                 'fk_id_profesional_creador' => $profesionalId,
             ];
 
             $evento = $this->repo->create($eventoData);
 
-            // Vincular alumnos si los hay
             if (!empty($data['alumnos'])) {
                 $evento->alumnos()->attach($data['alumnos']);
             }
 
             \DB::commit();
             return $evento;
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function actualizarDerivacionExterna(int $id, array $data): bool
+    {
+        \DB::beginTransaction();
+        try {
+            $eventoData = [
+                'fecha_hora' => $data['fecha'] ?? now(),
+                'lugar' => $data['lugar'] ?? null,
+                'notas' => $data['descripcion_externa'],
+                'profesional_tratante' => $data['profesional_tratante'] ?? null,
+                'periodo_recordatorio' => $data['periodo_recordatorio'] ?? null,
+            ];
+
+            $actualizado = $this->repo->update($id, $eventoData);
+
+            if (!$actualizado) {
+                throw new \Exception('Derivación no encontrada');
+            }
+
+            $evento = $this->repo->find($id);
+
+            if (!empty($data['alumnos'])) {
+                $evento->alumnos()->sync($data['alumnos']);
+            } else {
+                $evento->alumnos()->sync([]);
+            }
+
+            \DB::commit();
+            return true;
         } catch (\Throwable $e) {
             \DB::rollBack();
             throw $e;
