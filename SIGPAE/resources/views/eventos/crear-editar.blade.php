@@ -253,7 +253,6 @@
                 <span x-text="esEventoFinalizado ? 'Guardar cambios' : 'Guardar'"></span>
             </button>
             <a href="{{ route('eventos.principal') }}" class="btn-eliminar">Cancelar</a>
-            <a href="{{ route('eventos.principal') }}" class="btn-volver">Volver</a>
         </div>
     </form>
 </div>
@@ -268,9 +267,7 @@ function eventoForm(esEdicion = false, esFinalizado = false) {
             lugar: '{{ old('lugar', $evento->lugar ?? '') }}',
             notas: '{{ old('notas', $evento->notas ?? '') }}'
         },
-        profesionales: @json(old('profesionales', $profesionalesEvento ?? [])).length > 0 
-            ? @json(old('profesionales', $profesionalesEvento ?? []))
-            : [{ id: '', confirmado: false, asistio: false }],
+        profesionales: @json(old('profesionales', $profesionalesEvento ?? [])),
         alumnosSeleccionados: @json(old('alumnos', $alumnosEvento ?? [])),
         cursosSeleccionados: [],
         cursoSeleccionado: '',

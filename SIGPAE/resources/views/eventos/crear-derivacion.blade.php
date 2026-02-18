@@ -154,7 +154,6 @@
         <div class="flex gap-4">
             <button type="submit" class="btn-aceptar">Guardar</button>
             <a href="{{ route('eventos.principal') }}" class="btn-eliminar">Cancelar</a>
-            <a href="{{ route('eventos.principal') }}" class="btn-volver">Volver</a>
         </div>
     </form>
 </div>
