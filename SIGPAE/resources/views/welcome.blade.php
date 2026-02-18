@@ -67,7 +67,7 @@
                             <button type="button" @click="mostrarModal = false" class="btn-volver">
                                 Cerrar
                             </button>
-                            <a :href="`/eventos/${eventoData.id}/editar`" class="btn-aceptar">
+                            <a :href="eventoData.tipo === 'DERIVACION_EXTERNA' ? `/eventos/${eventoData.id}/editar-derivacion` : `/eventos/${eventoData.id}/editar`" class="btn-aceptar">
                                 Editar evento
                             </a>
                         </div>
@@ -105,7 +105,7 @@
                                                 <p class="font-medium text-gray-800" x-text="evento.title"></p>
                                                 <p class="text-sm text-gray-500" x-show="evento.hora" x-text="evento.hora"></p>
                                             </div>
-                                            <a :href="`/eventos/${evento.id}/editar`" 
+                                        <a :href="evento.extendedProps?.tipo === 'DERIVACION_EXTERNA' ? `/eventos/${evento.id}/editar-derivacion` : `/eventos/${evento.id}/editar`" 
                                             class="text-primary hover:text-primary-dark text-sm font-medium">
                                                 Editar
                                             </a>
@@ -146,6 +146,7 @@
                                 id: {{ $evento->id_evento }},
                                 title: '{{ $evento->tipo_evento->label() }}',
                                 extendedProps: {
+                                    tipo: '{{ $evento->tipo_evento?->value }}',
                                     hora: '{{ $evento->fecha_hora->format('H:i') }}',
                                     lugar: '{{ addslashes($evento->lugar) }}',
                                     creador: '{{ addslashes(optional($evento->profesionalCreador?->persona)->nombre ?? 'Sin asignar') }}',
@@ -181,6 +182,7 @@ function modalEventoData() {
         eventoData: {
             id: null,
             title: '',
+            tipo: '',
             hora: '',
             lugar: '',
             creador: '',
@@ -196,6 +198,7 @@ function modalEventoData() {
                 this.eventoData = {
                     id: evento.id,
                     title: evento.title,
+                    tipo: evento.extendedProps.tipo || '',
                     hora: evento.extendedProps.hora || '',
                     lugar: evento.extendedProps.lugar || '',
                     creador: evento.extendedProps.creador || '',

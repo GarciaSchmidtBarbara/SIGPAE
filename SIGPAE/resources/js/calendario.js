@@ -78,7 +78,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     eventos: eventosDelDia.map(e => ({
                         id: e.id,
                         title: e.title,
-                        hora: e.extendedProps?.hora || ''
+                        hora: e.extendedProps?.hora || '',
+                        extendedProps: e.extendedProps || {}
                     }))
                 }
             }));
@@ -93,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 detail: {
                     id: evento.id,
                     title: evento.title,
+                    tipo: evento.extendedProps?.tipo || '',
                     hora: evento.extendedProps?.hora || '',
                     lugar: evento.extendedProps?.lugar || '',
                     creador: evento.extendedProps?.creador || '',
