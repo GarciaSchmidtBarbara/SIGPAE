@@ -58,32 +58,6 @@
     </div>
 </form>
 
-{{-- Modal de éxito --}}
-@if(session('success'))
-<div 
-    x-data="{ open:true }" 
-    x-show="open"
-    id="modal-exito"
-    class="fixed inset-0 flex items-center justify-center bg-black/30 z-50"
->
-    <x-ui.modal-alert 
-        title="Listo" 
-        message="{{ session('success') }}" 
-        variant="success" 
-    />
-</div>
-@endif
-
-{{-- Modal de error --}}
-@if (session('error'))
-    <div x-data="{ open:true }">
-        <x-ui.modal-error 
-            title="ERROR" 
-            message="{{ session('error') }}" 
-            variant="error" 
-        />
-    </div>
-@endif
 <div>
 <div x-data="{ open: false }">
     <button @click="open = true"
