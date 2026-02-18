@@ -173,6 +173,8 @@ Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function (
     Route::put('/{id}/actualizar', [EventoController::class, 'actualizar'])->name('actualizar');
     Route::get('/crear-derivacion', [EventoController::class, 'crearDerivacion'])->name('crear-derivacion');
     Route::post('/guardar-derivacion', [EventoController::class, 'guardarDerivacion'])->name('guardar-derivacion');
+    Route::get('/{id}/editar-derivacion', [EventoController::class, 'editarDerivacion'])->name('editar-derivacion');
+    Route::put('/{id}/actualizar-derivacion', [EventoController::class, 'actualizarDerivacion'])->name('actualizar-derivacion');
     Route::post('/{id}/confirmar', [EventoController::class, 'actualizarConfirmacion'])->name('actualizar-confirmacion');
     
     // API para calendario

@@ -32,7 +32,7 @@
                         $puedeConfirmar = $estaInvitado; // Solo invitados pueden confirmar
                     @endphp
                     <tr class="border-b hover:bg-gray-50 cursor-pointer" 
-                        onclick="window.location='{{ route('eventos.ver', $evento->id_evento) }}'">
+                        onclick="window.location='{{ $evento->tipo_evento?->value === 'DERIVACION_EXTERNA' ? route('eventos.editar-derivacion', $evento->id_evento) : route('eventos.ver', $evento->id_evento) }}'">
                         <td class="px-4 py-3">{{ $evento->tipo_evento?->value ?? 'N/A' }}</td>
                         <td class="px-4 py-3">{{ $evento->fecha_hora->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
