@@ -170,11 +170,14 @@ class AlumnoController extends Controller
             // Eloquent pone los datos de la tabla intermedia en 'pivot'
             if (isset($data['pivot'])) {
                 $data['observaciones'] = $data['pivot']['observaciones'] ?? '';
-                // Nota: id_familiar o id_alumno ya vienen en el array base
+                $data['parentesco'] = $data['pivot']['parentesco'] ?? '';
+                $data['otro_parentesco'] = $data['pivot']['otro_parentesco'] ?? '';
+                $data['activa'] = $data['pivot']['activa'] ?? false;
             }
             
-            // Corrección de Parentesco para Hermanos BBDD
-            if (!isset($data['parentesco'])) {
+            // Corrección de Parentesco para Hermanos 
+            // Utilizo empty() en lugar de !isset() para atajar nulos o strings vacíos
+            if (empty($data['parentesco'])) {
                 // Si no tiene parentesco, es un Hermano Alumno
                 $data['parentesco'] = null; // La marca de "hermano alumno de BBDD"
                 $data['asiste_a_institucion'] = 1;
@@ -318,7 +321,7 @@ class AlumnoController extends Controller
 
     public function guardar(Request $request)
     {
-        dd(session()->all());
+        //dd(session()->all());
         
         //dd($request->all());
         
@@ -361,6 +364,8 @@ class AlumnoController extends Controller
 
     public function actualizar(Request $request, int $id)
     {
+        //dd(session()->all());
+
         $alumno = $this->alumnoService->obtener($id);
 
         // Validación manual porque obtener() devuelve null si no encuentra, no lanza excepción automática
@@ -395,7 +400,7 @@ class AlumnoController extends Controller
         try {
             $familiares = session('asistente.familiares', []);
             $familiares_a_eliminar = session('asistente.familiares_a_eliminar', []);
-            $hermanos_a_eliminar = session('asistente.hermanos_alumnos_a_eliminar', []);
+            $hermanos_alumnos_a_eliminar = session('asistente.hermanos_alumnos_a_eliminar', []);
 
             // 3. Delegamos al Servicio la lógica pesada
             // (El servicio orquestará la transacción de BBDD)
@@ -404,7 +409,7 @@ class AlumnoController extends Controller
                 $datosAlumno, 
                 $familiares, 
                 $familiares_a_eliminar, 
-                $hermanos_a_eliminar
+                $hermanos_alumnos_a_eliminar
             );
 
             // 4. Limpieza y Éxito
