@@ -6,7 +6,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Default Cache Store
+    | Default Cache Driver
     |--------------------------------------------------------------------------
     |
     | This option controls the default cache store that will be used by the
@@ -15,7 +15,8 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    'default' => env('CACHE_DRIVER', 'file'),
+
 
     /*
     |--------------------------------------------------------------------------
