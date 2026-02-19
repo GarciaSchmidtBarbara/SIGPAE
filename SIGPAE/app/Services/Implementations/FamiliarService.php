@@ -47,7 +47,7 @@ class FamiliarService implements FamiliarServiceInterface
         
         // Plan A: Buscar por ID
         if (!empty($datos['fk_id_persona'])) {
-            $this->personaService->getPersonaById($datos['fk_id_persona']); 
+            $persona = $this->personaService->getPersonaById($datos['fk_id_persona']); 
         }
 
         // 2. Plan B: Si falló el ID, Buscar por DNI (La Red de Seguridad)
@@ -71,9 +71,6 @@ class FamiliarService implements FamiliarServiceInterface
             'telefono_personal' => $datos['telefono_personal'] ?? null,
             'telefono_laboral' => $datos['telefono_laboral'] ?? null,
             'lugar_de_trabajo' => $datos['lugar_de_trabajo'] ?? null,
-            'parentesco' => strtoupper($datos['parentesco']),
-            'otro_parentesco' => $datos['otro_parentesco'] ?? null,
-            'observaciones' => $datos['observaciones'] ?? null,
         ];
 
         $familiar = null;
