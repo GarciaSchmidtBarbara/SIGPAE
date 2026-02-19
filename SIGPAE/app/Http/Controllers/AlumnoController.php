@@ -318,6 +318,10 @@ class AlumnoController extends Controller
 
     public function guardar(Request $request)
     {
+        dd(session()->all());
+        
+        //dd($request->all());
+        
         // 1. Validación del Alumno
         // A diferencia de la vista, aquí sí validamos contra la BBDD que el DNI sea único.
         $datosAlumno = $request->validate([

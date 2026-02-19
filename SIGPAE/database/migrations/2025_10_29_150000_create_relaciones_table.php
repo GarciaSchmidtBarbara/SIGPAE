@@ -61,7 +61,7 @@ return new class extends Migration
             $valoresParentesco = array_column(Parentesco::cases(), 'value');
             $table->enum('parentesco', $valoresParentesco);
 
-            $table->string('otro_parentesco')->nullable();
+            $table->string('otro_parentesco')-> nullable();
             $table->boolean('activa')->default(true);
             $table->string('observaciones')->nullable();
             

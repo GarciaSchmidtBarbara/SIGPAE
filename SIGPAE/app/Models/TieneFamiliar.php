@@ -9,6 +9,8 @@ class TieneFamiliar extends Pivot
 {
     protected $table = 'tiene_familiar';
 
+    protected $primaryKey = 'id_tiene_familiar';
+
     public $incrementing = true;
 
     protected $fillable = [
