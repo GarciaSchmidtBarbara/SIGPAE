@@ -224,11 +224,17 @@ class AlumnoService implements AlumnoServiceInterface
 
                 // 3. Ejecutar Borrados Físicos (Hermanos Alumnos)
                 // Rompemos el lazo (detach) en ambas direcciones por seguridad
-                if (!empty($delHermanos)) {
-                    $alumno->hermanos()->detach($delHermanos);
-                    $alumno->esHermanoDe()->detach($delHermanos); 
+                if (!empty($hermanosAEliminar)) {
+                    $alumno->hermanos()->detach($hermanosAEliminar);
+                    $alumno->esHermanoDe()->detach($hermanosAEliminar); 
                 }
 
+                if (!empty($familiaresAEliminar)) {
+                    foreach ($familiaresAEliminar as $idFamiliar) {
+                        $alumno->familiares()->updateExistingPivot($idFamiliar, ['activa' => false]);
+                    }
+                }
+                
                 // 4. Procesar Upserts (Crear o Actualizar relaciones)
                 $this->procesarRelaciones($alumno, $listaFamiliares);
 
@@ -275,7 +281,10 @@ class AlumnoService implements AlumnoServiceInterface
                 $alumno->familiares()->syncWithoutDetaching([
                     $familiarModel->id_familiar => [
                         'activa' => true,
-                        'observaciones' => $observacionPivot
+                        'observaciones' => $observacionPivot,
+                        // Inyectamos los atributos de la relación que vienen en la sesión:
+                        'parentesco' => isset($datos['parentesco']) ? strtoupper($datos['parentesco']) : null,
+                        'otro_parentesco' => $datos['otro_parentesco'] ?? null
                     ]
                 ]);
             }
