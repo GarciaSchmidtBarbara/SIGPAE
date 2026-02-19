@@ -10,7 +10,6 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Profesonal logueado (tu sistema autentica Profesionales)
         /** @var Profesional $profesional */
         $profesional = auth()->user();
 
@@ -18,9 +17,6 @@ class HomeController extends Controller
             abort(403, 'No autenticado.');
         }
 
-        // -----------------------------------------------
-        // 1) Eventos de HOY
-        // -----------------------------------------------
         $hoy = Carbon::today()->toDateString();
 
         $eventosCreadosHoy = $profesional->eventosCreados()
@@ -38,31 +34,26 @@ class HomeController extends Controller
             ->sortBy('fecha_hora')
             ->values();
 
-        // -----------------------------------------------
-        // 2) Eventos PRÓXIMOS (próximos 7 días)
-        // -----------------------------------------------
-        $ahora = Carbon::now();
+        $hoy = Carbon::today();
+        $fin = Carbon::now()->addMonths(2)->endOfDay();
 
+        // Próximos eventos: desde hoy hasta 2 meses después
         $eventosCreadosProximos = $profesional->eventosCreados()
-            ->where('fecha_hora', '>', $ahora)
+            ->whereBetween('fecha_hora', [$hoy, $fin])
             ->orderBy('fecha_hora')
-            ->take(7)
             ->get();
 
         $eventosInvitadoProximos = $profesional->eventosInvitado()
-            ->where('fecha_hora', '>', $ahora)
+            ->whereBetween('fecha_hora', [$hoy, $fin])
             ->orderBy('fecha_hora')
-            ->take(7)
             ->get();
 
         $eventosProximos = $eventosCreadosProximos
             ->merge($eventosInvitadoProximos)
             ->sortBy('fecha_hora')
+            ->take(3)
             ->values();
-
-        // -----------------------------------------------
-        // 3) Retornar vista
-        // -----------------------------------------------
+            
         return view('welcome', [
     'profesional'             => $profesional,
     'eventosHoy'              => $eventosHoy,

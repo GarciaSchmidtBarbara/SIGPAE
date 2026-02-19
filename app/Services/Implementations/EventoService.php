@@ -159,39 +159,24 @@ class EventoService implements EventoServiceInterface
     {
         \DB::beginTransaction();
         try {
-            // Obtener el ID del profesional autenticado
             $profesionalId = auth()->check() ? auth()->user()->getAuthIdentifier() : null;
             
             if (!$profesionalId) {
                 throw new \Exception('Usuario no autenticado');
             }
             
-            // Construir las notas incluyendo el profesional tratante y la descripción externa
-            $notasCompletas = $data['notas'] ?? '';
-            
-            if (!empty($data['descripcion_externa'])) {
-                $notasCompletas = "DERIVACIÓN: " . $data['descripcion_externa'];
-                if (!empty($data['notas'])) {
-                    $notasCompletas .= "\n\nNOTAS: " . $data['notas'];
-                }
-            }
-            
-            if (!empty($data['profesional_tratante'])) {
-                $notasCompletas .= "\n\nPROFESIONAL TRATANTE: " . $data['profesional_tratante'];
-            }
-            
             $eventoData = [
                 'tipo_evento' => 'DERIVACION_EXTERNA',
                 'fecha_hora' => $data['fecha'] ?? now(),
                 'lugar' => $data['lugar'] ?? null,
-                'notas' => $notasCompletas,
+                'notas' => $data['descripcion_externa'],
+                'profesional_tratante' => $data['profesional_tratante'] ?? null,
                 'periodo_recordatorio' => $data['periodo_recordatorio'] ?? null,
                 'fk_id_profesional_creador' => $profesionalId,
             ];
 
             $evento = $this->repo->create($eventoData);
 
-            // Vincular alumnos si los hay
             if (!empty($data['alumnos'])) {
                 $evento->alumnos()->attach($data['alumnos']);
             }
@@ -204,10 +189,59 @@ class EventoService implements EventoServiceInterface
         }
     }
 
+    public function actualizarDerivacionExterna(int $id, array $data): bool
+    {
+        \DB::beginTransaction();
+        try {
+            $eventoData = [
+                'fecha_hora' => $data['fecha'] ?? now(),
+                'lugar' => $data['lugar'] ?? null,
+                'notas' => $data['descripcion_externa'],
+                'profesional_tratante' => $data['profesional_tratante'] ?? null,
+                'periodo_recordatorio' => $data['periodo_recordatorio'] ?? null,
+            ];
+
+            $actualizado = $this->repo->update($id, $eventoData);
+
+            if (!$actualizado) {
+                throw new \Exception('Derivación no encontrada');
+            }
+
+            $evento = $this->repo->find($id);
+
+            if (!empty($data['alumnos'])) {
+                $evento->alumnos()->sync($data['alumnos']);
+            } else {
+                $evento->alumnos()->sync([]);
+            }
+
+            \DB::commit();
+            return true;
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            throw $e;
+        }
+    }
+
     public function obtenerEventosParaCalendario(string $start, string $end): array
     {
-        $eventos = $this->repo->getEventosByDateRange($start, $end);
-        
+        $profesional = auth()->user();
+        if (!$profesional) return [];
+
+        // Eventos creados por el usuario (pasados y futuros)
+        $eventosCreados = $this->repo->getEventosByDateRange('2000-01-01', $end)
+            ->where('fk_id_profesional_creador', $profesional->id_profesional);
+
+        // Eventos donde es invitado (pasados y futuros)
+        $eventosInvitado = $this->repo->getEventosByDateRange('2000-01-01', $end)
+            ->filter(function ($evento) use ($profesional) {
+                return $evento->esInvitadoA->contains(function ($inv) use ($profesional) {
+                    return $inv->fk_id_profesional == $profesional->id_profesional;
+                });
+            });
+
+        $eventos = $eventosCreados->merge($eventosInvitado)->unique('id_evento')->sortBy('fecha_hora');
+
         return $eventos->map(function ($evento) {
             return [
                 'id' => $evento->id_evento,
@@ -222,7 +256,7 @@ class EventoService implements EventoServiceInterface
                     'hora' => $evento->fecha_hora->format('H:i'),
                 ],
             ];
-        })->toArray();
+        })->values()->toArray();
     }
 
     private function formatearTituloEvento(Evento $evento): string

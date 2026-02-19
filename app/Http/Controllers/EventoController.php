@@ -160,8 +160,7 @@ class EventoController extends Controller
 
     public function crearDerivacion()
     {
-        $profesionalesDisponibles = $this->profesionalService->getAllProfesionalesWithPersona();
-        return view('eventos.crear-derivacion', compact('profesionalesDisponibles'));
+        return view('eventos.crear-derivacion');
     }
 
     public function guardarDerivacion(Request $request): RedirectResponse
@@ -171,7 +170,7 @@ class EventoController extends Controller
                 'descripcion_externa' => 'required|string',
                 'fecha' => 'nullable|date',
                 'lugar' => 'nullable|string|max:255',
-                'profesional_id' => 'nullable|exists:profesionales,id_profesional',
+                'profesional_tratante' => 'nullable|string|max:255',
                 'periodo_recordatorio' => 'nullable|integer|min:1',
                 'notas' => 'nullable|string',
                 'alumnos' => 'nullable|array',
@@ -187,6 +186,46 @@ class EventoController extends Controller
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al crear derivación: ' . $e->getMessage());
+        }
+    }
+
+    public function editarDerivacion(int $id)
+    {
+        $evento = $this->eventoService->obtenerPorId($id);
+
+        if (!$evento || $evento->tipo_evento?->value !== 'DERIVACION_EXTERNA') {
+            return redirect()->route('eventos.principal')
+                ->with('error', 'Derivación no encontrada');
+        }
+
+        $alumnosEvento = $evento->alumnos()->with('persona', 'aula')->get()->toArray();
+
+        return view('eventos.crear-derivacion', compact('evento', 'alumnosEvento'));
+    }
+
+    public function actualizarDerivacion(Request $request, int $id): RedirectResponse
+    {
+        try {
+            $validated = $request->validate([
+                'descripcion_externa' => 'required|string',
+                'fecha' => 'nullable|date',
+                'lugar' => 'nullable|string|max:255',
+                'profesional_tratante' => 'nullable|string|max:255',
+                'periodo_recordatorio' => 'nullable|integer|min:1',
+                'notas' => 'nullable|string',
+                'alumnos' => 'nullable|array',
+            ], [
+                'descripcion_externa.required' => 'Debe ingresar una descripción',
+            ]);
+
+            $this->eventoService->actualizarDerivacionExterna($id, $validated);
+
+            return redirect()->route('eventos.principal')
+                ->with('success', 'Derivación externa actualizada correctamente');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al actualizar derivación: ' . $e->getMessage());
         }
     }
 

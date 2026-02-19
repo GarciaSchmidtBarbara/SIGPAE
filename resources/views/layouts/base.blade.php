@@ -134,16 +134,20 @@
                 </div>
                 
                 @if (session('success') && empty($no_global_flash))
-                    <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 shadow-sm rounded-r" role="alert">
-                        <p class="font-bold">Éxito</p>
-                        <p>{{ session('success') }}</p>
+                    <div x-data="{ open: true }">
+                        <x-ui.modal-alert
+                            variant="success"
+                            message="{{ session('success') }}"
+                        />
                     </div>
                 @endif
 
                 @if (session('error') && empty($no_global_flash))
-                    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 shadow-sm rounded-r" role="alert">
-                        <p class="font-bold">Error</p>
-                        <p>{{ session('error') }}</p>
+                    <div x-data="{ open: true }">
+                        <x-ui.modal-error
+                            variant="error"
+                            message="{{ session('error') }}"
+                        />
                     </div>
                 @endif
 
