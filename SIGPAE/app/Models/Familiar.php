@@ -22,10 +22,20 @@ class Familiar extends Model
 
     public function getDescripcionAttribute()
     {
-        $texto = $this->nombre . ' ' . $this->apellido;
+        // Accedemos a nombre y apellido directamente a través de la relación
+        $texto = $this->persona->nombre . ' ' . $this->persona->apellido;
         
         if ($this->pivot && $this->pivot->parentesco) {
-            $texto .= ' (' . $this->pivot->parentesco . ')';
+            
+            // 1. Extraemos el string del objeto Enum usando ->value
+            $valorParentesco = $this->pivot->parentesco->value;
+            
+            // 2. Verificamos si es "OTRO" para mostrar el texto libre
+            if ($valorParentesco === 'OTRO' && !empty($this->pivot->otro_parentesco)) {
+                $texto .= ' (' . $this->pivot->otro_parentesco . ')';
+            } else {
+                $texto .= ' (' . $valorParentesco . ')';
+            }
         }
 
         return $texto;
