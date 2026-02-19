@@ -346,7 +346,7 @@
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.apellido"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.dni"></td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco ? familiar.parentesco : 'Hermano Alumno'"></td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 capitalize" x-text="familiar.parentesco ? familiar.parentesco : 'Hermano Alumno'"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.telefono_personal"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                     {{-- 'familiar' es el discriminante que sirve para evaluar a posterior en el back en que array de eliminacion se debe agregar
