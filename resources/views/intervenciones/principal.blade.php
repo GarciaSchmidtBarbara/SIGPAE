@@ -7,8 +7,9 @@
 
 @section('contenido')
 
-<div class="p-6">
-    <form id="form-intervencion" method="GET" action="{{ route('intervenciones.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+<div class="p-6" x-data="intervencionesData()"
+     @abrir-modal-eliminar.window="abrir($event.detail)">    <form id="form-intervencion" method="GET" action="{{ route('intervenciones.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+        
         <a class="btn-aceptar" href="{{ route('intervenciones.crear') }}">Crear Intervención</a>
         
         <select name="tipo_intervencion" class="border px-2 py-1 rounded w-1/5">
@@ -75,11 +76,72 @@
         </x-tabla-dinamica>
     </div>
 
+    <!-- Modal eliminar -->
+    <div x-show="mostrarModal"
+        x-cloak
+        x-transition.opacity
+        @keydown.escape.window="cerrar()"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+        role="dialog">
+
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/50"
+            @click="cerrar()"></div>
+
+        <!-- Panel -->
+        <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+
+            <h3 class="text-lg font-semibold mb-4">
+                ¿Confirmar eliminación?
+            </h3>
+
+            <p class="text-gray-600 mb-6">
+                ¿Seguro que querés eliminar esta intervención?
+            </p>
+
+            <form method="POST" :action="route">
+                @csrf
+                @method('DELETE')
+
+                <div class="flex justify-end gap-3">
+                    <button type="button"
+                            @click="cerrar()"
+                            class="btn-volver">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn-eliminar">
+                        Eliminar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="fila-botones mt-8">
         {{--ESTE BOTON BUSCA LA TABLA A IMPRIMIR--}}
         <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir listado</button> 
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
 </div>
+<script>
+function intervencionesData() {
+    return {
+        mostrarModal: false,
+        route: null,
+
+        abrir(data) {
+            this.route = data.route
+            this.mostrarModal = true
+        },
+
+        cerrar() {
+            this.mostrarModal = false
+            this.route = null
+        }
+    }
+}
+</script>
 @endsection
 

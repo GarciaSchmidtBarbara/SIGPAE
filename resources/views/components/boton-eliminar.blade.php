@@ -1,16 +1,22 @@
-@props(['texto' => 'Eliminar'])
+@props([
+    'route',
+    'id' => uniqid('delete_')
+])
 
-<form action="{{ $route }}"
-      method="POST"
-      onclick="event.stopPropagation()"
-      onsubmit="event.stopPropagation(); return confirm('¿Seguro que querés eliminar esta intervención?');">
-    @csrf
-    @method('DELETE')
+<div x-data="{ open: false }" @click.stop class="flex items-center justify-center">
+    
+    <form id="{{ $id }}"
+          action="{{ $route }}"
+          method="POST">
+        @csrf
+        @method('DELETE')
+    </form>
 
-    <button type="submit" class="btn-eliminar">
-        {{ $texto ?? 'Eliminar' }}
+    <button type="button"
+        class="text-gray-500 hover:text-red-600 transition flex justify-center w-full"
+        title="Eliminar"
+        @click="$dispatch('abrir-modal-eliminar', { route: '{{ $route }}' })">
+        <x-icons.icono-eliminar class="w-5 h-5" />
     </button>
-</form>
 
-
-
+</div>
