@@ -36,10 +36,6 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
 
 });
 
-
-
-
-
 use App\Http\Controllers\PlanillaController;
 
 // Lo dejo todo unificado en el mismo grupo
@@ -107,6 +103,7 @@ Route::middleware(['auth', \App\Http\Middleware\SessionAlumnoCrearEditar::class]
     Route::post('/alumnos/validar-dni', [AlumnoController::class, 'validarDniAjax'])->name('alumnos.validar-dni');
     Route::post('/alumnos/store', [AlumnoController::class, 'guardar'])->name('alumnos.guardar');
     Route::put('/alumnos/{id}', [AlumnoController::class, 'actualizar'])->name('alumnos.actualizar');
+    Route::patch('/alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
     
     // Sub-módulo Familiar
     Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');

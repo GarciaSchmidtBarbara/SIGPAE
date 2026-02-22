@@ -7,23 +7,35 @@
 
 @php
     //valor por defecto ('Activar'/'Desactivar')
-    $textoBoton = $activo 
-        ? ($text_activo ?? 'Desactivar') 
-        : ($text_inactivo ?? 'Activar');
-        
-    // Definir la clase
-    $claseBoton = $activo 
-        ? 'bg-red-500 hover:bg-red-600' // Rojo para desactivar/cerrar
-        : 'bg-green-500 hover:bg-green-600'; // Verde para activar/abrir
+    $textoDesactivar = $text_activo ?? 'Desactivar';
+    $textoActivar = $text_inactivo ?? 'Activar';
 @endphp
 
-<form action="{{ $route }}" method="POST">
-    @csrf
-    @method('PUT') 
-    
-    <button 
-        type="submit"
-        class="px-3 py-1 rounded text-white {{ $claseBoton }}">
-        {{ $textoBoton }}
-    </button>
-</form>
+@if($activo)
+    {{-- ACTIVO → mostrar icono basura --}}
+    <form action="{{ $route }}" method="POST" onsubmit="return confirm('¿Confirmar desactivación? El alumno pasará a estado inactivo.')">
+        @csrf
+        @method('PATCH')
+
+        <button type="submit"
+                class="text-gray-500 hover:text-red-600 transition flex justify-center w-full"
+                title="{{ $textoDesactivar }}">
+
+            <x-icons.icono-eliminar class="w-5 h-5" />
+        </button>
+    </form>
+
+@else
+    {{-- INACTIVO → botón verde normal --}}
+    <form action="{{ $route }}" method="POST">
+        @csrf
+        @method('PUT')
+
+        <button type="submit"
+                @click.stop
+                class="px-3 py-1 rounded text-white bg-green-500 hover:bg-green-600 transition">
+            {{ $textoActivar }}
+        </button>
+    </form>
+
+@endif
