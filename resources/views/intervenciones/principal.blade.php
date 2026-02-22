@@ -45,8 +45,8 @@
     <div class="data-table-to-print">
         <x-tabla-dinamica 
             :columnas="[
-                ['key' => 'fecha_hora_intervencion', 'label' => 'Fecha y Hora'],
                 ['key' => 'tipo_intervencion', 'label' => 'Tipo'],
+                ['key' => 'fecha_hora_intervencion', 'label' => 'Fecha y Hora'],
                 ['key' => 'alumnos', 'label' => 'Destinatarios'],
                 ['key' => 'profesionales', 'label' => 'Intervinientes'],
             ]"

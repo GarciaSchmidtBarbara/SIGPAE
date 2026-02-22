@@ -88,10 +88,9 @@
                     <thead>
                         <tr>
                             <th>Tipo</th>
-                            <th>Nombre / Descripción</th>
-                            <th>Detalles (Escuela/Grado)</th>
-                            <th>Escuela/Grado</th>
                             <th>Fecha Creación</th>
+                            <th>Nombre / Descripción</th>
+                            <th>Escuela/Grado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -100,7 +99,7 @@
                             <tr class="hover:bg-indigo-50/30 transition duration-150 ease-in-out group cursor-pointer"
                                 @click="window.location='{{ route('planillas.editar', $item->id_planilla) }}'"">
                                 
-                                {{-- 1. TIPO (Con etiqueta de color) --}}
+                                {{-- TIPO (Con etiqueta de color) --}}
                                 <td>
                                     @php
                                         // Lógica para elegir color según el texto
@@ -117,20 +116,13 @@
                                     </span>
                                 </td>
 
-                                <td>
-                                    <div>
-                                        {{-- ENLACE QUE QUERÍAS --}}
-                                        <a href="{{ route('planillas.editar', $item->id_planilla) }}" class="hover:text-blue-600 hover:underline">
-                                            {{ $item->nombre_planilla ?? 'Sin Nombre' }}
-                                        </a>
-                                    </div>
-                                    {{-- Subtítulo gris --}}
-                                    <div class="text-xs text-gray-500 mt-1 font-normal truncate max-w-xs">
-                                        {{ Str::limit($item->tipo_planilla, 40) }}
-                                    </div>
+                                {{-- FECHA --}}
+                                <td class="p-4 text-sm text-gray-500 whitespace-nowrap">
+                                    {{ $item->created_at->format('d/m/Y') }}
+                                    <span class="text-xs text-gray-400 ml-1">{{ $item->created_at->format('H:i') }}</span>
                                 </td>
 
-                                {{-- 2. NOMBRE COMPLETO --}}
+                                {{-- NOMBRE COMPLETO --}}
                                 <td class="p-4 font-medium text-gray-900">
                                     {{ $item->nombre_planilla ?? 'Sin Nombre' }}
                                     <div class="text-xs text-gray-500 mt-1 font-normal">
@@ -138,7 +130,7 @@
                                     </div>
                                 </td>
 
-                                {{-- 3. DETALLES (INTELIGENTE: Muestra lo que corresponda) --}}
+                                {{-- DETALLES (INTELIGENTE: Muestra lo que corresponda) --}}
                                 <td class="p-4 text-sm text-gray-600">
                                     @if(isset($item->datos_planilla['escuela']))
                                         {{-- Es Planilla Medial/Final --}}
@@ -157,24 +149,18 @@
                                     @endif
                                 </td>
 
-                                {{-- 4. FECHA --}}
-                                <td class="p-4 text-sm text-gray-500 whitespace-nowrap">
-                                    {{ $item->created_at->format('d/m/Y') }}
-                                    <span class="text-xs text-gray-400 ml-1">{{ $item->created_at->format('H:i') }}</span>
-                                </td>
-
-                                {{-- 5. ACCIONES --}}
+                                {{-- ACCIONES --}}
                                 <td class="p-4 text-center">
-    <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
 
-        {{-- BOTÓN ELIMINAR (Tacho) --}}
-        <x-boton-eliminar 
-            :route="route('planillas.eliminar', $item->id_planilla)"
-            message="¿Está seguro que desea eliminar esta planilla?"
-        />
+                                        {{-- BOTÓN ELIMINAR (Tacho) --}}
+                                        <x-boton-eliminar 
+                                            :route="route('planillas.eliminar', $item->id_planilla)"
+                                            message="¿Está seguro que desea eliminar esta planilla?"
+                                        />
 
-    </div>
-</td>
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
