@@ -1,9 +1,10 @@
 @props([
     'route',
+    'message' => '¿Estás seguro?',
     'id' => uniqid('delete_')
 ])
 
-<div x-data="{ open: false }" @click.stop class="flex items-center justify-center">
+<div class="flex items-center justify-center">
     
     <form id="{{ $id }}"
           action="{{ $route }}"
@@ -15,7 +16,10 @@
     <button type="button"
         class="text-gray-500 hover:text-red-600 transition flex justify-center w-full"
         title="Eliminar"
-        @click="$dispatch('abrir-modal-eliminar', { route: '{{ $route }}' })">
+        @click.stop="$dispatch('abrir-modal-confirmar', { 
+            formId: '{{ $id }}',
+            message: '{{ $message }}'
+        })">
         <x-icons.icono-eliminar class="w-5 h-5" />
     </button>
 
