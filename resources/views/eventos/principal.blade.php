@@ -12,7 +12,7 @@
 
     <!-- Tabla de eventos -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="w-full">
+        <table  class="modern-table">
             <thead class="bg-primary text-white">
                 <tr>
                     <th class="px-4 py-3 text-left">Tipo</th>

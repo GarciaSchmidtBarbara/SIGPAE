@@ -80,28 +80,28 @@
     </div>
 
     {{-- TABLA DE RESULTADOS --}}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div >
         
         @if($planillas->count() > 0)
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table  class="modern-table">
                     <thead>
-                        <tr class="bg-gray-50 text-gray-600 uppercase text-xs font-bold tracking-wider border-b border-gray-200">
-                            <th class="p-4">Tipo</th>
-                            <th class="p-4">Nombre / Descripción</th>
-                            <th class="p-4">Detalles (Escuela/Grado)</th>
-                            <th class="p-4">Escuela/Grado</th>
-                            <th class="p-4">Fecha Creación</th>
-                            <th class="p-4 text-center">Acciones</th>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Nombre / Descripción</th>
+                            <th>Detalles (Escuela/Grado)</th>
+                            <th>Escuela/Grado</th>
+                            <th>Fecha Creación</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody>
                         @foreach($planillas as $item)
                             <tr class="hover:bg-indigo-50/30 transition duration-150 ease-in-out group cursor-pointer"
                                 @click="window.location='{{ route('planillas.editar', $item->id_planilla) }}'"">
                                 
                                 {{-- 1. TIPO (Con etiqueta de color) --}}
-                                <td class="p-4">
+                                <td>
                                     @php
                                         // Lógica para elegir color según el texto
                                         $esActa = Str::contains($item->tipo_planilla, 'ACTA');
@@ -117,8 +117,8 @@
                                     </span>
                                 </td>
 
-                                <td class="p-4 align-middle">
-                                    <div class="font-medium text-gray-900">
+                                <td>
+                                    <div>
                                         {{-- ENLACE QUE QUERÍAS --}}
                                         <a href="{{ route('planillas.editar', $item->id_planilla) }}" class="hover:text-blue-600 hover:underline">
                                             {{ $item->nombre_planilla ?? 'Sin Nombre' }}

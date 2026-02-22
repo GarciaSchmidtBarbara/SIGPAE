@@ -22,13 +22,13 @@
 
     {{-- Tabla de asistentes --}}
     <div class="overflow-x-auto rounded-t-lg">
-        <table class="w-full border-collapse border border-gray-400">
+        <table  class="modern-table">
             <thead>
-                <tr class="bg-gray-100 text-sm uppercase text-gray-600">
-                    <th class="border border-gray-400 px-4 py-2 text-left">Nombre</th>
-                    <th class="border border-gray-400 px-4 py-2 text-left">Apellido</th>
-                    <th class="border border-gray-400 px-4 py-2 text-left">Descripción</th>
-                    <th class="border border-gray-400 px-4 py-2 text-center no-imprimir">Opciones</th>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Descripción</th>
+                    <th class="no-imprimir">Opciones</th>
                 </tr>
             </thead>
 

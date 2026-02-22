@@ -4,7 +4,7 @@
     'id' => uniqid('delete_')
 ])
 
-<div class="flex items-center justify-center">
+<div class="flex items-center">
     
     <form id="{{ $id }}"
           action="{{ $route }}"
