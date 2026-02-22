@@ -3,7 +3,8 @@
 @section('encabezado', 'Gestión de Planillas y Actas')
 
 @section('contenido')
-    
+<div class="p-6" x-data="eventosData()" @abrir-modal-eliminar.window="abrir($event.detail)">
+
     {{-- BARRA DE HERRAMIENTAS (Buscador y Crear) --}}
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         
@@ -96,7 +97,8 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach($planillas as $item)
-                            <tr class="hover:bg-indigo-50/30 transition duration-150 ease-in-out group">
+                            <tr class="hover:bg-indigo-50/30 transition duration-150 ease-in-out group cursor-pointer"
+                                @click="window.location='{{ route('planillas.editar', $item->id_planilla) }}'"">
                                 
                                 {{-- 1. TIPO (Con etiqueta de color) --}}
                                 <td class="p-4">
@@ -164,23 +166,12 @@
                                 {{-- 5. ACCIONES --}}
                                 <td class="p-4 text-center">
     <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        
-        {{-- 1. BOTÓN VER / EDITAR (Ojo) --}}
-        <a href="{{ route('planillas.editar', $item->id_planilla) }}" class="text-gray-500 hover:text-blue-600 transition" title="Ver / Editar">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-        </a>
 
-        {{-- 2. BOTÓN ELIMINAR (Tacho) --}}
-        <form action="{{ route('planillas.eliminar', $item->id_planilla) }}" method="POST" class="inline">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="text-gray-500 hover:text-red-600 transition" title="Mover a Papelera" onclick="return confirm('¿Mover esta planilla a la papelera?')">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </button>
-        </form>
+        {{-- BOTÓN ELIMINAR (Tacho) --}}
+        <x-boton-eliminar 
+            :route="route('planillas.eliminar', $item->id_planilla)"
+            message="¿Está seguro que desea eliminar esta planilla?"
+        />
 
     </div>
 </td>
@@ -207,4 +198,62 @@
         @endif
 
     </div>
+    <!-- Modal eliminar -->
+    <div x-show="mostrarModal"
+        x-cloak
+        x-transition.opacity
+        @keydown.escape.window="cerrar()"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+        role="dialog">
+
+        <div class="fixed inset-0 bg-black/50"
+            @click="cerrar()"></div>
+
+        <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+
+            <h3 class="text-lg font-semibold mb-4">
+                ¿Confirmar eliminación?
+            </h3>
+
+            <p class="text-gray-600 mb-6">
+                {{ $message ?? '¿Está seguro que desea eliminar este acta?' }}
+            </p>
+
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        @click="cerrar()"
+                        class="btn-volver">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn-eliminar"
+                        @click="document.getElementById(routeFormId).submit()">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function eventosData() {
+    return {
+        mostrarModal: false,
+        formId: null,
+        message: '',
+
+        abrir(data) {
+            this.formId = data.formId
+            this.message = data.message
+            this.mostrarModal = true
+        },
+
+        cerrar() {
+            this.mostrarModal = false
+            this.formId = null
+            this.message = ''
+        }
+    }
+}
+</script>
 @endsection
