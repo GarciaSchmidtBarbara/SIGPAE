@@ -24,58 +24,57 @@
                 >
             </div>
         </form>
+        {{-- BLOQUE BOTONES --}}
+        <div class="flex items-center gap-4">
+            {{-- BOTÓN CREAR --}}
+            <div x-data="{ abrirPlanilla:false, tipo:'' }" x-cloak>
+                <button @click="abrirPlanilla = true" class="btn-aceptar">
+                    <span>Crear Planilla</span>
 
-        {{-- 2. BOTÓN CREAR (Tu lógica Alpine intacta pero estilizada) --}}
-        <div x-data="{ abrirPlanilla:false, tipo:'' }" x-cloak>
-            <button @click="abrirPlanilla = true" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-md transition-all transform hover:scale-105">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                <span>Nueva Planilla</span>
+                </button>
 
-            </button>
+                {{-- MODAL DE SELECCIÓN --}}
+                <x-ui.modal x-data="{ open: false }"
+                    x-effect="open = abrirPlanilla; if (!open && abrirPlanilla) abrirPlanilla = false" @click.stop
+                    title="Seleccione el tipo de documento" size="lg" :closeOnBackdrop="true">
 
-            <div class="flex justify-end mb-2">
-                <a href="{{ route('planillas.papelera') }}" class="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    Ver Papelera
-                </a>
-            </div>
-
-            {{-- MODAL DE SELECCIÓN --}}
-            <x-ui.modal x-data="{ open: false }"
-                x-effect="open = abrirPlanilla; if (!open && abrirPlanilla) abrirPlanilla = false" @click.stop
-                title="Seleccione el tipo de documento" size="lg" :closeOnBackdrop="true">
-
-                <div class="p-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Documento:</label>
-                    <select x-model="tipo" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3">
-                        <option value="" disabled selected>— Seleccione una opción —</option>
-                        <option value="acta-trabajo">Acta Reunión de Trabajo (EI)</option>
-                        <option value="acta-equipo">Acta Equipo Interdisciplinario (Directivos)</option>
-                        <option value="acta-banda">Acta Reunión Banda (Completa)</option>
-                        <option value="planilla-medial">Planilla Medial</option>
-                        <option value="planilla-final">Planilla Final</option>
-                    </select>
-                </div>
-
-                <x-slot:footer>
-                    <div class="w-full flex justify-end gap-3 p-2 bg-gray-50 rounded-b-lg">
-                        <button class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" @click="abrirPlanilla = false">
-                            Cancelar
-                        </button>
-                        <button class="px-4 py-2 text-white rounded-md transition-colors"
-                            :class="tipo ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-300 cursor-not-allowed'"
-                            :disabled="!tipo" @click="
-                                    if (tipo === 'acta-trabajo')   { window.location = '{{ route('planillas.acta-reunion-trabajo.create') }}' }
-                                    if (tipo === 'acta-equipo')    { window.location = '{{ route('planillas.acta-equipo-indisciplinario.create') }}' }
-                                    if (tipo === 'acta-banda')     { window.location = '{{ route('planillas.acta-reuniones-banda.create') }}' }
-                                    if (tipo === 'planilla-medial'){ window.location = '{{ route('planillas.planilla-medial.create') }}' }
-                                    if (tipo === 'planilla-final') { window.location = '{{ route('planillas.planilla-final.create') }}' }
-                                ">
-                            Continuar &rarr;
-                        </button>
+                    <div class="p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Documento:</label>
+                        <select x-model="tipo" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3">
+                            <option value="" disabled selected>— Seleccione una opción —</option>
+                            <option value="acta-trabajo">Acta Reunión de Trabajo (EI)</option>
+                            <option value="acta-equipo">Acta Equipo Interdisciplinario (Directivos)</option>
+                            <option value="acta-banda">Acta Reunión Banda (Completa)</option>
+                            <option value="planilla-medial">Planilla Medial</option>
+                            <option value="planilla-final">Planilla Final</option>
+                        </select>
                     </div>
-                </x-slot:footer>
-            </x-ui.modal>
+
+                    <x-slot:footer>
+                        <div class="w-full flex justify-end gap-3 p-2 bg-gray-50 rounded-b-lg">
+                            <button class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" @click="abrirPlanilla = false">
+                                Cancelar
+                            </button>
+                            <button class="px-4 py-2 text-white rounded-md transition-colors"
+                                :class="tipo ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-300 cursor-not-allowed'"
+                                :disabled="!tipo" @click="
+                                        if (tipo === 'acta-trabajo')   { window.location = '{{ route('planillas.acta-reunion-trabajo.create') }}' }
+                                        if (tipo === 'acta-equipo')    { window.location = '{{ route('planillas.acta-equipo-indisciplinario.create') }}' }
+                                        if (tipo === 'acta-banda')     { window.location = '{{ route('planillas.acta-reuniones-banda.create') }}' }
+                                        if (tipo === 'planilla-medial'){ window.location = '{{ route('planillas.planilla-medial.create') }}' }
+                                        if (tipo === 'planilla-final') { window.location = '{{ route('planillas.planilla-final.create') }}' }
+                                    ">
+                                Continuar &rarr;
+                            </button>
+                        </div>
+                    </x-slot:footer>
+                </x-ui.modal>
+            </div>
+            {{-- PAPELERA --}}
+            <a href="{{ route('planillas.papelera') }}" class="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Ver Papelera
+            </a>
         </div>
     </div>
 
