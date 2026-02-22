@@ -124,7 +124,7 @@ Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->na
 // Crear y actualizar profesionales
 Route::post('/usuarios', [ProfesionalController::class, 'store'])->name('usuarios.store');
 Route::put('/usuarios/{id}', [ProfesionalController::class, 'update'])->name('usuarios.update');
-Route::put('usuarios/{id}/cambiar-estado', [ProfesionalController::class, 'cambiarActivo'])->name('usuarios.cambiarActivo');
+Route::patch('/usuarios/{id}/cambiar-estado', [ProfesionalController::class, 'cambiarActivo'])->name('usuarios.cambiarActivo');
 Route::get('/usuarios/{id}/editar', [ProfesionalController::class, 'editar'])->name('usuarios.editar');
 
 //Ruta Perfil

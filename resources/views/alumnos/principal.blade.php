@@ -61,6 +61,8 @@
             'route' => route('alumnos.cambiarActivo', data_get($fila, 'id_alumno')),
             'text_activo' => 'Desactivar',  
             'text_inactivo' => 'Activar',
+            'message_activo' => '¿Desea desactivar este alumno?',
+            'message_inactivo' => '¿Desea activar este alumno?',
         ])->render()"
 
         idCampo="id_alumno"
