@@ -118,6 +118,30 @@ function eventosData() {
             this.mostrarModal = false
             this.formId = null
             this.message = ''
+        },
+
+        async actualizarConfirmacion(eventoId, confirmado) {
+            try {
+                const response = await fetch(`/eventos/${eventoId}/confirmar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ confirmado })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert('Error: ' + data.message);
+                    event.target.checked = !confirmado;
+                }
+            } catch (error) {
+                console.error('Error al actualizar confirmación:', error);
+                alert('Error al actualizar la confirmación');
+                event.target.checked = !confirmado;
+            }
         }
     }
 }
