@@ -9,181 +9,182 @@
     $inactivo = $esEdicion ? ($alumno->persona->activo === false) : false;
 @endphp
 
-<div class="mt-4 my-4 flex justify-between items-center">
-    <div class="text-sm text-red-600 min-h-[1.5rem]">
-        @if($esEdicion && $inactivo)
-            <p>Este alumno está inactivo. No se permiten modificaciones.</p>
-        @endif
+<div x-data="estadoAlumno()"
+    @abrir-modal-estado.window="abrir($event.detail)">
+
+    <div class="mt-4 my-4 flex justify-between items-center">
+        <div class="text-sm text-red-600 min-h-[1.5rem]">
+            @if($esEdicion && $inactivo)
+                <p>Este alumno está inactivo. No se permiten modificaciones.</p>
+            @endif
+        </div>
+        <div class="flex justify-end space-x-4">
+            @if($esEdicion)
+                <x-boton-estado 
+                    :activo="$alumno->persona->activo" 
+                    :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
+                />
+            @endif
+            <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
+        </div>
     </div>
-    <div class="flex justify-end space-x-4">
-        @if($esEdicion)
-            <x-boton-estado 
-                :activo="$alumno->persona->activo" 
-                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
-            />
-        @endif
-        <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
-    </div>
-</div>
 
+    <div x-data="{
+        familiares: {{ json_encode(session('asistente.familiares', [])) }},
 
-
-<div x-data="{
-    familiares: {{ json_encode(session('asistente.familiares', [])) }},
-
-    alumnoData: {{ json_encode(session('asistente.alumno', [])) }},
-    
-    errors: {
-        dni: '',
-        nombre: '',
-        apellido: '',
-        nacionalidad: '',
-        aula: '',
-        inasistencias: '',
-        fecha_nacimiento: ''
-    },
-
-    limpiarError(campo) {
-        if (this.errors[campo]) {
-            this.errors[campo] = '';
-        }
-    },
-
-    async validarYGuardar() {
-        // 1. Limpieza inicial
-        this.errors = {}; 
-        this.dniError = ''; 
+        alumnoData: {{ json_encode(session('asistente.alumno', [])) }},
         
-        // Variable maestra única (Corrección del error anterior)
-        let hayErrores = false; 
-        
-        // 2. Validación Local (Solo campos de ALUMNO)
-        // Nota: Aquí NO va 'parentesco' porque el alumno no tiene ese campo.
-        const requeridos = ['dni', 'nombre', 'apellido', 'aula', 'inasistencias', 'fecha_nacimiento'];
+        errors: {
+            dni: '',
+            nombre: '',
+            apellido: '',
+            nacionalidad: '',
+            aula: '',
+            inasistencias: '',
+            fecha_nacimiento: ''
+        },
 
-        requeridos.forEach(campo => {
-            if (!this.alumnoData[campo] || String(this.alumnoData[campo]).trim() === '') {
-                this.errors[campo] = 'Este campo es requerido.';
-                hayErrores = true; 
+        limpiarError(campo) {
+            if (this.errors[campo]) {
+                this.errors[campo] = '';
             }
-        });
+        },
 
-        // 3. Validación Remota de DNI
-        if (this.alumnoData.dni) {
-            try {
-                const response = await fetch('{{ route("alumnos.validar-dni") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        dni: this.alumnoData.dni,
-                        id_alumno: this.alumnoData.id_alumno 
-                    })
-                });
+        async validarYGuardar() {
+            // 1. Limpieza inicial
+            this.errors = {}; 
+            this.dniError = ''; 
+            
+            // Variable maestra única (Corrección del error anterior)
+            let hayErrores = false; 
+            
+            // 2. Validación Local (Solo campos de ALUMNO)
+            // Nota: Aquí NO va 'parentesco' porque el alumno no tiene ese campo.
+            const requeridos = ['dni', 'nombre', 'apellido', 'aula', 'inasistencias', 'fecha_nacimiento'];
 
-                if (!response.ok) throw new Error('Error de red');
-
-                const data = await response.json();
-
-                if (!data.valid) {
-                    this.errors.dni = data.message; 
-                    hayErrores = true; // Marcamos error en la misma variable
+            requeridos.forEach(campo => {
+                if (!this.alumnoData[campo] || String(this.alumnoData[campo]).trim() === '') {
+                    this.errors[campo] = 'Este campo es requerido.';
+                    hayErrores = true; 
                 }
-
-            } catch (e) {
-                console.error(e);
-                alert('Error técnico al validar DNI.');
-                return; 
-            }
-        }
-
-        // 4. Decisión Final
-        // Si hayErrores es true (por vacío O por DNI), no enviamos.
-        if (hayErrores) {
-            return;
-        }
-
-        // 5. Éxito
-        this.$refs.form.submit();
-    },
-    
-    async gestionarEliminacion(indice, tipo) {
-        const confirmMsg = tipo === 'familiar' 
-            ? '¿Estás seguro de eliminar este familiar?' 
-            : '¿Estás seguro de desvincular este hermano alumno?';
-
-        if (confirm(confirmMsg)) {
-            try {
-                // ¡LA MAGIA! Pasamos el 'tipo' como un query parameter en la URL
-                const response = await fetch(`{{ url('/alumnos/asistente/item/eliminar') }}/${indice}?tipo=${tipo}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    this.familiares.splice(indice, 1);
-                } else {
-                    alert('Error al eliminar el item.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error al eliminar el item.');
-            }
-        }
-    },
-
-    /**
-     * Sincroniza el estado (envía JSON al servidor) y luego redirige.
-     */
-    async sincronizarEstado(rutaDestino) {
-        const estado = {
-            alumno: this.alumnoData,
-            familiares: this.familiares
-        };
-
-        try {
-            const response = await fetch('{{ route("asistente.sincronizar") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(estado)
             });
 
-            if (!response.ok) throw new Error('Error al sincronizar');
+            // 3. Validación Remota de DNI
+            if (this.alumnoData.dni) {
+                try {
+                    const response = await fetch('{{ route("alumnos.validar-dni") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            dni: this.alumnoData.dni,
+                            id_alumno: this.alumnoData.id_alumno 
+                        })
+                    });
 
-            window.location.href = rutaDestino;
+                    if (!response.ok) throw new Error('Error de red');
 
-        } catch (error) {
-            console.error(error);
-            alert('Error al guardar los datos. Intente de nuevo.');
+                    const data = await response.json();
+
+                    if (!data.valid) {
+                        this.errors.dni = data.message; 
+                        hayErrores = true; // Marcamos error en la misma variable
+                    }
+
+                } catch (e) {
+                    console.error(e);
+                    alert('Error técnico al validar DNI.');
+                    return; 
+                }
+            }
+
+            // 4. Decisión Final
+            // Si hayErrores es true (por vacío O por DNI), no enviamos.
+            if (hayErrores) {
+                return;
+            }
+
+            // 5. Éxito
+            this.$refs.form.submit();
+        },
+        
+        async gestionarEliminacion(indice, tipo) {
+            const confirmMsg = tipo === 'familiar' 
+                ? '¿Estás seguro de eliminar este familiar?' 
+                : '¿Estás seguro de desvincular este hermano alumno?';
+
+            if (confirm(confirmMsg)) {
+                try {
+                    // ¡LA MAGIA! Pasamos el 'tipo' como un query parameter en la URL
+                    const response = await fetch(`{{ url('/alumnos/asistente/item/eliminar') }}/${indice}?tipo=${tipo}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        this.familiares.splice(indice, 1);
+                    } else {
+                        alert('Error al eliminar el item.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el item.');
+                }
+            }
+        },
+
+        /**
+        * Sincroniza el estado (envía JSON al servidor) y luego redirige.
+        */
+        async sincronizarEstado(rutaDestino) {
+            const estado = {
+                alumno: this.alumnoData,
+                familiares: this.familiares
+            };
+
+            try {
+                const response = await fetch('{{ route("asistente.sincronizar") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(estado)
+                });
+
+                if (!response.ok) throw new Error('Error al sincronizar');
+
+                window.location.href = rutaDestino;
+
+            } catch (error) {
+                console.error(error);
+                alert('Error al guardar los datos. Intente de nuevo.');
+            }
+        },
+
+        /**
+        * Prepara la URL de edición y llama al sincronizador
+        */
+        prepararEdicionFamiliar(indice) {
+            // Usamos url() de base y le pegamos el índice con JS
+            const urlDestino = `{{ url('/familiares') }}/${indice}/editar`;
+            this.sincronizarEstado(urlDestino);
+        },
+
+        /**
+        * Prepara la URL de creación y llama al sincronizador
+        */
+        prepararCreacionFamiliar() {
+            this.sincronizarEstado('{{ route("familiares.crear") }}');
         }
-    },
-
-    /**
-     * Prepara la URL de edición y llama al sincronizador
-     */
-    prepararEdicionFamiliar(indice) {
-        // Usamos url() de base y le pegamos el índice con JS
-        const urlDestino = `{{ url('/familiares') }}/${indice}/editar`;
-        this.sincronizarEstado(urlDestino);
-    },
-
-    /**
-     * Prepara la URL de creación y llama al sincronizador
-     */
-    prepararCreacionFamiliar() {
-        this.sincronizarEstado('{{ route("familiares.crear") }}');
-    }
-}">
+    }">
     
     <form method="POST" action="{{ isset($modo) && $modo === 'editar' ? route('alumnos.actualizar', $alumno->id_alumno) : route('alumnos.guardar') }}"
             x-ref="form" novalidate>
@@ -415,21 +416,85 @@
     </form>
    
     @if($esEdicion)
-    <div class="mt-4 my-4 flex justify-between items-center">
-        <div class="text-sm text-red-600 min-h-[1.5rem]">
-            @if($inactivo)
-                <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
-            @endif
-        </div>
+        <div class="mt-4 my-4 flex justify-between items-center">
+            <div class="text-sm text-red-600 min-h-[1.5rem]">
+                @if($inactivo)
+                    <p class="text-red-600 text-sm">Este alumno está inactivo. No se permiten modificaciones.</p>
+                @endif
+            </div>
 
-        <div class="flex space-x-4">
-            <x-boton-estado 
-                :activo="$alumno->persona->activo" 
-                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
-            />
-            <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
+            <div class="flex space-x-4">
+                <x-boton-estado 
+                    :activo="$alumno->persona->activo" 
+                    :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
+                />
+                <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal cambiar estado -->
+    <div x-show="mostrarModal"
+        x-cloak
+        x-transition.opacity
+        @keydown.escape.window="cerrar()"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+        role="dialog">
+
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-black/50"
+            @click="cerrar()"></div>
+
+        <!-- Panel -->
+        <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+
+            <h3 class="text-lg font-semibold mb-4">
+                ¿Confirmar cambio de estado?
+            </h3>
+
+            <p class="text-gray-600 mb-6">
+                El alumno cambiará su estado actual.
+            </p>
+
+            <form method="POST" :action="route">
+                @csrf
+                @method('PUT')
+
+                <div class="flex justify-end gap-3">
+                    <button type="button"
+                            @click="cerrar()"
+                            class="btn-volver">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn-eliminar">
+                        Confirmar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-@endif
 </div>
+
+
+<script>
+function estadoAlumno() {
+    return {
+        mostrarModal: false,
+        route: null,
+
+        abrir(data) {
+            this.route = data.route
+            this.mostrarModal = true
+        },
+
+        cerrar() {
+            this.mostrarModal = false
+            this.route = null
+        }
+    }
+}
+</script>
+
 @endsection

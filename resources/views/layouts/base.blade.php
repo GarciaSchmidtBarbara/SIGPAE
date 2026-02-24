@@ -153,6 +153,24 @@
 
                 @yield('contenido')
             </main>
+
+            <!-- Modales globales -->
+            <div>
+                <!-- Modal Confirmar reutilizable -->
+                <div x-data="{ open: false, formId: null, message: '' }"
+                     @abrir-modal-confirmar.window="
+                        formId = $event.detail.formId;
+                        message = $event.detail.message;
+                        open = true;
+                     "
+                >
+                    <x-ui.modal-confirmar 
+                        confirmText="Confirmar" 
+                        cancelText="Cancelar" 
+                        event="confirm-accepted" 
+                    />
+                </div>
+            </div>
         </div>
     </div>
 

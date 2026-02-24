@@ -3,7 +3,8 @@
 @section('encabezado', 'Gestión de Planillas y Actas')
 
 @section('contenido')
-    
+<div class="p-6" x-data="eventosData()" @abrir-modal-eliminar.window="abrir($event.detail)">
+
     {{-- BARRA DE HERRAMIENTAS (Buscador y Crear) --}}
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         
@@ -23,83 +24,82 @@
                 >
             </div>
         </form>
+        {{-- BLOQUE BOTONES --}}
+        <div class="flex items-center gap-4">
+            {{-- BOTÓN CREAR --}}
+            <div x-data="{ abrirPlanilla:false, tipo:'' }" x-cloak>
+                <button @click="abrirPlanilla = true" class="btn-aceptar">
+                    <span>Crear Planilla</span>
 
-        {{-- 2. BOTÓN CREAR (Tu lógica Alpine intacta pero estilizada) --}}
-        <div x-data="{ abrirPlanilla:false, tipo:'' }" x-cloak>
-            <button @click="abrirPlanilla = true" class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-lg shadow-md transition-all transform hover:scale-105">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                <span>Nueva Planilla</span>
+                </button>
 
-            </button>
+                {{-- MODAL DE SELECCIÓN --}}
+                <x-ui.modal x-data="{ open: false }"
+                    x-effect="open = abrirPlanilla; if (!open && abrirPlanilla) abrirPlanilla = false" @click.stop
+                    title="Seleccione el tipo de documento" size="lg" :closeOnBackdrop="true">
 
-            <div class="flex justify-end mb-2">
-                <a href="{{ route('planillas.papelera') }}" class="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    Ver Papelera
-                </a>
-            </div>
-
-            {{-- MODAL DE SELECCIÓN --}}
-            <x-ui.modal x-data="{ open: false }"
-                x-effect="open = abrirPlanilla; if (!open && abrirPlanilla) abrirPlanilla = false" @click.stop
-                title="Seleccione el tipo de documento" size="lg" :closeOnBackdrop="true">
-
-                <div class="p-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Documento:</label>
-                    <select x-model="tipo" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3">
-                        <option value="" disabled selected>— Seleccione una opción —</option>
-                        <option value="acta-trabajo">Acta Reunión de Trabajo (EI)</option>
-                        <option value="acta-equipo">Acta Equipo Interdisciplinario (Directivos)</option>
-                        <option value="acta-banda">Acta Reunión Banda (Completa)</option>
-                        <option value="planilla-medial">Planilla Medial</option>
-                        <option value="planilla-final">Planilla Final</option>
-                    </select>
-                </div>
-
-                <x-slot:footer>
-                    <div class="w-full flex justify-end gap-3 p-2 bg-gray-50 rounded-b-lg">
-                        <button class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" @click="abrirPlanilla = false">
-                            Cancelar
-                        </button>
-                        <button class="px-4 py-2 text-white rounded-md transition-colors"
-                            :class="tipo ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-300 cursor-not-allowed'"
-                            :disabled="!tipo" @click="
-                                    if (tipo === 'acta-trabajo')   { window.location = '{{ route('planillas.acta-reunion-trabajo.create') }}' }
-                                    if (tipo === 'acta-equipo')    { window.location = '{{ route('planillas.acta-equipo-indisciplinario.create') }}' }
-                                    if (tipo === 'acta-banda')     { window.location = '{{ route('planillas.acta-reuniones-banda.create') }}' }
-                                    if (tipo === 'planilla-medial'){ window.location = '{{ route('planillas.planilla-medial.create') }}' }
-                                    if (tipo === 'planilla-final') { window.location = '{{ route('planillas.planilla-final.create') }}' }
-                                ">
-                            Continuar &rarr;
-                        </button>
+                    <div class="p-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Documento:</label>
+                        <select x-model="tipo" class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-3">
+                            <option value="" disabled selected>— Seleccione una opción —</option>
+                            <option value="acta-trabajo">Acta Reunión de Trabajo (EI)</option>
+                            <option value="acta-equipo">Acta Equipo Interdisciplinario (Directivos)</option>
+                            <option value="acta-banda">Acta Reunión Banda (Completa)</option>
+                            <option value="planilla-medial">Planilla Medial</option>
+                            <option value="planilla-final">Planilla Final</option>
+                        </select>
                     </div>
-                </x-slot:footer>
-            </x-ui.modal>
+
+                    <x-slot:footer>
+                        <div class="w-full flex justify-end gap-3 p-2 bg-gray-50 rounded-b-lg">
+                            <button class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50" @click="abrirPlanilla = false">
+                                Cancelar
+                            </button>
+                            <button class="px-4 py-2 text-white rounded-md transition-colors"
+                                :class="tipo ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-gray-300 cursor-not-allowed'"
+                                :disabled="!tipo" @click="
+                                        if (tipo === 'acta-trabajo')   { window.location = '{{ route('planillas.acta-reunion-trabajo.create') }}' }
+                                        if (tipo === 'acta-equipo')    { window.location = '{{ route('planillas.acta-equipo-indisciplinario.create') }}' }
+                                        if (tipo === 'acta-banda')     { window.location = '{{ route('planillas.acta-reuniones-banda.create') }}' }
+                                        if (tipo === 'planilla-medial'){ window.location = '{{ route('planillas.planilla-medial.create') }}' }
+                                        if (tipo === 'planilla-final') { window.location = '{{ route('planillas.planilla-final.create') }}' }
+                                    ">
+                                Continuar &rarr;
+                            </button>
+                        </div>
+                    </x-slot:footer>
+                </x-ui.modal>
+            </div>
+            {{-- PAPELERA --}}
+            <a href="{{ route('planillas.papelera') }}" class="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Ver Papelera
+            </a>
         </div>
     </div>
 
     {{-- TABLA DE RESULTADOS --}}
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div >
         
         @if($planillas->count() > 0)
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table  class="modern-table">
                     <thead>
-                        <tr class="bg-gray-50 text-gray-600 uppercase text-xs font-bold tracking-wider border-b border-gray-200">
-                            <th class="p-4">Tipo</th>
-                            <th class="p-4">Nombre / Descripción</th>
-                            <th class="p-4">Detalles (Escuela/Grado)</th>
-                            <th class="p-4">Escuela/Grado</th>
-                            <th class="p-4">Fecha Creación</th>
-                            <th class="p-4 text-center">Acciones</th>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Fecha Creación</th>
+                            <th>Nombre / Descripción</th>
+                            <th>Escuela/Grado</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody>
                         @foreach($planillas as $item)
-                            <tr class="hover:bg-indigo-50/30 transition duration-150 ease-in-out group">
+                            <tr class="hover:bg-indigo-50/30 transition duration-150 ease-in-out group cursor-pointer"
+                                @click="window.location='{{ route('planillas.editar', $item->id_planilla) }}'"">
                                 
-                                {{-- 1. TIPO (Con etiqueta de color) --}}
-                                <td class="p-4">
+                                {{-- TIPO (Con etiqueta de color) --}}
+                                <td>
                                     @php
                                         // Lógica para elegir color según el texto
                                         $esActa = Str::contains($item->tipo_planilla, 'ACTA');
@@ -115,20 +115,13 @@
                                     </span>
                                 </td>
 
-                                <td class="p-4 align-middle">
-                                    <div class="font-medium text-gray-900">
-                                        {{-- ENLACE QUE QUERÍAS --}}
-                                        <a href="{{ route('planillas.editar', $item->id_planilla) }}" class="hover:text-blue-600 hover:underline">
-                                            {{ $item->nombre_planilla ?? 'Sin Nombre' }}
-                                        </a>
-                                    </div>
-                                    {{-- Subtítulo gris --}}
-                                    <div class="text-xs text-gray-500 mt-1 font-normal truncate max-w-xs">
-                                        {{ Str::limit($item->tipo_planilla, 40) }}
-                                    </div>
+                                {{-- FECHA --}}
+                                <td class="p-4 text-sm text-gray-500 whitespace-nowrap">
+                                    {{ $item->created_at->format('d/m/Y') }}
+                                    <span class="text-xs text-gray-400 ml-1">{{ $item->created_at->format('H:i') }}</span>
                                 </td>
 
-                                {{-- 2. NOMBRE COMPLETO --}}
+                                {{-- NOMBRE COMPLETO --}}
                                 <td class="p-4 font-medium text-gray-900">
                                     {{ $item->nombre_planilla ?? 'Sin Nombre' }}
                                     <div class="text-xs text-gray-500 mt-1 font-normal">
@@ -136,7 +129,7 @@
                                     </div>
                                 </td>
 
-                                {{-- 3. DETALLES (INTELIGENTE: Muestra lo que corresponda) --}}
+                                {{-- DETALLES (INTELIGENTE: Muestra lo que corresponda) --}}
                                 <td class="p-4 text-sm text-gray-600">
                                     @if(isset($item->datos_planilla['escuela']))
                                         {{-- Es Planilla Medial/Final --}}
@@ -155,35 +148,18 @@
                                     @endif
                                 </td>
 
-                                {{-- 4. FECHA --}}
-                                <td class="p-4 text-sm text-gray-500 whitespace-nowrap">
-                                    {{ $item->created_at->format('d/m/Y') }}
-                                    <span class="text-xs text-gray-400 ml-1">{{ $item->created_at->format('H:i') }}</span>
-                                </td>
-
-                                {{-- 5. ACCIONES --}}
+                                {{-- ACCIONES --}}
                                 <td class="p-4 text-center">
-    <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        
-        {{-- 1. BOTÓN VER / EDITAR (Ojo) --}}
-        <a href="{{ route('planillas.editar', $item->id_planilla) }}" class="text-gray-500 hover:text-blue-600 transition" title="Ver / Editar">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-        </a>
+                                    <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
 
-        {{-- 2. BOTÓN ELIMINAR (Tacho) --}}
-        <form action="{{ route('planillas.eliminar', $item->id_planilla) }}" method="POST" class="inline">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="text-gray-500 hover:text-red-600 transition" title="Mover a Papelera" onclick="return confirm('¿Mover esta planilla a la papelera?')">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </button>
-        </form>
+                                        {{-- BOTÓN ELIMINAR (Tacho) --}}
+                                        <x-boton-eliminar 
+                                            :route="route('planillas.eliminar', $item->id_planilla)"
+                                            message="¿Está seguro que desea eliminar esta planilla?"
+                                        />
 
-    </div>
-</td>
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -207,4 +183,62 @@
         @endif
 
     </div>
+    <!-- Modal eliminar -->
+    <div x-show="mostrarModal"
+        x-cloak
+        x-transition.opacity
+        @keydown.escape.window="cerrar()"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+        role="dialog">
+
+        <div class="fixed inset-0 bg-black/50"
+            @click="cerrar()"></div>
+
+        <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+
+            <h3 class="text-lg font-semibold mb-4">
+                ¿Confirmar eliminación?
+            </h3>
+
+            <p class="text-gray-600 mb-6">
+                {{ $message ?? '¿Está seguro que desea eliminar este acta?' }}
+            </p>
+
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        @click="cerrar()"
+                        class="btn-volver">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn-eliminar"
+                        @click="document.getElementById(routeFormId).submit()">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function eventosData() {
+    return {
+        mostrarModal: false,
+        formId: null,
+        message: '',
+
+        abrir(data) {
+            this.formId = data.formId
+            this.message = data.message
+            this.mostrarModal = true
+        },
+
+        cerrar() {
+            this.mostrarModal = false
+            this.formId = null
+            this.message = ''
+        }
+    }
+}
+</script>
 @endsection

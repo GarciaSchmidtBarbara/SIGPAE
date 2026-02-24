@@ -5,7 +5,8 @@
 
 @section('contenido')
 
-<div class="p-6">
+<div class="p-6" x-data="estadoAlumno()"
+     @abrir-modal-estado.window="abrir($event.detail)">
     <form id="form-alumno" method="GET" action="{{ route('alumnos.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
         <a class="btn-aceptar" href="{{ route('alumnos.crear') }}">Registrar Alumno</a>
         <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
@@ -60,6 +61,8 @@
             'route' => route('alumnos.cambiarActivo', data_get($fila, 'id_alumno')),
             'text_activo' => 'Desactivar',  
             'text_inactivo' => 'Activar',
+            'message_activo' => '¿Desea desactivar este alumno?',
+            'message_inactivo' => '¿Desea activar este alumno?',
         ])->render()"
 
         idCampo="id_alumno"
@@ -86,9 +89,71 @@
     </x-tabla-dinamica>
 </div>
 
+<!-- Modal cambiar estado -->
+<div x-show="mostrarModal"
+     x-cloak
+     x-transition.opacity
+     @keydown.escape.window="cerrar()"
+     class="fixed inset-0 z-50 flex items-center justify-center"
+     role="dialog">
+
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-black/50"
+         @click="cerrar()"></div>
+
+    <!-- Panel -->
+    <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+
+        <h3 class="text-lg font-semibold mb-4">
+            ¿Confirmar desactivación?
+        </h3>
+
+        <p class="text-gray-600 mb-6">
+            El alumno pasará a estado inactivo.
+        </p>
+
+        <form method="POST" :action="route">
+            @csrf
+            @method('PATCH')
+
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        @click="cerrar()"
+                        class="btn-volver">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="btn-eliminar">
+                    Desactivar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
     <div class="fila-botones mt-8">
         <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir listado</button>
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
 </div>
+
+<script>
+function estadoAlumno() {
+    return {
+        mostrarModal: false,
+        route: null,
+
+        abrir(data) {
+            this.route = data.route
+            this.mostrarModal = true
+        },
+
+        cerrar() {
+            this.mostrarModal = false
+            this.route = null
+        }
+    }
+}
+</script>
 @endsection

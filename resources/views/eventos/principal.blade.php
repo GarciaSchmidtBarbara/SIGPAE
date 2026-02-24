@@ -3,7 +3,7 @@
 @section('encabezado', 'Todos los eventos')
 
 @section('contenido')
-<div class="p-6" x-data="eventosData()">
+<div class="p-6" x-data="eventosData()" @abrir-modal-eliminar.window="abrir($event.detail)">
     <!-- Botones de acción -->
     <div class="flex gap-2 mb-6">
         <a href="{{ route('eventos.crear') }}" class="btn-aceptar">Crear evento</a>
@@ -12,7 +12,7 @@
 
     <!-- Tabla de eventos -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="w-full">
+        <table  class="modern-table">
             <thead class="bg-primary text-white">
                 <tr>
                     <th class="px-4 py-3 text-left">Tipo</th>
@@ -46,12 +46,10 @@
                             @endif
                         </td>
                         <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
-                            <button type="button" 
-                                    @click="confirmarEliminar({{ $evento->id_evento }})"
-                                    class="text-red-600 hover:text-red-800 text-xl"
-                                    title="Eliminar evento">
-                                🗑️
-                            </button>
+                            <x-boton-eliminar 
+                                :route="route('eventos.destroy', $evento->id_evento)"
+                                message="¿Está seguro que desea eliminar este evento?"
+                            />
                         </td>
                     </tr>
                 @empty
@@ -65,37 +63,39 @@
         </table>
     </div>
 
-    <!-- Modal de confirmación para eliminar -->
-    <div x-show="mostrarModal" 
-         x-cloak
-         x-transition.opacity
-         @keydown.escape.window="mostrarModal = false"
-         class="fixed inset-0 z-[100] flex items-center justify-center"
-         role="dialog"
-         aria-modal="true">
-        
-        <!-- Backdrop -->
+    <!-- Modal eliminar -->
+    <div x-show="mostrarModal"
+        x-cloak
+        x-transition.opacity
+        @keydown.escape.window="cerrar()"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+        role="dialog">
+
         <div class="fixed inset-0 bg-black/50"
-             @click="mostrarModal = false"></div>
-        
-        <!-- Panel -->
-        <div class="relative z-[110] w-full max-w-lg rounded-2xl bg-white shadow-xl">
-            <div class="px-6 py-6">
-                <h3 class="text-lg font-semibold mb-4">¿Confirmar eliminación?</h3>
-                <p class="text-gray-700 mb-6">¿Está seguro que desea eliminar este evento?</p>
-                
-                <form id="formEliminarEvento" method="POST" :action="`{{ url('/eventos') }}/${eventoId}`">
-                    @csrf
-                    @method('DELETE')
-                    <div class="flex gap-2 justify-end">
-                        <button type="button" @click="mostrarModal = false" class="btn-volver">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-eliminar">
-                            Eliminar
-                        </button>
-                    </div>
-                </form>
+            @click="cerrar()"></div>
+
+        <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+
+            <h3 class="text-lg font-semibold mb-4">
+                ¿Confirmar eliminación?
+            </h3>
+
+            <p class="text-gray-600 mb-6">
+                {{ $message ?? '¿Está seguro que desea eliminar este registro?' }}
+            </p>
+
+            <div class="flex justify-end gap-3">
+                <button type="button"
+                        @click="cerrar()"
+                        class="btn-volver">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn-eliminar"
+                        @click="document.getElementById(routeFormId).submit()">
+                    Eliminar
+                </button>
             </div>
         </div>
     </div>
@@ -105,38 +105,21 @@
 function eventosData() {
     return {
         mostrarModal: false,
-        eventoId: null,
-        
-        confirmarEliminar(id) {
-            this.eventoId = id;
-            this.mostrarModal = true;
+        formId: null,
+        message: '',
+
+        abrir(data) {
+            this.formId = data.formId
+            this.message = data.message
+            this.mostrarModal = true
         },
-        
-        async actualizarConfirmacion(eventoId, confirmado) {
-            try {
-                const response = await fetch(`/eventos/${eventoId}/confirmar`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({ confirmado })
-                });
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    alert('Error: ' + data.message);
-                    // Revertir el checkbox
-                    event.target.checked = !confirmado;
-                }
-            } catch (error) {
-                console.error('Error al actualizar confirmación:', error);
-                alert('Error al actualizar la confirmación');
-                event.target.checked = !confirmado;
-            }
+
+        cerrar() {
+            this.mostrarModal = false
+            this.formId = null
+            this.message = ''
         }
-    };
+    }
 }
 </script>
 @endsection
