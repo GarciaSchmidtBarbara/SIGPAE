@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-class AgregarIndicesBusquedaAPersonaTable extends Migration
+return new class extends Migration
 {   //UP, cuando se crea la migracion
     //Down cuando se revierte la migracion
 
@@ -41,4 +41,4 @@ class AgregarIndicesBusquedaAPersonaTable extends Migration
         DB::statement('DROP INDEX IF EXISTS personas_nombre_trgm_idx;');
         DB::statement('DROP INDEX IF EXISTS personas_apellido_trgm_idx;');
     } //esto tira para atrás los indices pero no la extensión de triagram por si decidimos usarla en otro lado
-}
+};
