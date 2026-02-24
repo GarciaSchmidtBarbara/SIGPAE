@@ -135,50 +135,63 @@
     }
 
     /* --- TABLA --- */
-    table.modern-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 6px;
+    /* --- TABLA ESTILO PRINCIPAL DEL SISTEMA --- */
+
+    .modern-table {
+        @apply w-full border-collapse text-sm bg-gray-50;
     }
 
-    .modern-table thead tr {
-        background: #f3f4f6;
-        font-weight: 700;
+    .modern-table thead {
+        @apply bg-gray-200 uppercase text-xs tracking-wide text-gray-700;
     }
 
-    .modern-table th,
+    .modern-table th {
+        @apply px-4 py-3 text-left font-semibold;
+    }
+
     .modern-table td {
-        padding: 10px 12px;
-        text-align: left;
+        @apply px-4 py-3 text-gray-800 align-top;
     }
 
     .modern-table tbody tr {
-        background: white;
-        border-radius: 6px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        @apply border-b border-gray-200;
     }
 
-    .modern-table tbody tr td:last-child {
-        width: 80px;
+    .modern-table tbody tr:last-child {
+        @apply border-b-0;
     }
 
-    .btn-quitar {
-        background: #dc2626;
-        color: white;
-        padding: 5px 12px;
-        border-radius: 6px;
-        font-size: 13px;
-        cursor: pointer;
+    /* columna acciones */
+    .modern-table td.acciones {
+        @apply text-center w-20;
     }
 
-    .btn-quitar:hover {
-        background: #b91c1c;
+    .fila-click {
+        @apply cursor-pointer hover:bg-gray-100 transition-colors duration-150;
     }
-    .solo-imprimir {
-    display: none;
-}
 
-}
+    /* botón icono eliminar */
+    .btn-icono {
+        @apply text-gray-500 hover:text-red-600 transition-colors duration-200 cursor-pointer;
+    }
+
+        .btn-quitar {
+            background: #dc2626;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-quitar:hover {
+            background: #b91c1c;
+        }
+        .solo-imprimir {
+        display: none;
+    }
+
+    }
 
 /* --- CALENDARIO --- */
 #calendar .fc-toolbar-title {

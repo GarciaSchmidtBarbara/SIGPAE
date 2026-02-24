@@ -153,7 +153,7 @@
                 
                 <!-- Tabla de cursos seleccionados -->
                 <div class="border rounded" x-show="cursosSeleccionados.length > 0">
-                    <table class="w-full">
+                    <table  class="modern-table">
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-3 py-2 text-left text-sm">Curso</th>

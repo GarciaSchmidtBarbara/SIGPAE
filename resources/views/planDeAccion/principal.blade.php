@@ -43,13 +43,13 @@
     @php
     $columnas=[
             [
-                'key' => 'estado_plan',
-                'label' => 'Estado',
+                'key' => 'tipo_plan',
+                'label' => 'Tipo',
                 'formatter' => fn($v) => ucfirst(strtolower($v->value)),
             ],
             [
-                'key' => 'tipo_plan',
-                'label' => 'Tipo',
+                'key' => 'estado_plan',
+                'label' => 'Estado',
                 'formatter' => fn($v) => ucfirst(strtolower($v->value)),
             ],
             [

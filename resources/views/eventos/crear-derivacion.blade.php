@@ -106,7 +106,7 @@
 
             <!-- Tabla de alumnos seleccionados -->
             <div x-show="alumnosSeleccionados.length > 0" class="border rounded">
-                <table class="w-full">
+                <table  class="modern-table">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-2 text-left text-sm">DNI</th>

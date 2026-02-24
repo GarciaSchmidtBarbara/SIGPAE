@@ -8,7 +8,7 @@
     <h3 class="font-bold text-lg mb-2 text-gray-800">Participantes:</h3>
     
     <div class="overflow-x-auto rounded-t-lg">
-        <table class="w-full border-collapse border border-gray-400">
+        <table  class="modern-table">
            <thead>
                 <tr class="bg-gray-100 text-sm uppercase text-gray-600">
                

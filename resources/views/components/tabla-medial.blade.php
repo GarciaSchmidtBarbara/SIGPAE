@@ -29,7 +29,7 @@
 
     {{-- TABLA --}}
     <div class="overflow-x-auto">
-        <table class="w-full border-collapse border border-gray-400 text-sm">
+        <table  class="modern-table">
             <thead>
                 <tr class="bg-gray-100 uppercase text-gray-700 font-bold text-center">
                     <th class="border border-gray-400 p-2 w-8">N°</th>
