@@ -158,4 +158,30 @@ class FamiliarService implements FamiliarServiceInterface
             return $this->familiarRepository->update($id, $data);
         });
     }
+
+    public function buscar(string $q): \Illuminate\Support\Collection
+    {
+        if (trim($q) === '') {
+            return collect();
+        }
+
+        $familiares = $this->familiarRepository->buscarPorTermino($q);
+
+        // Aplanamos la colección para que el frontend lo reciba listo para usar
+        return $familiares->map(function ($familiar) {
+            return [
+                'id_familiar' => $familiar->id_familiar,
+                'fk_id_persona' => $familiar->persona->id_persona,
+                'dni' => $familiar->persona->dni,
+                'nombre' => $familiar->persona->nombre,
+                'apellido' => $familiar->persona->apellido,
+                'nacionalidad' => $familiar->persona->nacionalidad,
+                'domicilio' => $familiar->persona->domicilio,
+                'fecha_nacimiento' => $familiar->persona->fecha_nacimiento,
+                'telefono_personal' => $familiar->telefono_personal,
+                'telefono_laboral' => $familiar->telefono_laboral,
+                'lugar_de_trabajo' => $familiar->lugar_de_trabajo,
+            ];
+        })->values();
+    }
 }
