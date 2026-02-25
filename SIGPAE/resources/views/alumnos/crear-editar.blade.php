@@ -28,15 +28,6 @@
             <p>Este alumno está inactivo. No se permiten modificaciones.</p>
         @endif
     </div>
-    <div class="flex justify-end space-x-4">
-        @if($esEdicion)
-            <x-boton-estado 
-                :activo="$alumno->persona->activo" 
-                :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
-            />
-        @endif
-        <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
-    </div>
 </div>
 
 
