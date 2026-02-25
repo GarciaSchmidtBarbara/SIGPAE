@@ -107,6 +107,7 @@ Route::middleware(['auth', \App\Http\Middleware\SessionAlumnoCrearEditar::class]
     // Sub-módulo Familiar
     Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
     Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
+    Route::get('/familiares/buscar', [FamiliarController::class, 'buscar'])->name('familiares.buscar');
     Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardarYVolver'])->name('familiares.guardarYVolver');
     Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
 });
