@@ -70,7 +70,11 @@ class AlumnoController extends Controller
     public function buscar(Request $request): JsonResponse
     {
         $q = (string)$request->get('q', '');
-        return response()->json($this->alumnoService->buscar($q));
+
+        // Verifico si existe el parámetro, y si existe lo forzamos a ser un Número Entero
+        $excludeId = $request->filled('exclude_id') ? (int) $request->get('exclude_id') : null;
+
+        return response()->json($this->alumnoService->buscar($q, $excludeId));
     }
 
     public function crear() {

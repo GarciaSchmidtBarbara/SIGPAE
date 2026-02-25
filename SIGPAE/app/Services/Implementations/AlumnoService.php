@@ -100,14 +100,14 @@ class AlumnoService implements AlumnoServiceInterface
         });
     }
 
-    public function buscar(string $q): \Illuminate\Support\Collection
+    public function buscar(string $q, ?int $excludeId = null): \Illuminate\Support\Collection
     {
         // Si está vacío, no consultamos a la bbdd
         if (trim($q) === '') {
             return collect();
         }
 
-        return $this->repo->buscarPorTermino($q);
+        return $this->repo->buscarPorTermino($q, $excludeId);
     }
 
     public function eliminar(int $id): bool
