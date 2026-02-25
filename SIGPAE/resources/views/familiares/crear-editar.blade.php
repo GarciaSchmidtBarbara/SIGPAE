@@ -219,6 +219,80 @@
         }
     },
 
+
+
+    searchQueryFamiliar: '',
+    resultsFamiliares: [],
+    searchErrorFamiliar: '',
+
+    async searchFamiliar() {
+        const q = this.searchQueryFamiliar ? this.searchQueryFamiliar.trim() : '';
+        
+        if (!q) { 
+            this.resultsFamiliares = []; 
+            return; 
+        }
+
+        try {
+            // Llama a la nueva ruta que creamos en web.php
+            const res = await fetch('{{ route('familiares.buscar') }}?q=' + encodeURIComponent(q));
+            if (!res.ok) return;
+            
+            this.resultsFamiliares = await res.json();
+            
+            // AGREGAMOS ESTO PARA VER QUÉ TRAE EL BACKEND:
+            console.log('Buscando:', q);
+            console.log('Resultados de la BD:', this.resultsFamiliares);
+        } catch(e) { 
+            console.error(e); 
+        }
+    },
+
+    selectFamiliar(fam) {
+        this.searchErrorFamiliar = ''; 
+        let idPersona = fam.fk_id_persona;
+        
+        // Evitamos duplicados en la lista actual
+        let idString = String(idPersona);
+        let yaExiste = this.idsEnUso.some(id => String(id) === idString);
+
+        if (idPersona && yaExiste) {
+            this.searchErrorFamiliar = 'Esta persona ya fue agregada como familiar.';
+            this.resultsFamiliares = [];
+            return;
+        }
+
+        // 1. Limpiamos buscador
+        this.resultsFamiliares = []; 
+        this.searchQueryFamiliar = fam.dni || ''; 
+        
+        // 2. RELLENAMOS EL FORMULARIO (Mapeo plano, como lo devuelve el nuevo servicio)
+        this.formData.nombre = fam.nombre || '';
+        this.formData.apellido = fam.apellido || '';
+        this.formData.dni = fam.dni || ''; 
+        
+        this.formData.fecha_nacimiento = fam.fecha_nacimiento 
+            ? new Date(fam.fecha_nacimiento).toISOString().split('T')[0] 
+            : '';
+        
+        this.formData.domicilio = fam.domicilio || '';
+        this.formData.nacionalidad = fam.nacionalidad || '';
+
+        // Campos exclusivos del Familiar
+        this.formData.telefono_personal = fam.telefono_personal || '';
+        this.formData.telefono_laboral = fam.telefono_laboral || '';
+        this.formData.lugar_de_trabajo = fam.lugar_de_trabajo || '';
+
+        // 3. VINCULACIÓN (ID de Persona para el Back-End)
+        this.formData.fk_id_persona = fam.fk_id_persona || null;
+        this.formData.id_familiar = fam.id_familiar || null;
+        
+        // ATENCIÓN: NO seteamos this.isFilled = true para permitir la edición
+        // Tampoco seteamos parentesco ni observaciones, quedan como estaban.
+
+        this.errors = {};
+    },
+
 }" x-init="init()" x-cloak>
 
     <form method="POST" action="{{ route('familiares.guardarYVolver') }}" x-ref="form" novalidate>
@@ -280,6 +354,26 @@
         <!--Base (o sea, si es padre, madre, tutor u otro)-->
         <template x-if="parentesco !== 'hermano'">
             <div x-cloak class="space-y-4 mt-3">
+                <div class="flex items-end gap-3" x-show="editIndex === null">
+                    <div class="flex-1">
+                        <label class="text-sm font-medium text-gray-700 mb-1">Buscar Familiares (Opcional)</label>
+                        <div class="relative">
+                            <input type="text" x-model.debounce.400ms="searchQueryFamiliar" @input="searchFamiliar()" placeholder="DNI / Nombre / Apellido" class="w-full border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <div x-show="searchErrorFamiliar" x-text="searchErrorFamiliar" class="text-xs text-red-600 mt-1 font-bold"></div>
+                            
+                            <div x-show="searchQueryFamiliar.length >= 1" class="absolute z-10 mt-1 w-full bg-white border rounded shadow">
+                                <template x-for="fam in resultsFamiliares" :key="fam.id_familiar">
+                                    <button type="button" @click="selectFamiliar(fam)" class="w-full text-left px-3 py-2 hover:bg-gray-100">
+                                        <span x-text="fam.apellido + ', ' + fam.nombre"></span>
+                                        <span class="text-xs text-gray-500" x-text="' - DNI ' + fam.dni"></span>
+                                    </button>
+                                </template>
+                                <div x-show="resultsFamiliares.length===0" class="px-3 py-2 text-sm text-gray-500">Sin resultados</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-aceptar" @click="searchFamiliar()">Buscar</button>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="flex flex-col">
                         <x-campo-requerido text="DNI" required />
@@ -412,7 +506,7 @@
                         <div class="relative">
                             <input type="text" x-model.debounce.400ms="searchQuery" @input="search()" placeholder="DNI / Nombre / Apellido" class="w-full border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <div x-show="searchError" x-text="searchError" class="text-xs text-red-600 mt-1 font-bold"></div>
-                            <div x-show="results.length" class="absolute z-10 mt-1 w-full bg-white border rounded shadow">
+                            <div x-show="searchQuery.length >= 1" class="absolute z-10 mt-1 w-full bg-white border rounded shadow">
                                 <template x-for="al in results" :key="al.id_alumno">
                                     <button type="button" @click="selectAlumno(al)" class="w-full text-left px-3 py-2 hover:bg-gray-100">
                                         <span x-text="al.persona.apellido + ', ' + al.persona.nombre"></span>
