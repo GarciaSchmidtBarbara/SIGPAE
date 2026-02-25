@@ -151,8 +151,19 @@
         }
 
         try {
-            // Asegurate que esta ruta exista en web.php
-            const res = await fetch('{{ route('alumnos.buscar') }}?q=' + encodeURIComponent(q));
+            // 1. Buscamos el ID del alumno en la sesión
+            const excludeId = '{{ session('asistente.alumno.id_alumno', '') }}'; 
+            
+            // 2. Creamos la variable 'url' con la ruta base
+            let url = '{{ route('alumnos.buscar') }}?q=' + encodeURIComponent(q);
+            
+            // 3. Si estamos editando y hay un ID, se lo agregamos a esa url
+            if (excludeId !== '') {
+                url += '&exclude_id=' + excludeId;
+            }
+
+            // 4. Hacemos UN SOLO fetch usando la url final
+            const res = await fetch(url);
             
             if (!res.ok) return;
             
