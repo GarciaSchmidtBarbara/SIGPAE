@@ -7,27 +7,24 @@
 @section('contenido')
 <div class="space-y-8">
 
-    {{-- === PRIMERAS TARJETAS === --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-        {{-- === NOTIFICACIONES === --}}
-        <div class="p-4 bg-white shadow rounded-lg">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Notificaciones recientes</h2>
+        {{-- NOTIFICACIONES --}}
+        <div class="p-4 sm:p-6 bg-white shadow rounded-lg">
+            <h2 class="text-lg sx-text-x1 font-semibold mb-4 text-gray-800">Notificaciones recientes</h2>
             <p class="text-gray-600">Aquí irían las notificaciones...</p>
         </div>
 
-        {{-- === CALENDARIO === --}}
-        <div class="p-4 bg-white shadow rounded-lg relative"
+        {{-- CALENDARIO --}}
+        <div class="p-4 sm:p-6 bg-white shadow rounded-lg relative"
              x-data="modalEventoData()" x-init="init()">
             
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Calendario</h2>
+            <h2 class="text-lg sx-text-x1 font-semibold mb-4 text-gray-800">Calendario</h2>
 
             {{-- Contenedor calendario en el home --}}
-            <div id="calendar" class="h-64 border rounded-lg"></div>
+            <div id="calendar" class="min-h-[300px] sm:min-h-[350px] lg:min-h-[400px] border rounded-lg overflow-hidden"></div>
 
-            {{-- ===================================== --}}
-            {{-- ========== MODAL DETALLES ============ --}}
-            {{-- ===================================== --}}
+            {{-- MODAL DETALLES --}}
             <div x-show="mostrarModal" 
                 x-cloak
                 x-transition.opacity
@@ -39,7 +36,7 @@
                 <div class="fixed inset-0 bg-black/50"
                     @click="mostrarModal = false"></div>
                 
-                <div class="relative z-[110] w-full max-w-lg rounded-2xl bg-white shadow-xl">
+                <div class="relative z-[110] w-full max-w-lg mx-4 sm:mx-auto rounded-2xl bg-white shadow-xl">
                     <div class="px-6 py-6">
                         <h3 class="text-lg font-semibold text-primary border-b pb-2 mb-4" 
                             x-text="eventoData.title"></h3>
@@ -75,9 +72,7 @@
                 </div>
             </div>
 
-            {{-- ===================================== --}}
-            {{-- ======== MODAL EVENTOS DEL DÍA ======= --}}
-            {{-- ===================================== --}}
+            {{-- MODAL EVENTOS DEL DÍA --}}
             <div x-show="mostrarModalDia" 
                 x-cloak
                 x-transition.opacity
@@ -89,7 +84,7 @@
                 <div class="fixed inset-0 bg-black/50"
                     @click="mostrarModalDia = false"></div>
                 
-                <div class="relative z-[110] w-full max-w-lg rounded-2xl bg-white shadow-xl">
+                <div class="relative z-[110] w-full max-w-lg mx-4 sm:mx-auto rounded-2xl bg-white shadow-xl">
                     <div class="px-6 py-6">
                         <h3 class="text-lg font-semibold text-primary border-b pb-2 mb-4">
                             Eventos del <span x-text="formatearFecha(diaSeleccionado.fecha)"></span>
@@ -132,44 +127,43 @@
                 </div>
             </div>
 
-            {{-- === PRÓXIMOS EVENTOS === --}}
-        <div class="p-4 bg-white shadow rounded-lg">
-            <h2 class="text-xl font-semibold mb-3 text-gray-800">Próximos eventos</h2>
+            {{-- PRÓXIMOS EVENTOS --}}
+            <div class="p-4 bg-white shadow rounded-lg">
+                <h2 class="text-xl font-semibold mb-3 text-gray-800">Próximos eventos</h2>
 
-            @if ($eventosProximos->isEmpty())
-                <p class="text-gray-500">No tienes eventos próximos.</p>
-            @else
-                <ul class="space-y-4">
-                    @foreach ($eventosProximos as $evento)
-                        <li class="border p-3 rounded hover:bg-gray-100 cursor-pointer"
-                            @click="mostrarDetallesEvento({
-                                id: {{ $evento->id_evento }},
-                                title: '{{ $evento->tipo_evento->label() }}',
-                                extendedProps: {
-                                    tipo: '{{ $evento->tipo_evento?->value }}',
-                                    hora: '{{ $evento->fecha_hora->format('H:i') }}',
-                                    lugar: '{{ addslashes($evento->lugar) }}',
-                                    creador: '{{ addslashes(optional($evento->profesionalCreador?->persona)->nombre ?? 'Sin asignar') }}',
-                                    notas: '{{ addslashes($evento->notas ?? '') }}'
-                                }
-                            })">
-                            <div class="flex justify-between">
-                                <span class="font-semibold text-gray-800">{{ $evento->tipo_evento->label() }}</span>
-                                <span class="text-sm text-gray-600">
-                                    {{ $evento->fecha_hora->format('d/m H:i') }}
-                                </span>
-                            </div>
-                            <div class="text-sm text-gray-600">
-                                Lugar: {{ $evento->lugar }}
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-        </div>
-        </div> <!-- FIN TARJETA CALENDARIO -->
+                @if ($eventosProximos->isEmpty())
+                    <p class="text-gray-500">No tienes eventos próximos.</p>
+                @else
+                    <ul class="space-y-4">
+                        @foreach ($eventosProximos as $evento)
+                            <li class="border p-3 rounded hover:bg-gray-100 cursor-pointer"
+                                @click="mostrarDetallesEvento({
+                                    id: {{ $evento->id_evento }},
+                                    title: '{{ $evento->tipo_evento->label() }}',
+                                    extendedProps: {
+                                        tipo: '{{ $evento->tipo_evento?->value }}',
+                                        hora: '{{ $evento->fecha_hora->format('H:i') }}',
+                                        lugar: '{{ addslashes($evento->lugar) }}',
+                                        creador: '{{ addslashes(optional($evento->profesionalCreador?->persona)->nombre ?? 'Sin asignar') }}',
+                                        notas: '{{ addslashes($evento->notas ?? '') }}'
+                                    }
+                                })">
+                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">                                    <span class="font-semibold text-gray-800">{{ $evento->tipo_evento->label() }}</span>
+                                    <span class="text-sm text-gray-600">
+                                        {{ $evento->fecha_hora->format('d/m H:i') }}
+                                    </span>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    Lugar: {{ $evento->lugar }}
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </div> 
 
-    </div> <!-- FIN GRID -->
+    </div>
 
 </div>
 
