@@ -209,7 +209,51 @@
     text-transform: capitalize;
 }
 
+/* Título del mes */
+.fc .fc-toolbar-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
 
+/* En desktop un poco más grande */
+@media (min-width: 1024px) {
+    .fc .fc-toolbar-title {
+        font-size: 1.25rem;
+    }
+}
+/* Botones del calendario */
+.fc .fc-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+}
+
+/* Botones prev/next más compactos */
+.fc .fc-button .fc-icon {
+    font-size: 0.9rem;
+}
+/* Altura de celdas */
+.fc .fc-daygrid-day-frame {
+    padding: 4px;
+    min-height: 60px;
+}
+
+/* Número del día */
+.fc .fc-daygrid-day-number {
+    font-size: 0.8rem;
+    padding: 2px;
+}
+/* Tamaño de eventos */
+.fc .fc-daygrid-event {
+    font-size: 0.7rem;
+    padding: 1px 4px;
+    border-radius: 6px;
+}
+/*Encabezado de días de la semana */
+.fc .fc-col-header-cell-cushion {
+    font-size: 0.75rem;
+    padding: 4px 0;
+}
 
 /* uso para no imprimir el borde del costado */
 
