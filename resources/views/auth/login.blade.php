@@ -3,32 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <title>Iniciar Sesión - SIGPAE</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
-    <div class="min-h-screen w-full bg-[radial-gradient(circle_at_top_left,_#9850CF,_#6688F6)] flex items-center justify-center gap-0">
-        <div class="bg-white py-8 px-25 w-4/9 rounded-2xl shadow-lg z-10">
-            <p class="text-5xl pb-10 w-full text-center">Iniciar Sesión</p>
+    <div class="min-h-screen w-full px-4 sm:px-6 bg-[radial-gradient(circle_at_top_left,_#9850CF,_#6688F6)] flex items-center justify-center">
+        <div class="bg-white w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-lg z-10">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center mb-8">Iniciar Sesión</h1>
             <form method="POST" action="{{ route('login.store') }}">
                 @csrf
 
-                <label for="usuario">Usuario</label><br>
-                <input 
-                    type="text" 
-                    name="usuario" 
-                    required
-                    class="input-form-login"
-                ><br>
+                <div class="mb-4">
+                    <label class="block mb-1 text-sm font-medium">Usuario</label>
+                    <input type="text" name="usuario" required class="input-form-login w-full">
+                </div>
 
-                <label for="contrasenia">Contraseña</label><br>
-                <input
-                    type="password"
-                    name="contrasenia"
-                    required
-                    class="input-form-login"
-                ><br>
+                <div class="mb-4">
+                    <label class="block mb-1 text-sm font-medium">Contraseña</label>
+                    <input type="password" name="contrasenia" required class="input-form-login w-full">
+                </div>
 
                 @if ($errors->any())
                     <div class="text-red-500 mt-2">

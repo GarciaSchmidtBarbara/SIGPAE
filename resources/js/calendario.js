@@ -23,8 +23,9 @@ document.addEventListener('DOMContentLoaded', function () {
             month: 'Mes',
             list: 'Lista'
         },
-        height: 350,
-        contentHeight: 300,
+        height: 320,
+        contentHeight: 260,
+        aspectRatio: 1.35,
         navLinks: false,
         editable: true,
         selectable: true,
