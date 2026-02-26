@@ -49,6 +49,20 @@ use App\Services\Interfaces\EventoServiceInterface;
 use App\Services\Implementations\EventoService;
 use App\Repositories\Interfaces\EventoRepositoryInterface;
 use App\Repositories\Eloquent\EventoRepository;
+// Notificacion
+use App\Services\Interfaces\NotificacionServiceInterface;
+use App\Services\Implementations\NotificacionService;
+use App\Repositories\Interfaces\NotificacionRepositoryInterface;
+use App\Repositories\Eloquent\NotificacionRepository;
+// Observers
+use App\Models\Evento;
+use App\Models\Intervencion;
+use App\Models\PlanDeAccion;
+use App\Models\EsInvitadoA;
+use App\Observers\EventoObserver;
+use App\Observers\IntervencionObserver;
+use App\Observers\PlanDeAccionObserver;
+use App\Observers\EsInvitadoAObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -65,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PlanDeAccionRepositoryInterface::class, PlanDeAccionRepository::class);
         $this->app->bind(EventoRepositoryInterface::class, EventoRepository::class);
         $this->app->bind(AulaRepositoryInterface::class, AulaRepository::class);
+        $this->app->bind(NotificacionRepositoryInterface::class, NotificacionRepository::class);
 
         // Services
         $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
@@ -75,6 +90,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PlanDeAccionServiceInterface::class, PlanDeAccionService::class);
         $this->app->bind(EventoServiceInterface::class, EventoService::class);
         $this->app->bind(AulaServiceInterface::class, AulaService::class);
+        $this->app->bind(NotificacionServiceInterface::class, NotificacionService::class);
     }
 
     /**
@@ -91,6 +107,12 @@ class AppServiceProvider extends ServiceProvider
         //    return new \Illuminate\Auth\SessionGuard($name, Profesional::class, $app['session.store']);
         //});
         
+        // Observers de notificaciones
+        Evento::observe(EventoObserver::class);
+        Intervencion::observe(IntervencionObserver::class);
+        PlanDeAccion::observe(PlanDeAccionObserver::class);
+        EsInvitadoA::observe(EsInvitadoAObserver::class);
+
         //forzar https para producción
         if (app()->environment('production')) { 
             \URL::forceScheme('https'); 

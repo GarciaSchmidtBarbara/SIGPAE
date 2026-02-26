@@ -8,8 +8,8 @@ class EsInvitadoA extends Pivot
 {
     protected $table = 'es_invitado_a';
 
-    protected $primaryKey = null;  // No hay PK específica en pivote
-    public $incrementing = false;
+    protected $primaryKey = 'id_es_invitado_a';
+    public $incrementing = true;
 
     protected $fillable = [
         'fk_id_evento',

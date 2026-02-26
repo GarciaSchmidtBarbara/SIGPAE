@@ -38,6 +38,7 @@ class SessionAlumnoCrearEditar
             // Sub-módulo Familiar (Vista 2)
             'familiares.crear',
             'familiares.editar',
+            'familiares.buscar',
             // Nota: Ajustá este nombre si en tu web.php se llama 'familiares.guardar' o 'guardarYVolver'
             'familiares.guardarYVolver', 
             'familiares.validar-dni',

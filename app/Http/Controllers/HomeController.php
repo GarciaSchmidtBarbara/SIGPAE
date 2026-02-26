@@ -5,9 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Profesional;
 use Carbon\Carbon;
+use App\Services\Interfaces\NotificacionServiceInterface;
 
 class HomeController extends Controller
 {
+    public function __construct(
+        protected NotificacionServiceInterface $notificacionService
+    ) {}
+
     public function index()
     {
         /** @var Profesional $profesional */
@@ -54,13 +59,18 @@ class HomeController extends Controller
             ->take(3)
             ->values();
             
+        $notificaciones = $this->notificacionService->listarParaAuth()->take(10);
+        $noLeidas       = $this->notificacionService->contarNoLeidas();
+
         return view('welcome', [
-    'profesional'             => $profesional,
-    'eventosHoy'              => $eventosHoy,
-    'eventosProximos'         => $eventosProximos,
-    'eventosCreadosProximos'  => $eventosCreadosProximos,
-    'eventosInvitadoProximos' => $eventosInvitadoProximos
-]);
+            'profesional'             => $profesional,
+            'eventosHoy'              => $eventosHoy,
+            'eventosProximos'         => $eventosProximos,
+            'eventosCreadosProximos'  => $eventosCreadosProximos,
+            'eventosInvitadoProximos' => $eventosInvitadoProximos,
+            'notificaciones'          => $notificaciones,
+            'noLeidas'                => $noLeidas,
+        ]);
 
     }
 }

@@ -5,6 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
+//Enums para los atributos enum, asi se mantienen consistentes con los modelos sin escritira a "mano"
+use App\Enums\Parentesco;
 
 return new class extends Migration
 {
@@ -37,10 +39,12 @@ return new class extends Migration
             $table->primary(['fk_id_alumno', 'fk_id_plan_de_accion']);      
             $table->timestamps();      
       });
-      
+
       //revisado
       Schema::create('tiene_familiar', function (Blueprint $table) {
 
+            $table->id('id_tiene_familiar');
+            
             $table->foreignId('fk_id_alumno')
                   ->constrained('alumnos', 'id_alumno')
                   ->onUpdate('cascade') 
@@ -50,11 +54,18 @@ return new class extends Migration
                   ->constrained('familiares', 'id_familiar')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
-            
+
+            // Utilizo php para obtener los valores del enum desde la clase Parentesco
+            // Esto asegura que los valores esten sincronizados entre el modelo y la migracion
+            // Es una buena practica para evitar errores de inconsistencia en Laravel
+            $valoresParentesco = array_column(Parentesco::cases(), 'value');
+            $table->enum('parentesco', $valoresParentesco);
+
+            $table->string('otro_parentesco')-> nullable();
             $table->boolean('activa')->default(true);
             $table->string('observaciones')->nullable();
             
-            $table->primary(['fk_id_alumno', 'fk_id_familiar']);
+            $table->unique(['fk_id_alumno', 'fk_id_familiar']);
 
             $table->timestamps();
       });

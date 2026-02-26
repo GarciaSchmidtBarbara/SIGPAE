@@ -108,6 +108,7 @@ Route::middleware(['auth', \App\Http\Middleware\SessionAlumnoCrearEditar::class]
     // Sub-módulo Familiar
     Route::get('/familiares/crear', [FamiliarController::class, 'crear'])->name('familiares.crear');
     Route::get('/familiares/{indice}/editar', [FamiliarController::class, 'editar'])->name('familiares.editar');
+    Route::get('/familiares/buscar', [FamiliarController::class, 'buscar'])->name('familiares.buscar');
     Route::post('/familiares/guardar-y-volver', [FamiliarController::class, 'guardarYVolver'])->name('familiares.guardarYVolver');
     Route::post('/familiares/validar-dni', [FamiliarController::class, 'validarDniAjax'])->name('familiares.validar-dni');
 });
@@ -181,4 +182,17 @@ Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function (
     Route::post('/', [EventoController::class, 'store'])->name('store');
     Route::put('/{id}', [EventoController::class, 'update'])->name('update');
     Route::delete('/{id}', [EventoController::class, 'destroy'])->name('destroy');
+});
+
+//Notificaciones
+use App\Http\Controllers\NotificacionController;
+Route::prefix('notificaciones')->middleware('auth')->name('notificaciones.')->group(function () {
+    // GET  /notificaciones           → JSON con la lista y el contador de no leídas
+    Route::get('/', [NotificacionController::class, 'index'])->name('index');
+
+    // POST /notificaciones/{id}/leer → marca como leída y redirige al recurso
+    Route::post('/{id}/leer', [NotificacionController::class, 'marcarYRedirigir'])->name('leer');
+
+    // POST /notificaciones/leer-todas → marca todas como leídas
+    Route::post('/leer-todas', [NotificacionController::class, 'marcarTodasLeidas'])->name('leer-todas');
 });

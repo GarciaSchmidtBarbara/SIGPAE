@@ -61,4 +61,18 @@ class FamiliarRepository implements FamiliarRepositoryInterface
     {
         return $this->model->with('persona')->get();
     }
+
+    public function buscarPorTermino(string $termino): \Illuminate\Support\Collection
+    {
+        $like = '%' . str_replace('%', '', $termino) . '%';
+
+        return Familiar::with('persona')
+            ->whereHas('persona', function ($sub) use ($like) {
+                $sub->where('dni', 'like', $like)
+                    ->orWhere('nombre', 'ilike', $like)
+                    ->orWhere('apellido', 'ilike', $like);
+            })
+            ->limit(10)
+            ->get();
+    }
 }

@@ -12,6 +12,8 @@
     <!-- Favicon en svg e ico para que se vea en todos los navegadores -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+    <!-- iconos para las notificaciones-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -118,6 +120,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
+
+                <span class="text-lg font-bold text-gray-700 lg:hidden">SIGPAE</span>
+
+                {{-- Campana de notificaciones (solo para usuarios autenticados) --}}
+                @auth
+                    <x-notificaciones.campana />
+                @endauth
             </header>
 
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8 pt-2">
