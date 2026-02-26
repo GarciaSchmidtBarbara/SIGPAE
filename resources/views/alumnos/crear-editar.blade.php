@@ -18,15 +18,6 @@
                 <p>Este alumno está inactivo. No se permiten modificaciones.</p>
             @endif
         </div>
-        <div class="flex justify-end space-x-4">
-            @if($esEdicion)
-                <x-boton-estado 
-                    :activo="$alumno->persona->activo" 
-                    :route="route('alumnos.cambiarActivo', $alumno->id_alumno)" 
-                />
-            @endif
-            <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
-        </div>
     </div>
 
     <div x-data="{
@@ -334,7 +325,7 @@
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.nombre"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.apellido"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.dni"></td>
-                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.parentesco ? familiar.parentesco : 'Hermano Alumno'"></td>
+                                <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900 capitalize" x-text="familiar.parentesco ? familiar.parentesco : 'Hermano Alumno'"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900" x-text="familiar.telefono_personal"></td>
                                 <td class="px-4 py-2 whitespace-nowrap text-sm font-medium">
                                     {{-- 'familiar' es el discriminante que sirve para evaluar a posterior en el back en que array de eliminacion se debe agregar

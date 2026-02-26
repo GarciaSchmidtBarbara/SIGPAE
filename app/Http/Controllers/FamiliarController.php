@@ -26,6 +26,13 @@ class FamiliarController extends Controller
         $this->personaService = $personaService;
     }
 
+    public function buscar(Request $request): JsonResponse
+    {
+        $q = (string) $request->get('q', '');
+        
+        return response()->json($this->familiarService->buscar($q));
+    }
+
     public function crear()
     {
         // 1. Recuperamos la sesión

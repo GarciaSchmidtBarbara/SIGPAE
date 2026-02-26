@@ -58,7 +58,10 @@ class Alumno extends Model
 
     // revisado
     public function familiares(): BelongsToMany{
-        return $this->belongsToMany(Familiar::class, 'tiene_familiar', 'fk_id_alumno', 'fk_id_familiar')->withPivot('activa', 'observaciones');
+        return $this->belongsToMany(Familiar::class, 'tiene_familiar', 'fk_id_alumno', 'fk_id_familiar')
+                    ->using(TieneFamiliar::class)
+                    ->withPivot('id_tiene_familiar', 'parentesco', 'otro_parentesco', 'activa', 'observaciones')
+                    ->withTimestamps();
     }
 
     // revisado

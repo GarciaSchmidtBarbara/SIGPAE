@@ -123,7 +123,7 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         }
     }
 
-    public function buscarPorTermino(string $termino): \Illuminate\Support\Collection
+    public function buscarPorTermino(string $termino, ?int $excludeId = null): \Illuminate\Support\Collection
     {
         // Preparamos el string para SQL LIKE
         // esto se hace para evitar inyecciones SQL
@@ -135,6 +135,10 @@ class AlumnoRepository implements AlumnoRepositoryInterface
                 $sub->where('dni', 'like', $like)
                     ->orWhere('nombre', 'ilike', $like) // ilike es para Postgres (insensible a mayúsculas)
                     ->orWhere('apellido', 'ilike', $like);
+            })
+            ->when($excludeId, function ($query, $excludeId) {
+                // Filtramos para que no traiga al alumno actual
+                return $query->where('id_alumno', '!=', $excludeId);
             })
             ->limit(10)
             ->get();

@@ -47,7 +47,7 @@ class FamiliarService implements FamiliarServiceInterface
         
         // Plan A: Buscar por ID
         if (!empty($datos['fk_id_persona'])) {
-            $this->personaService->getPersonaById($datos['fk_id_persona']); 
+            $persona = $this->personaService->getPersonaById($datos['fk_id_persona']); 
         }
 
         // 2. Plan B: Si falló el ID, Buscar por DNI (La Red de Seguridad)
@@ -71,9 +71,6 @@ class FamiliarService implements FamiliarServiceInterface
             'telefono_personal' => $datos['telefono_personal'] ?? null,
             'telefono_laboral' => $datos['telefono_laboral'] ?? null,
             'lugar_de_trabajo' => $datos['lugar_de_trabajo'] ?? null,
-            'parentesco' => strtoupper($datos['parentesco']),
-            'otro_parentesco' => $datos['otro_parentesco'] ?? null,
-            'observaciones' => $datos['observaciones'] ?? null,
         ];
 
         $familiar = null;
@@ -160,5 +157,31 @@ class FamiliarService implements FamiliarServiceInterface
             }
             return $this->familiarRepository->update($id, $data);
         });
+    }
+
+    public function buscar(string $q): \Illuminate\Support\Collection
+    {
+        if (trim($q) === '') {
+            return collect();
+        }
+
+        $familiares = $this->familiarRepository->buscarPorTermino($q);
+
+        // Aplanamos la colección para que el frontend lo reciba listo para usar
+        return $familiares->map(function ($familiar) {
+            return [
+                'id_familiar' => $familiar->id_familiar,
+                'fk_id_persona' => $familiar->persona->id_persona,
+                'dni' => $familiar->persona->dni,
+                'nombre' => $familiar->persona->nombre,
+                'apellido' => $familiar->persona->apellido,
+                'nacionalidad' => $familiar->persona->nacionalidad,
+                'domicilio' => $familiar->persona->domicilio,
+                'fecha_nacimiento' => $familiar->persona->fecha_nacimiento,
+                'telefono_personal' => $familiar->telefono_personal,
+                'telefono_laboral' => $familiar->telefono_laboral,
+                'lugar_de_trabajo' => $familiar->lugar_de_trabajo,
+            ];
+        })->values();
     }
 }
