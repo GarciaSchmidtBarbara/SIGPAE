@@ -9,7 +9,9 @@
 
     <!-- Estilos globales -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+    <!-- Favicon en svg e ico para que se vea en todos los navegadores -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -61,7 +63,7 @@
                 class=" sidebar-scroll fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out overflow-y-auto h-screen bg-fondo shadow-2xl lg:translate-x-0 lg:static lg:inset-0">
         
             <div class="flex items-center justify-between h-16 bg-indigo-800 shadow-sm px-4">
-                <span class="text-white text-2xl font-bold tracking-wider">SIGPAE</span>
+                <a href="{{ route('home') }}" class="text-white text-2xl font-bold tracking-wider"> SIGPAE </a>
             </div>
 
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
