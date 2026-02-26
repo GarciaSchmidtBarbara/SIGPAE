@@ -46,7 +46,7 @@
 
 <body class="bg-gray-50 font-sans text-slate-600" 
     x-data="{sidebarOpen: window.innerWidth >= 1024 }"
-    x-init="window.addEventListener('resize', () => {sidebarOpen = window.innerWidth >= 1024; })"
+    x-init="window.addEventListener('resize', () => {sidebarOpen = window.innerWidth >= 1024 })"
     >
     
     <div class="flex min-h-screen">
@@ -58,7 +58,7 @@
         </div>
 
         <aside :class="{'translate-x-0': sidebarOpen,'-translate-x-full': !sidebarOpen}"
-                class="fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out bg-fondo shadow-2xl lg:translate-x-0 lg:static lg:inset-0"
+                class="fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out bg-fondo shadow-2xl lg:translate-x-0 lg:static lg:inset-0">
         
             <div class="flex items-center justify-between h-16 bg-black/10 shadow-sm px-4">
                 <span class="text-white text-2xl font-bold tracking-wider">SIGPAE</span>
