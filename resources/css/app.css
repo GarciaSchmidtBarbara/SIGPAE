@@ -13,8 +13,9 @@
     --color-estado: #9992FF;
 }
 
-@layer elements {
+@layer components {
 
+    /* LINKS */
     .links {
         @apply text-shadow-lg px-[6px] py-[4px] my-[4px] font-medium text-base rounded-md transition-colors duration-200 ease-in-out
     }
@@ -31,6 +32,7 @@
         @apply text-2xl mb-[20px] text-[#1E1E1E] font-bold
     }
 
+    /* BOTONES */
     .btn-aceptar {
         @apply bg-[#9992FF] text-white text-shadow-lg px-[10px] py-[5px] cursor-pointer rounded-md transition-all duration-200 hover:bg-[#7b74cc] hover:shadow-md hover:scale-105 transform
     }
@@ -55,7 +57,6 @@
         background-position: 12px center;
         background-size: 20px 20px;
     }
-
 
     .btn-gris-variantes {
         @apply bg-gray-300 text-black text-shadow-lg px-[10px] py-[5px] cursor-pointer rounded-md transition-all duration-200 hover:bg-gray-500 hover:shadow-md hover:scale-105 transform;
@@ -193,69 +194,92 @@
 
     }
 
-/* --- CALENDARIO --- */
-#calendar .fc-toolbar-title {
-    margin: 0 2rem !important;
-    flex: 1;
-    text-align: center;
-}
-
-#calendar .fc-toolbar-chunk {
-    display: flex;
-    align-items: center;
-}
-
-#calendar .fc-toolbar-title {
-    text-transform: capitalize;
-}
-
-/* Título del mes */
-.fc .fc-toolbar-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-/* En desktop un poco más grande */
-@media (min-width: 1024px) {
-    .fc .fc-toolbar-title {
-        font-size: 1.25rem;
+    /* --- CALENDARIO --- */
+    #calendar .fc-toolbar-title {
+        margin: 0 2rem !important;
+        flex: 1;
+        text-align: center;
     }
-}
-/* Botones del calendario */
-.fc .fc-button {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.85rem;
-    border-radius: 8px;
-}
 
-/* Botones prev/next más compactos */
-.fc .fc-button .fc-icon {
-    font-size: 0.9rem;
-}
-/* Altura de celdas */
-.fc .fc-daygrid-day-frame {
-    padding: 4px;
-    min-height: 60px;
-}
+    #calendar .fc-toolbar-chunk {
+        display: flex;
+        align-items: center;
+    }
 
-/* Número del día */
-.fc .fc-daygrid-day-number {
-    font-size: 0.8rem;
-    padding: 2px;
-}
-/* Tamaño de eventos */
-.fc .fc-daygrid-event {
-    font-size: 0.7rem;
-    padding: 1px 4px;
-    border-radius: 6px;
-}
-/*Encabezado de días de la semana */
-.fc .fc-col-header-cell-cushion {
-    font-size: 0.75rem;
-    padding: 4px 0;
-}
+    #calendar .fc-toolbar-title {
+        text-transform: capitalize;
+    }
 
-/* uso para no imprimir el borde del costado */
+    /* Título del mes */
+    .fc .fc-toolbar-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    /* En desktop un poco más grande */
+    @media (min-width: 1024px) {
+        .fc .fc-toolbar-title {
+            font-size: 1.25rem;
+        }
+    }
+    /* Botones del calendario */
+    .fc .fc-button {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+        border-radius: 8px;
+    }
+
+    /* Botones prev/next más compactos */
+    .fc .fc-button .fc-icon {
+        font-size: 0.9rem;
+    }
+    /* Altura de celdas */
+    .fc .fc-daygrid-day-frame {
+        padding: 4px;
+        min-height: 60px;
+    }
+
+    /* Número del día */
+    .fc .fc-daygrid-day-number {
+        font-size: 0.8rem;
+        padding: 2px;
+    }
+    /* Tamaño de eventos */
+    .fc .fc-daygrid-event {
+        font-size: 0.7rem;
+        padding: 1px 4px;
+        border-radius: 6px;
+    }
+    /*Encabezado de días de la semana */
+    .fc .fc-col-header-cell-cushion {
+        font-size: 0.75rem;
+        padding: 4px 0;
+    }
+
+    /*SIDEBAR*/
+    /* Scroll sutil para sidebar */
+    .sidebar-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.25);
+        border-radius: 9999px;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Firefox */
+    .sidebar-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.25) transparent;
+    }
 
 
 

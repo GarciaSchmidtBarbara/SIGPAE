@@ -49,7 +49,7 @@
     x-init="window.addEventListener('resize', () => {sidebarOpen = window.innerWidth >= 1024 })"
     >
     
-    <div class="flex min-h-screen">
+    <div class="flex h-screen overflow-hidden">
         
         <div x-show="sidebarOpen"
              x-transition.opacity
@@ -58,16 +58,10 @@
         </div>
 
         <aside :class="{'translate-x-0': sidebarOpen,'-translate-x-full': !sidebarOpen}"
-                class="fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out bg-fondo shadow-2xl lg:translate-x-0 lg:static lg:inset-0">
+                class=" sidebar-scroll fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out overflow-y-auto h-screen bg-fondo shadow-2xl lg:translate-x-0 lg:static lg:inset-0">
         
-            <div class="flex items-center justify-between h-16 bg-black/10 shadow-sm px-4">
+            <div class="flex items-center justify-between h-16 bg-indigo-800 shadow-sm px-4">
                 <span class="text-white text-2xl font-bold tracking-wider">SIGPAE</span>
-                
-                <button @click="sidebarOpen = false" class="text-white/70 hover:text-white transition-colors focus:outline-none hidden lg:block p-1 rounded-md hover:bg-white/10">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                    </svg>
-                </button>
             </div>
 
             <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
@@ -94,7 +88,7 @@
                 <x-nav-item route="usuarios.principal" label="Usuarios" icon="icons.icono-usuario" exact></x-nav-item>
             </nav>
             
-            <div class="p-4 bg-black/20 border-t border-white/10">
+            <div class="p-4 bg-indigo-800">
                 <a href="{{ route('perfil.principal') }}" class="flex items-center gap-3 text-white hover:text-indigo-200 transition-colors mb-3">
                     <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                         <i class="fas fa-user text-sm"></i>
@@ -117,13 +111,11 @@
             
             <header class="flex items-center justify-between px-6 py-4 bg-white border-b shadow-sm lg:bg-transparent lg:border-none lg:shadow-none lg:py-2">
                 
-                <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 focus:outline-none hover:text-indigo-600 hover:bg-gray-200/50 p-2 rounded-md transition-colors">
+                <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden text-gray-500 focus:outline-none hover:text-indigo-600 hover:bg-gray-200/50 p-2 rounded-md transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
                 </button>
-
-                <span class="text-lg font-bold text-gray-700 lg:hidden">SIGPAE</span>
             </header>
 
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8 pt-2">

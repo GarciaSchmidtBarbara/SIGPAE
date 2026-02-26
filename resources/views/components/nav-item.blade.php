@@ -22,7 +22,7 @@
                   )
                 : false);
 
-    $baseClasses = 'flex items-center w-full px-4 py-3 mb-2 text-white transition-colors duration-200 rounded-lg hover:bg-white/10 group';
+    $baseClasses = 'flex items-center w-full px-3 py-2 text-sm lg:px-4 lg:py-3 lg:text-base mb-1 lg:mb-2 text-white transition-colors duration-200 rounded-lg hover:bg-white/10 group';
     $activeClass = $computedActive ? 'bg-white/20 shadow-inner' : '';
     $classes = trim("$baseClasses $activeClass $class");
 
@@ -31,7 +31,7 @@
 <a href="{{ $url }}" {{ $attributes->merge(['class' => $classes]) }}>
     @if($icon)
         {{-- Renderiza cualquier componente como icono --}}
-        <div class="mr-3 w-6 flex justify-center text-lg opacity-90 group-hover:opacity-100">
+        <div class="mr-2 lg:mr-3 w-5 lg:w-6 flex justify-center text-base lg:text-lg opacity-90 group-hover:opacity-100">
         <x-dynamic-component :component="$icon" />
         </div>
     @endif
