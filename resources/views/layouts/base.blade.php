@@ -10,8 +10,8 @@
     <!-- Estilos globales -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    
-    <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
+    <!-- iconos para las notificaciones-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -126,6 +126,11 @@
                 </button>
 
                 <span class="text-lg font-bold text-gray-700 lg:hidden">SIGPAE</span>
+
+                {{-- Campana de notificaciones (solo para usuarios autenticados) --}}
+                @auth
+                    <x-notificaciones.campana />
+                @endauth
             </header>
 
             <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-[30px] pt-2">

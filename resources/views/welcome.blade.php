@@ -11,9 +11,81 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         {{-- === NOTIFICACIONES === --}}
-        <div class="p-4 bg-white shadow rounded-lg">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">Notificaciones recientes</h2>
-            <p class="text-gray-600">Aquí irían las notificaciones...</p>
+        <div class="p-4 bg-white shadow rounded-lg flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800">
+                    Notificaciones recientes
+                    @if ($noLeidas > 0)
+                        <span class="ml-2 inline-flex items-center justify-center min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full px-1">
+                            {{ $noLeidas > 99 ? '99+' : $noLeidas }}
+                        </span>
+                    @endif
+                </h2>
+                @if ($noLeidas > 0)
+                    <button
+                        type="button"
+                        onclick="fetch('{{ route('notificaciones.leer-todas') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                'Accept': 'application/json'
+                            }
+                        }).then(() => window.location.reload())"
+                        class="text-xs text-indigo-600 hover:underline focus:outline-none"
+                    >
+                        Marcar todas como leídas
+                    </button>
+                @endif
+            </div>
+
+            @if ($notificaciones->isEmpty())
+                <div class="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
+                    <i class="fas fa-bell-slash text-3xl"></i>
+                    <p class="text-sm">No tenés notificaciones</p>
+                </div>
+            @else
+                <ul class="divide-y divide-gray-100 -mx-4">
+                    @foreach ($notificaciones as $notif)
+                        <li class="{{ $notif->leida ? 'bg-white' : 'bg-indigo-50' }} hover:bg-gray-50 transition-colors">
+                            <form method="POST" action="{{ route('notificaciones.leer', $notif->id_notificacion) }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-3 flex gap-3 items-start">
+
+                                    {{-- Ícono del tipo --}}
+                                    <span class="mt-0.5 shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
+                                        <i class="fas {{ $notif->tipo->icono() }} {{ $notif->tipo->iconoColor() }} text-sm"></i>
+                                    </span>
+
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                                {{ $notif->tipo->etiqueta() }}
+                                            </span>
+                                            @unless ($notif->leida)
+                                                <span class="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></span>
+                                            @endunless
+                                        </div>
+
+                                        <p class="text-sm text-gray-700 mt-0.5 leading-snug">{{ $notif->mensaje }}</p>
+
+                                        @if ($notif->recursoBorrado())
+                                            <span class="inline-block mt-1 text-xs text-red-500 font-medium">
+                                                <i class="fas fa-exclamation-circle mr-0.5"></i> El recurso fue eliminado
+                                            </span>
+                                        @elseif ($notif->urlDestino())
+                                            <span class="inline-block mt-1 text-xs text-indigo-600 font-medium hover:underline">
+                                                Ver <i class="fas fa-arrow-right text-[10px]"></i>
+                                            </span>
+                                        @endif
+
+                                        <p class="text-xs text-gray-400 mt-1">{{ $notif->created_at->diffForHumans() }}</p>
+                                    </div>
+                                </button>
+                            </form>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
 
         {{-- === CALENDARIO === --}}
