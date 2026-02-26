@@ -44,23 +44,22 @@
     @stack('scripts')
 </head>
 
-<body class="bg-gray-50 font-sans text-slate-600" x-data="{ sidebarOpen: true }">
+<body class="bg-gray-50 font-sans text-slate-600" 
+    x-data="{sidebarOpen: window.innerWidth >= 1024 }"
+    x-init="window.addEventListener('resize', () => {sidebarOpen = window.innerWidth >= 1024; })"
+    >
+    
     <div class="flex min-h-screen">
         
         <div x-show="sidebarOpen"
-             @click="sidebarOpen = false"
-             x-transition:enter="transition-opacity ease-linear duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition-opacity ease-linear duration-300"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden">
+             x-transition.opacity
+            @click="sidebarOpen = false"
+            class="fixed inset-0 z-20 bg-black/50 lg:hidden">
         </div>
 
-        <aside :class="sidebarOpen ? 'hidden md:block w-64 translate-x-0' : 'w-0 -translate-x-full lg:w-0 lg:translate-x-0'"
-               class="fixed inset-y-0 left-0 z-30 flex flex-col transition-all duration-300 ease-in-out bg-fondo shadow-2xl overflow-hidden lg:static">
-            
+        <aside :class="{'translate-x-0': sidebarOpen,'-translate-x-full': !sidebarOpen}"
+                class="fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out bg-fondo shadow-2xl lg:translate-x-0 lg:static lg:inset-0"
+        
             <div class="flex items-center justify-between h-16 bg-black/10 shadow-sm px-4">
                 <span class="text-white text-2xl font-bold tracking-wider">SIGPAE</span>
                 
