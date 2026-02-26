@@ -5,11 +5,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('titulo', 'SIGPAE')</title>
      
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Estilos globales -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
     
     <link href="{{ asset('vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet">
     <!-- Google Fonts: Inter -->
@@ -46,7 +45,7 @@
 </head>
 
 <body class="bg-gray-50 font-sans text-slate-600" x-data="{ sidebarOpen: true }">
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex min-h-screen">
         
         <div x-show="sidebarOpen"
              @click="sidebarOpen = false"
@@ -59,10 +58,10 @@
              class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden">
         </div>
 
-        <aside :class="sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full lg:w-0 lg:translate-x-0'"
+        <aside :class="sidebarOpen ? 'hidden md:block w-64 translate-x-0' : 'w-0 -translate-x-full lg:w-0 lg:translate-x-0'"
                class="fixed inset-y-0 left-0 z-30 flex flex-col transition-all duration-300 ease-in-out bg-fondo shadow-2xl overflow-hidden lg:static">
             
-            <div class="flex items-center justify-between h-16 bg-black/10 shadow-sm px-4 min-w-[16rem]">
+            <div class="flex items-center justify-between h-16 bg-black/10 shadow-sm px-4">
                 <span class="text-white text-2xl font-bold tracking-wider">SIGPAE</span>
                 
                 <button @click="sidebarOpen = false" class="text-white/70 hover:text-white transition-colors focus:outline-none hidden lg:block p-1 rounded-md hover:bg-white/10">
@@ -72,7 +71,7 @@
                 </button>
             </div>
 
-            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto min-w-[16rem]">
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                 <div class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mb-2 ml-2">
                     General
                 </div>
@@ -96,7 +95,7 @@
                 <x-nav-item route="usuarios.principal" label="Usuarios" icon="icons.icono-usuario" exact></x-nav-item>
             </nav>
             
-            <div class="p-4 bg-black/20 border-t border-white/10 min-w-[16rem]">
+            <div class="p-4 bg-black/20 border-t border-white/10">
                 <a href="{{ route('perfil.principal') }}" class="flex items-center gap-3 text-white hover:text-indigo-200 transition-colors mb-3">
                     <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                         <i class="fas fa-user text-sm"></i>
@@ -115,7 +114,7 @@
             </div>
         </aside>
 
-        <div class="flex-1 flex flex-col overflow-hidden transition-all duration-300">
+        <div class="flex-1 flex flex-col min-w-0 transition-all duration-300">
             
             <header class="flex items-center justify-between px-6 py-4 bg-white border-b shadow-sm lg:bg-transparent lg:border-none lg:shadow-none lg:py-2">
                 
@@ -128,8 +127,8 @@
                 <span class="text-lg font-bold text-gray-700 lg:hidden">SIGPAE</span>
             </header>
 
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-[30px] pt-2">
-                <div class="titulo-seccion mb-6">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8 pt-2">
+               <div class="titulo-seccion mb-6">
                     @yield('encabezado', 'Sección')
                 </div>
                 
