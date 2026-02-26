@@ -183,3 +183,16 @@ Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function (
     Route::put('/{id}', [EventoController::class, 'update'])->name('update');
     Route::delete('/{id}', [EventoController::class, 'destroy'])->name('destroy');
 });
+
+//Notificaciones
+use App\Http\Controllers\NotificacionController;
+Route::prefix('notificaciones')->middleware('auth')->name('notificaciones.')->group(function () {
+    // GET  /notificaciones           → JSON con la lista y el contador de no leídas
+    Route::get('/', [NotificacionController::class, 'index'])->name('index');
+
+    // POST /notificaciones/{id}/leer → marca como leída y redirige al recurso
+    Route::post('/{id}/leer', [NotificacionController::class, 'marcarYRedirigir'])->name('leer');
+
+    // POST /notificaciones/leer-todas → marca todas como leídas
+    Route::post('/leer-todas', [NotificacionController::class, 'marcarTodasLeidas'])->name('leer-todas');
+});
