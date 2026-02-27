@@ -72,4 +72,12 @@ class DocumentoRepository implements DocumentoRepositoryInterface
         }
         return (bool) $doc->delete();
     }
+
+    public function buscarPorAlumno(int $idAlumno): Collection
+    {
+        return $this->model->newQuery()
+            ->where('fk_id_alumno', $idAlumno)
+            ->orderByDesc('fecha_hora_carga')
+            ->get();
+    }
 }

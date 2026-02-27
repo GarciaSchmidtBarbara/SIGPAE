@@ -125,6 +125,83 @@ class AlumnoService implements AlumnoServiceInterface
         return $this->repo->buscarParaEditar($id);
     }
 
+    /**
+     * Transforma el modelo Alumno en los arrays planos que necesita la vista de edición.
+     * Retorna ['alumnoData' => [...], 'familiares' => [...]].
+     */
+    public function prepararDatosEdicion(Alumno $alumno): array
+    {
+        $alumnoData = [
+            'id_alumno'                  => $alumno->id_alumno,
+            'dni'                        => $alumno->persona->dni,
+            'nombre'                     => $alumno->persona->nombre,
+            'apellido'                   => $alumno->persona->apellido,
+            'fecha_nacimiento'           => $alumno->persona->fecha_nacimiento,
+            'nacionalidad'               => $alumno->persona->nacionalidad,
+            'aula'                       => $alumno->aula->descripcion,
+            'inasistencias'              => $alumno->inasistencias,
+            'cud'                        => $alumno->cud ? 'Sí' : 'No',
+            'situacion_socioeconomica'   => $alumno->situacion_socioeconomica,
+            'situacion_familiar'         => $alumno->situacion_familiar,
+            'situacion_medica'           => $alumno->situacion_medica,
+            'situacion_escolar'          => $alumno->situacion_escolar,
+            'actividades_extraescolares' => $alumno->actividades_extraescolares,
+            'intervenciones_externas'    => $alumno->intervenciones_externas,
+            'antecedentes'               => $alumno->antecedentes,
+            'observaciones'              => $alumno->observaciones,
+        ];
+
+        // Unificar familiares puros con hermanos alumnos (en ambas direcciones)
+        $coleccionUnificada = $alumno->familiares
+            ->merge($alumno->esHermanoDe)
+            ->merge($alumno->hermanos);
+
+        $familiares = $coleccionUnificada->map(function ($item) {
+            $data = $item->toArray();
+
+            // Aplanar datos de Persona
+            if (isset($data['persona'])) {
+                $data['nombre']        = $data['persona']['nombre'] ?? '';
+                $data['apellido']      = $data['persona']['apellido'] ?? '';
+                $data['dni']           = $data['persona']['dni'] ?? '';
+                $data['fecha_nacimiento'] = $item->persona->fecha_nacimiento ?? '';
+                $data['domicilio']     = $data['persona']['domicilio'] ?? '';
+                $data['nacionalidad']  = $data['persona']['nacionalidad'] ?? '';
+                $data['fk_id_persona'] = $data['persona']['id_persona'] ?? null;
+            }
+
+            // Aplanar datos de Aula (solo Hermanos Alumno)
+            if (isset($data['aula'])) {
+                $data['curso']    = $data['aula']['curso'] ?? '';
+                $data['division'] = $data['aula']['division'] ?? '';
+            }
+
+            // Aplanar datos del pivot (TieneFamiliar)
+            if (isset($data['pivot'])) {
+                $data['observaciones']   = $data['pivot']['observaciones'] ?? '';
+                $data['parentesco']      = $data['pivot']['parentesco'] ?? '';
+                $data['otro_parentesco'] = $data['pivot']['otro_parentesco'] ?? '';
+                $data['activa']          = $data['pivot']['activa'] ?? false;
+            }
+
+            // Discriminar Familiar puro vs Hermano Alumno
+            if (empty($data['parentesco'])) {
+                $data['parentesco']           = null;
+                $data['asiste_a_institucion'] = 1;
+            } else {
+                $data['parentesco']           = strtolower($data['parentesco']);
+                $data['asiste_a_institucion'] = 0;
+            }
+
+            return $data;
+        })->toArray();
+
+        return [
+            'alumnoData' => $alumnoData,
+            'familiares' => $familiares,
+        ];
+    }
+
     public function cambiarActivo(int $id): bool
     {
         return $this->repo->cambiarActivo($id);

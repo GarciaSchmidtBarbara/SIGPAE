@@ -117,6 +117,12 @@ Route::middleware(['auth', \App\Http\Middleware\SessionAlumnoCrearEditar::class]
 Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
 Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
+// Documentos de alumno (AJAX, sin sesión de asistente)
+Route::middleware('auth')->group(function () {
+    Route::post('/alumnos/{id}/subir-documento', [AlumnoController::class, 'subirDocumento'])->name('alumnos.subirDocumento');
+    Route::delete('/alumnos/{id}/documento/{docId}', [AlumnoController::class, 'eliminarDocumento'])->name('alumnos.eliminarDocumento');
+});
+
 
 //Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Session;
 use App\Services\Interfaces\AlumnoServiceInterface;
 use App\Services\Interfaces\PersonaServiceInterface;
 use App\Services\Interfaces\AulaServiceInterface;
+use App\Services\Interfaces\DocumentoServiceInterface;
 
 use App\Models\Alumno;
 use App\Models\Aula;
@@ -25,13 +26,18 @@ class AlumnoController extends Controller
     protected AlumnoServiceInterface $alumnoService;
     protected PersonaServiceInterface $personaService;
     protected AulaServiceInterface $aulaService;
+    protected DocumentoServiceInterface $documentoService;
 
-    public function __construct(AlumnoServiceInterface $alumnoService,
-        AulaServiceInterface $aulaService, PersonaServiceInterface $personaService)
-    {
-        $this->alumnoService = $alumnoService;
-        $this->personaService = $personaService;
-        $this->aulaService = $aulaService;
+    public function __construct(
+        AlumnoServiceInterface $alumnoService,
+        AulaServiceInterface $aulaService,
+        PersonaServiceInterface $personaService,
+        DocumentoServiceInterface $documentoService
+    ) {
+        $this->alumnoService    = $alumnoService;
+        $this->personaService   = $personaService;
+        $this->aulaService      = $aulaService;
+        $this->documentoService = $documentoService;
     }
 
     public function index(): JsonResponse
@@ -109,104 +115,29 @@ class AlumnoController extends Controller
             return redirect()->route('alumnos.principal')->with('error', 'Alumno no encontrado.');
         }
 
-        // limpio la sesion manualmente antes de entrar, en caso de que el usuario abra otra pestaña en el navegador
-        // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion
+        // Limpiar sesión del asistente antes de cargar nuevos datos
         session()->forget('asistente');
 
         $cursos = $this->aulaService->obtenerCursos();
 
-        //Convertir datos del modelo en un array simple para la vista
-        $alumnoData = [
-            'id_alumno' => $alumno->id_alumno,
-            'dni' => $alumno->persona->dni,
-            'nombre' => $alumno->persona->nombre,
-            'apellido' => $alumno->persona->apellido,
-            'fecha_nacimiento' => $alumno->persona->fecha_nacimiento,
-            'nacionalidad' => $alumno->persona->nacionalidad,
-            'aula' => $alumno->aula->descripcion,
-            'inasistencias' => $alumno->inasistencias,
-            'cud' => $alumno->cud ? 'Sí' : 'No',
-            'situacion_socioeconomica' => $alumno->situacion_socioeconomica,
-            'situacion_familiar' => $alumno->situacion_familiar,
-            'situacion_medica' => $alumno->situacion_medica,
-            'situacion_escolar' => $alumno->situacion_escolar,
-            'actividades_extraescolares' => $alumno->actividades_extraescolares,
-            'intervenciones_externas' => $alumno->intervenciones_externas,
-            'antecedentes' => $alumno->antecedentes,
-            'observaciones' => $alumno->observaciones,
-        ];
+        // Toda la transformación de datos es responsabilidad del service
+        $datos = $this->alumnoService->prepararDatosEdicion($alumno);
 
-        //unificao los familiares puros con los hermanos alumnos
-        $familiares_puros = $alumno->familiares;
-
-        $hermanos_que_el_apunta = $alumno->hermanos;
-        $hermanos_que_lo_apuntan = $alumno->esHermanoDe;
-        $hermanos_alumnos = $hermanos_que_lo_apuntan->merge($hermanos_que_el_apunta);
-
-        $coleccionUnificada = $familiares_puros->merge($hermanos_alumnos);
-        
-        // Transformamos la estructura anidada de BBDD a la estructura plana que espera la Vista
-        $familiares_array = $coleccionUnificada->map(function ($item) {
-            $data = $item->toArray();
-
-            // Aplanar datos de PERSONA (nombre, apellido, dni...)
-            if (isset($data['persona'])) {
-                $data['nombre'] = $data['persona']['nombre'] ?? '';
-                $data['apellido'] = $data['persona']['apellido'] ?? '';
-                $data['dni'] = $data['persona']['dni'] ?? '';
-                
-                $data['fecha_nacimiento'] = $item->persona->fecha_nacimiento ?? '';
-                    
-                $data['domicilio'] = $data['persona']['domicilio'] ?? '';
-                $data['nacionalidad'] = $data['persona']['nacionalidad'] ?? '';
-                
-                // Importante para la lógica de Hermano Alumno
-                $data['fk_id_persona'] = $data['persona']['id_persona'] ?? null;
-            }
-
-            // Aplanar datos de AULA (Para Hermanos)
-            if (isset($data['aula'])) {
-                $data['curso'] = $data['aula']['curso'] ?? '';
-                $data['division'] = $data['aula']['division'] ?? '';
-            }
-
-            // Aplanar datos PIVOTE (Observaciones y Activa)
-            // Eloquent pone los datos de la tabla intermedia en 'pivot'
-            if (isset($data['pivot'])) {
-                $data['observaciones'] = $data['pivot']['observaciones'] ?? '';
-                $data['parentesco'] = $data['pivot']['parentesco'] ?? '';
-                $data['otro_parentesco'] = $data['pivot']['otro_parentesco'] ?? '';
-                $data['activa'] = $data['pivot']['activa'] ?? false;
-            }
-            
-            // Corrección de Parentesco para Hermanos 
-            // Utilizo empty() en lugar de !isset() para atajar nulos o strings vacíos
-            if (empty($data['parentesco'])) {
-                // Si no tiene parentesco, es un Hermano Alumno
-                $data['parentesco'] = null; // La marca de "hermano alumno de BBDD"
-                $data['asiste_a_institucion'] = 1;
-            } else {
-                // Si tiene parentesco, lo pasamos a minúscula para el radio button
-                $data['parentesco'] = strtolower($data['parentesco']);
-                $data['asiste_a_institucion'] = 0;
-            }
-
-            return $data;
-        })->toArray();
-         
-        // Preparamos la sesión con los datos del alumno y sus familiares
         session([
-            'asistente.alumno' => $alumnoData,
-            'asistente.familiares' => $familiares_array, // Array limpio y plano
-            'asistente.familiares_a_eliminar' => [],
-            'asistente.hermanos_alumnos_a_eliminar' => []
+            'asistente.alumno'                      => $datos['alumnoData'],
+            'asistente.familiares'                  => $datos['familiares'],
+            'asistente.familiares_a_eliminar'       => [],
+            'asistente.hermanos_alumnos_a_eliminar' => [],
         ]);
 
-        return view('alumnos.crear-editar', compact('cursos', 'alumno'))->with('modo', 'editar');
+        // Documentos del alumno para la sección de documentación
+        $documentos = $this->documentoService->listarParaAlumno($alumno->id_alumno);
+
+        return view('alumnos.crear-editar', compact('cursos', 'alumno', 'documentos'))->with('modo', 'editar');
     }
 
     /**
-     * Muestra la vista del alumno recuperando el estado 
+     * Muestra la vista del alumno recuperando el estado
      * de la sesión actual, sin limpiar nada.
      * Se usa al volver de la carga de familiares.
      */
@@ -366,6 +297,58 @@ class AlumnoController extends Controller
         }
     }
 
+    // ── Documentos del alumno ──────────────────────────────────────────────────
+
+    public function subirDocumento(Request $request, int $id): JsonResponse
+    {
+        $alumno = $this->alumnoService->obtener($id);
+        if (!$alumno) {
+            return response()->json(['error' => 'Alumno no encontrado.'], 404);
+        }
+
+        $request->validate([
+            'nombre'  => 'required|string|max:191',
+            'archivo' => 'required|file|max:10240',
+        ]);
+
+        try {
+            $idProfesional = auth()->id();
+            $doc = $this->documentoService->subir(
+                [
+                    'nombre'                => $request->input('nombre'),
+                    'contexto'              => 'perfil_alumno',
+                    'fk_id_entidad'         => $id,
+                    'disponible_presencial' => false,
+                ],
+                $request->file('archivo'),
+                $idProfesional
+            );
+
+            return response()->json([
+                'id_documento'  => $doc->id_documento,
+                'nombre'        => $doc->nombre,
+                'tipo_formato'  => $doc->tipo_formato?->value ?? '',
+                'tamanio'       => $doc->tamanio_formateado,
+                'fecha'         => $doc->fecha_hora_carga?->format('d/m/Y'),
+                'ruta_descarga' => route('documentos.descargar', $doc->id_documento),
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
+
+    public function eliminarDocumento(int $id, int $docId): JsonResponse
+    {
+        try {
+            $this->documentoService->eliminar($docId);
+            return response()->json(null, 204);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+
     public function actualizar(Request $request, int $id)
     {
         //dd(session()->all());
@@ -399,6 +382,10 @@ class AlumnoController extends Controller
             'intervenciones_externas' => 'nullable|string',
             'antecedentes' => 'nullable|string',
             'observaciones' => 'nullable|string',
+
+            // Documentos a eliminar (marcados en la UI)
+            'docs_a_eliminar'   => 'nullable|array',
+            'docs_a_eliminar.*' => 'integer',
         ]);
 
         try {
@@ -414,6 +401,11 @@ class AlumnoController extends Controller
                 $familiares, 
                 $familiares_a_eliminar, 
                 $hermanos_alumnos_a_eliminar
+            );
+
+            // Eliminar documentos marcados desde la UI (delegado al service)
+            $this->documentoService->eliminarVarios(
+                $request->input('docs_a_eliminar', [])
             );
 
             // 4. Limpieza y Éxito

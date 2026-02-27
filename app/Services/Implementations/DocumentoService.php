@@ -119,6 +119,30 @@ class DocumentoService implements DocumentoServiceInterface
         return $this->repo->eliminar($id);
     }
 
+    public function eliminarVarios(array $ids): void
+    {
+        foreach ($ids as $id) {
+            $this->eliminar((int) $id);
+        }
+    }
+
+    // ── Listado por alumno ─────────────────────────────────────
+
+    public function listarParaAlumno(int $idAlumno): array
+    {
+        return $this->repo->buscarPorAlumno($idAlumno)
+            ->map(fn (Documento $d) => [
+                'id_documento'  => $d->id_documento,
+                'nombre'        => $d->nombre,
+                'tipo_formato'  => $d->tipo_formato?->value ?? '',
+                'tamanio'       => $d->tamanio_formateado,
+                'fecha'         => $d->fecha_hora_carga?->format('d/m/Y') ?? '',
+                'ruta_descarga' => route('documentos.descargar', $d->id_documento),
+            ])
+            ->values()
+            ->toArray();
+    }
+
     // ── Búsqueda de entidades asociadas ───────────────────────
 
     public function buscarEntidadPorContexto(string $contexto, string $termino): array

@@ -374,29 +374,116 @@
         </div>
         </fieldset>
        
-        <div class="space-y-8">
+        <div class="space-y-8"
+            @if($esEdicion)
+            x-data="documentosAlumno(
+                {{ json_encode($documentos ?? []) }},
+                '{{ route('alumnos.subirDocumento', $alumno->id_alumno) }}'
+            )"
+            @confirm-accepted.window="onConfirmarEliminar()"
+            @endif>
             <p class="separador">Documentación</p>
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="btn-subir">Examinar</button>
-                        <span class="text-sm text-gray-500">Solo archivos en formato pdf, jpeg, png o doc con menos de 100Kb</span>
-                    </div>
+
+            @if($esEdicion)
+            {{-- Subir nuevo documento --}}
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center gap-3">
+                    <button type="button"
+                            class="btn-subir"
+                            @click="$refs.archivoInput.click()">
+                        Examinar
+                    </button>
+                    <span class="text-sm text-gray-500">
+                        Solo archivos PDF, JPEG, PNG, DOC, DOCX, XLS o XLSX con menos de 10 MB
+                    </span>
+                    <input type="file" x-ref="archivoInput" class="hidden"
+                        accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                        @change="onArchivoChange($event)">
                 </div>
-                <div class="space-y-2">
-                    <p class="text-sm font-medium text-gray-700">Cargados:</p>
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                            <span class="text-sm text-gray-600">Documento1.pdf</span>
-                            <button type="button" class="text-gray-500 hover:text-red-500">
-                            </button>
-                        </div>
-                        <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                            <span class="text-sm text-gray-600">Documento2.pdf</span>
-                            <button type="button" class="text-gray-500 hover:text-red-500">
-                            </button>
-                        </div>
-                    </div>
+
+                {{-- Fila de nombre + botón subir, aparece al seleccionar archivo --}}
+                <div x-show="archivoSeleccionado" x-cloak class="flex items-center gap-3">
+                    <input type="text" x-model="nombreDocumento"
+                        class="flex-1 p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="Nombre del documento">
+                    <span class="text-sm text-gray-500" x-text="archivoNombre"></span>
+                    <button type="button" class="btn-aceptar text-sm px-3 py-1"
+                        :disabled="cargando"
+                        @click="subirDocumento()">
+                        <span x-show="!cargando">Subir</span>
+                        <span x-show="cargando">Subiendo…</span>
+                    </button>
+                    <button type="button" class="btn-volver text-sm px-3 py-1"
+                        @click="cancelar()">Cancelar</button>
                 </div>
+
+                {{-- Error de validación --}}
+                <p x-show="errorMsg" x-cloak class="text-red-600 text-sm" x-text="errorMsg"></p>
+            </div>
+
+            {{-- Lista de documentos activos --}}
+            <div class="space-y-2">
+                <p class="text-sm font-medium text-gray-700">Cargados:</p>
+
+                <template x-if="documentos.length === 0">
+                    <p class="text-sm text-gray-400 italic">Sin documentos.</p>
+                </template>
+
+                <template x-for="doc in documentos" :key="doc.id_documento">
+                    <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="text-xs font-semibold uppercase text-gray-500 w-12 shrink-0"
+                                  x-text="doc.tipo_formato"></span>
+                            <a :href="doc.ruta_descarga"
+                               class="text-sm text-indigo-700 hover:underline truncate"
+                               x-text="doc.nombre"></a>
+                            <span class="text-xs text-gray-400 shrink-0"
+                                  x-text="doc.tamanio + ' · ' + doc.fecha"></span>
+                        </div>
+                        <button type="button"
+                                class="text-gray-400 hover:text-red-500 ml-4 shrink-0"
+                                @click="pedirConfirmacionEliminar(doc)"
+                                title="Eliminar">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Documentos marcados para eliminar (pendientes hasta Guardar) --}}
+            <div x-show="docsEliminados.length > 0" x-cloak class="space-y-2">
+                <p class="text-sm font-medium text-amber-600">Se eliminarán al guardar:</p>
+                <template x-for="doc in docsEliminados" :key="doc.id_documento">
+                    <div class="flex items-center justify-between p-2 bg-amber-50 border border-amber-200 rounded-md opacity-60">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="text-xs font-semibold uppercase text-gray-400 w-12 shrink-0"
+                                  x-text="doc.tipo_formato"></span>
+                            <span class="text-sm text-gray-400 line-through truncate"
+                                  x-text="doc.nombre"></span>
+                        </div>
+                        <button type="button"
+                                class="text-amber-600 hover:text-amber-800 ml-4 shrink-0 text-xs underline"
+                                @click="deshacerEliminar(doc)">
+                            Deshacer
+                        </button>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Hidden inputs: IDs a eliminar al guardar --}}
+            <template x-for="id in idsAEliminar" :key="id">
+                <input type="hidden" name="docs_a_eliminar[]" :value="id">
+            </template>
+
+            @else
+            {{-- Modo creación: documentos sólo están disponibles tras guardar el alumno --}}
+            <p class="text-sm text-gray-400 italic">
+                Los documentos se podrán cargar una vez guardado el alumno.
+            </p>
+            @endif
         </div>
 
         <div class="fila-botones mt-8">
@@ -485,6 +572,117 @@ function estadoAlumno() {
             this.route = null
         }
     }
+}
+
+function documentosAlumno(documentosIniciales, urlSubir) {
+    return {
+        documentos: documentosIniciales,
+        archivoSeleccionado: false,
+        archivoNombre: '',
+        archivoArchivo: null,
+        nombreDocumento: '',
+        cargando: false,
+        errorMsg: '',
+
+        // eliminación diferida
+        docPendienteEliminar: null,
+        docsEliminados: [],
+        idsAEliminar: [],
+
+        onArchivoChange(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 10 * 1024 * 1024) {
+                this.errorMsg = 'El archivo supera el límite de 10 MB.';
+                event.target.value = '';
+                return;
+            }
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            const permitidos = ['pdf','jpg','jpeg','png','doc','docx','xls','xlsx'];
+            if (!permitidos.includes(ext)) {
+                this.errorMsg = 'Formato no permitido. Use PDF, JPG, PNG, DOC, DOCX, XLS o XLSX.';
+                event.target.value = '';
+                return;
+            }
+
+            this.errorMsg = '';
+            this.archivoArchivo = file;
+            this.archivoNombre = file.name;
+            this.nombreDocumento = file.name.replace(/\.[^.]+$/, '');
+            this.archivoSeleccionado = true;
+        },
+
+        cancelar() {
+            this.archivoSeleccionado = false;
+            this.archivoNombre = '';
+            this.archivoArchivo = null;
+            this.nombreDocumento = '';
+            this.errorMsg = '';
+            this.$refs.archivoInput.value = '';
+        },
+
+        async subirDocumento() {
+            if (!this.archivoArchivo || !this.nombreDocumento.trim()) {
+                this.errorMsg = 'Ingrese un nombre para el documento.';
+                return;
+            }
+
+            this.cargando = true;
+            this.errorMsg = '';
+
+            const formData = new FormData();
+            formData.append('nombre', this.nombreDocumento.trim());
+            formData.append('archivo', this.archivoArchivo);
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+
+            try {
+                const resp = await fetch(urlSubir, { method: 'POST', body: formData });
+                const json = await resp.json();
+
+                if (!resp.ok) {
+                    this.errorMsg = json.error ?? 'Error al subir el documento.';
+                    return;
+                }
+
+                this.documentos.unshift(json);
+                this.cancelar();
+            } catch (e) {
+                this.errorMsg = 'Error de red. Inténtelo de nuevo.';
+            } finally {
+                this.cargando = false;
+            }
+        },
+
+        // Muestra el modal de confirmación global; el doc queda guardado para cuando confirmen
+        pedirConfirmacionEliminar(doc) {
+            this.docPendienteEliminar = doc;
+            this.$dispatch('abrir-modal-confirmar', {
+                message: `¿Eliminar el documento "${doc.nombre}"?`,
+                formId: null,
+            });
+        },
+
+        // Llamado cuando el usuario confirma en el modal global
+        // Solo mueve el doc a la lista "pendientes" — no toca el servidor
+        onConfirmarEliminar() {
+            if (!this.docPendienteEliminar) return;
+            const doc = this.docPendienteEliminar;
+            this.docPendienteEliminar = null;
+
+            this.documentos = this.documentos.filter(d => d.id_documento !== doc.id_documento);
+            this.docsEliminados.push(doc);
+            this.idsAEliminar.push(doc.id_documento);
+        },
+
+        // Permite deshacer una eliminación pendiente antes de guardar
+        deshacerEliminar(doc) {
+            this.docsEliminados = this.docsEliminados.filter(d => d.id_documento !== doc.id_documento);
+            this.idsAEliminar = this.idsAEliminar.filter(id => id !== doc.id_documento);
+            this.documentos.unshift(doc);
+        },
+    };
 }
 </script>
 
