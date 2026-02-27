@@ -45,7 +45,12 @@
             [
                 'key' => 'tipo_plan',
                 'label' => 'Tipo',
-                'formatter' => fn($v) => ucfirst(strtolower($v->value)),
+                'formatter' => function($v) {
+                    $colors = ['INDIVIDUAL' => 'bg-blue-100 text-blue-700 border-blue-200', 'GRUPAL' => 'bg-green-100 text-green-700 border-green-200', 'INSTITUCIONAL' => 'bg-purple-100 text-purple-700 border-purple-200'];
+                    $val = $v instanceof \BackedEnum ? $v->value : (string)$v;
+                    $color = $colors[$val] ?? 'bg-gray-100 text-gray-600 border-gray-200';
+                    return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ' . $color . '">' . ucfirst(strtolower($val)) . '</span>';
+                },
             ],
             [
                 'key' => 'estado_plan',
