@@ -4,11 +4,21 @@
 
 @section('contenido')
 <div class="p-6" x-data="eventosData()" @abrir-modal-eliminar.window="abrir($event.detail)">
-    <!-- Botones de acción -->
-    <div class="flex gap-2 mb-6">
+    <!-- Botones de acción y filtros -->
+    <form method="GET" action="{{ route('eventos.principal') }}" class="flex gap-2 mb-6 flex-wrap items-center">
         <a href="{{ route('eventos.crear') }}" class="btn-aceptar">Crear evento</a>
         <a href="{{ route('eventos.crear-derivacion') }}" class="btn-aceptar">Crear derivación externa</a>
-    </div>
+
+        <select name="tipo_evento" class="border px-2 py-1 rounded" onchange="this.form.submit()">
+            <option value="">Todos los tipos</option>
+            @foreach($tiposEvento as $tipo)
+                <option value="{{ $tipo->value }}" {{ request('tipo_evento') === $tipo->value ? 'selected' : '' }}>
+                    {{ $tipo->label() }}
+                </option>
+            @endforeach
+        </select>
+
+    </form>
 
     <!-- Tabla de eventos -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
