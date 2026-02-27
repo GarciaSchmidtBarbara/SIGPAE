@@ -25,11 +25,13 @@ class HomeController extends Controller
         $hoy = Carbon::today()->toDateString();
 
         $eventosCreadosHoy = $profesional->eventosCreados()
+            ->with('profesionalCreador.persona')
             ->whereDate('fecha_hora', $hoy)
             ->orderBy('fecha_hora')
             ->get();
 
         $eventosInvitadoHoy = $profesional->eventosInvitado()
+            ->with('profesionalCreador.persona')
             ->whereDate('fecha_hora', $hoy)
             ->orderBy('fecha_hora')
             ->get();
@@ -44,11 +46,13 @@ class HomeController extends Controller
 
         // Próximos eventos: desde hoy hasta 2 meses después
         $eventosCreadosProximos = $profesional->eventosCreados()
+            ->with('profesionalCreador.persona')
             ->whereBetween('fecha_hora', [$hoy, $fin])
             ->orderBy('fecha_hora')
             ->get();
 
         $eventosInvitadoProximos = $profesional->eventosInvitado()
+            ->with('profesionalCreador.persona')
             ->whereBetween('fecha_hora', [$hoy, $fin])
             ->orderBy('fecha_hora')
             ->get();

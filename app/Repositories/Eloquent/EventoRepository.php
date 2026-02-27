@@ -90,7 +90,7 @@ class EventoRepository implements EventoRepositoryInterface
     public function getEventosByDateRange(string $start, string $end): Collection
     {
         return Evento::whereBetween('fecha_hora', [$start, $end])
-            ->with(['profesionalCreador.persona'])
+            ->with(['profesionalCreador.persona', 'esInvitadoA'])
             ->orderBy('fecha_hora', 'asc')
             ->get();
     }
