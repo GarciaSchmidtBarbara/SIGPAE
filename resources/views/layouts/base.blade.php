@@ -40,11 +40,6 @@
 
     @stack('estilos')
 
-    <!--FullCalendar CSS desde CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/main.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.8/main.min.css">
-
     @stack('scripts')
 </head>
 

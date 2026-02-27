@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 interface EventoServiceInterface
 {
-    public function listarTodos(): Collection;
+    public function listarTodos(array $filters = []): Collection;
     
     public function obtenerPorId(int $id): ?Evento;
     
