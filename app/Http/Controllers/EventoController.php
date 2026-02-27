@@ -26,14 +26,8 @@ class EventoController extends Controller
 
     public function vista(Request $request)
     {
-        $eventos = $this->eventoService->listarTodos();
-        $eventos->load(['profesionalCreador.persona', 'esInvitadoA']);
-
-        if ($request->filled('tipo_evento')) {
-            $eventos = $eventos->filter(
-                fn($e) => $e->tipo_evento?->value === $request->tipo_evento
-            );
-        }
+        $filters = $request->only('tipo_evento');
+        $eventos = $this->eventoService->listarTodos($filters);
 
         $tiposEvento = TipoEvento::cases();
 

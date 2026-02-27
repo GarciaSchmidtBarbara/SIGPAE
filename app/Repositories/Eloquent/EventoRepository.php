@@ -21,14 +21,18 @@ class EventoRepository implements EventoRepositoryInterface
         return $query->find($eventoId);
     }
 
-    public function all(array $relations = []): Collection
+    public function all(array $relations = [], array $filters = []): Collection
     {
         $query = Evento::query();
-        
+
         if (!empty($relations)) {
             $query->with($relations);
         }
-        
+
+        if (!empty($filters['tipo_evento'])) {
+            $query->where('tipo_evento', $filters['tipo_evento']);
+        }
+
         return $query->latest('fecha_hora')->get();
     }
 

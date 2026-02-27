@@ -68,6 +68,7 @@ use App\Observers\EventoObserver;
 use App\Observers\IntervencionObserver;
 use App\Observers\PlanDeAccionObserver;
 use App\Observers\EsInvitadoAObserver;
+use Illuminate\Database\Eloquent\Model;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -106,6 +107,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // Detectar N+1 en desarrollo: lanza excepción si se accede a una
+        // relación no cargada con eager loading.
+        if (app()->isLocal()) {
+            Model::preventLazyLoading();
+        }
         
         
         // Esto le dice a Laravel que 'Auth::user()' y la mayoría de las referencias a 'User' 
