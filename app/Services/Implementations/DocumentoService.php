@@ -143,6 +143,21 @@ class DocumentoService implements DocumentoServiceInterface
             ->toArray();
     }
 
+    public function listarParaIntervencion(int $idIntervencion): array
+    {
+        return $this->repo->buscarPorIntervencion($idIntervencion)
+            ->map(fn (Documento $d) => [
+                'id_documento'  => $d->id_documento,
+                'nombre'        => $d->nombre,
+                'tipo_formato'  => $d->tipo_formato?->value ?? '',
+                'tamanio'       => $d->tamanio_formateado,
+                'fecha'         => $d->fecha_hora_carga?->format('d/m/Y') ?? '',
+                'ruta_descarga' => route('documentos.descargar', $d->id_documento),
+            ])
+            ->values()
+            ->toArray();
+    }
+
     // ── Búsqueda de entidades asociadas ───────────────────────
 
     public function buscarEntidadPorContexto(string $contexto, string $termino): array

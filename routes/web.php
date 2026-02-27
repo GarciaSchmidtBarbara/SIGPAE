@@ -155,6 +155,7 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::put('/{id}', [IntervencionController::class, 'editar'])->name('actualizar');
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
+    Route::post('/{id}/subir-documento', [IntervencionController::class, 'subirDocumento'])->name('subirDocumento');
 });
 
 

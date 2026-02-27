@@ -80,4 +80,12 @@ class DocumentoRepository implements DocumentoRepositoryInterface
             ->orderByDesc('fecha_hora_carga')
             ->get();
     }
+
+    public function buscarPorIntervencion(int $idIntervencion): Collection
+    {
+        return $this->model->newQuery()
+            ->where('fk_id_intervencion', $idIntervencion)
+            ->orderByDesc('fecha_hora_carga')
+            ->get();
+    }
 }

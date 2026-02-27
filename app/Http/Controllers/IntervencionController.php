@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Interfaces\IntervencionServiceInterface;
+use App\Services\Interfaces\DocumentoServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -16,11 +17,15 @@ use App\Models\Intervencion;
 
 class IntervencionController extends Controller
 {
-    protected IntervencionServiceInterface $intervencionService; 
+    protected IntervencionServiceInterface $intervencionService;
+    protected DocumentoServiceInterface $documentoService;
 
-    public function __construct(IntervencionServiceInterface $intervencionService)
-    {
+    public function __construct(
+        IntervencionServiceInterface $intervencionService,
+        DocumentoServiceInterface $documentoService
+    ) {
         $this->intervencionService = $intervencionService;
+        $this->documentoService    = $documentoService;
     }
 
     //vista intervenciones filtradas
@@ -97,10 +102,49 @@ class IntervencionController extends Controller
                 ->with('error', 'Intervención no encontrada.');
         }
 
+        $documentos = $this->documentoService->listarParaIntervencion($id);
+
         return view('intervenciones.crear-editar', $data + [
-            'modo' => 'editar',
+            'modo'       => 'editar',
+            'documentos' => $documentos,
         ]);
     }
+
+    // ── Documentos de la intervención ─────────────────────────────────────────
+
+    public function subirDocumento(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'nombre'  => 'required|string|max:191',
+            'archivo' => 'required|file|max:10240',
+        ]);
+
+        try {
+            $doc = $this->documentoService->subir(
+                [
+                    'nombre'                => $request->input('nombre'),
+                    'contexto'              => 'intervencion',
+                    'fk_id_entidad'         => $id,
+                    'disponible_presencial' => false,
+                ],
+                $request->file('archivo'),
+                auth()->id()
+            );
+
+            return response()->json([
+                'id_documento'  => $doc->id_documento,
+                'nombre'        => $doc->nombre,
+                'tipo_formato'  => $doc->tipo_formato?->value ?? '',
+                'tamanio'       => $doc->tamanio_formateado,
+                'fecha'         => $doc->fecha_hora_carga?->format('d/m/Y'),
+                'ruta_descarga' => route('documentos.descargar', $doc->id_documento),
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     public function editar(Request $request, int $id): RedirectResponse
     {
@@ -119,6 +163,8 @@ class IntervencionController extends Controller
             'aulas.*' => 'integer|exists:aulas,id_aula',
             'profesionales' => 'nullable|array',
             'profesionales.*' => 'integer|exists:profesionales,id_profesional',
+            'docs_a_eliminar'   => 'nullable|array',
+            'docs_a_eliminar.*' => 'integer',
         ]);
         $data['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
 
@@ -129,7 +175,11 @@ class IntervencionController extends Controller
                 $otrosAsistentes = json_decode($request->otros_asistentes_json, true);
                 $this->intervencionService->guardarOtrosAsistentes($intervencion, $otrosAsistentes);
             }
-            
+
+            $this->documentoService->eliminarVarios(
+                $request->input('docs_a_eliminar', [])
+            );
+
             return redirect()
                 ->route('intervenciones.principal')
                 ->with('success', 'Intervención actualizada.');

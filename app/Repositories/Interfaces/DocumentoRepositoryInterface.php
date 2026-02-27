@@ -14,4 +14,5 @@ interface DocumentoRepositoryInterface
     public function crear(array $data): Documento;
     public function eliminar(int $id): bool;
     public function buscarPorAlumno(int $idAlumno): Collection;
+    public function buscarPorIntervencion(int $idIntervencion): Collection;
 }
