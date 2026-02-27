@@ -7,8 +7,57 @@
 
     <h3 class="font-bold text-lg mb-2 text-gray-800">Participantes:</h3>
     
-    <div class="overflow-x-auto rounded-t-lg">
-        <table  class="modern-table">
+    {{-- 1. Vista Móvil: Cada fila es una tarjeta --}}
+    <div class="md:hidden space-y-4">
+        <template x-for="(persona, index) in filas" :key="index">
+            <div class="border rounded-lg p-4 shadow-sm bg-white space-y-3">
+
+                <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">Función</label>
+                    <input 
+                        type="text"
+                        x-model="persona.cargo"
+                        class="w-full mt-1 px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                    >
+                </div>
+
+                <div>
+                    <label class="text-xs font-semibold text-gray-500 uppercase">Nombre</label>
+                    <input 
+                        type="text"
+                        x-model="persona.nombre"
+                        class="w-full mt-1 px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                    >
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t">
+
+                    <label class="flex items-center gap-2 text-sm text-gray-700">
+                        <input 
+                            type="checkbox"
+                            x-model="persona.asistio"
+                            class="w-4 h-4 accent-blue-600"
+                        >
+                        Asistió
+                    </label>
+
+                    <button 
+                        type="button" 
+                        @click="filas.splice(index, 1)" 
+                        class="text-red-500 hover:text-red-700"
+                    >
+                        ✕
+                    </button>
+
+                </div>
+
+            </div>
+        </template>
+    </div>
+
+    {{-- 2. Vista Escritorio: Tabla tradicional --}}
+    <div class="hidden md:block overflow-x-auto rounded-t-lg">
+        <table  class="modern-table text-sm">
            <thead>
                 <tr class="bg-gray-100 text-sm uppercase text-gray-600">
                
@@ -29,27 +78,24 @@
                             {{--se actualiza la variable --}}
                             <input 
                                 type="text" 
-                                
                                 x-model="persona.cargo"
-                                class="w-full h-full px-2 py-1 outline-none focus:bg-blue-50 text-gray-700"
+                                class="w-full h-full px-2 py-1 text-sm outline-none focus:bg-blue-50 text-gray-700"
                             >
                         </td>
                         <td class="border border-gray-400 p-0">
                             <input 
-                                type="text" 
-                                
+                                type="text"                                 
                                 x-model="persona.nombre"
-                                class="w-full h-full px-2 py-1 outline-none focus:bg-blue-50 text-gray-700"
+                                class="w-full h-full px-2 py-1 text-sm outline-none focus:bg-blue-50 text-gray-700"
                             >
                         </td>
                         <td class="border border-gray-400 px-2 py-1 text-center flex items-center justify-center gap-2">
                             
                             {{-- Checkbox de Asistencia --}}
                             <input 
-                                type="checkbox" 
-                                
+                                type="checkbox"                                 
                                 x-model="persona.asistio"
-                                class="w-5 h-5 text-blue-600 rounded cursor-pointer accent-blue-600"
+                                class="w-4 h-4 accent-blue-600"
                             >
 
                             {{-- Botón rojo para eliminar fila (Opcional pero útil) --}}
