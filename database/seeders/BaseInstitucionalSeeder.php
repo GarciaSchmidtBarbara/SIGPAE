@@ -10,6 +10,7 @@ use App\Models\Alumno;
 use App\Models\PlanDeAccion;
 use App\Models\Intervencion;
 use App\Models\Evento;
+use App\Models\Documento;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Notificacion;
 use App\Enums\TipoNotificacion;
@@ -225,6 +226,29 @@ class BaseInstitucionalSeeder extends Seeder
                     'updated_at'                     => $n['offset'],
                 ]);
             }
-        }
+        } // fin if ($destPrincipal && $origen)
+
+        // ── Documentos de ejemplo ───────────────────────────────────────
+        $profDoc = Profesional::first();
+
+        // Institucionales
+        Documento::factory()->count(3)->institucional()
+            ->state(['fk_id_profesional' => $profDoc?->id_profesional])
+            ->create();
+
+        // Perfil de alumno
+        Documento::factory()->count(3)->perfilAlumno()
+            ->state(['fk_id_profesional' => $profDoc?->id_profesional])
+            ->create();
+
+        // Plan de acción
+        Documento::factory()->count(2)->planAccion()
+            ->state(['fk_id_profesional' => $profDoc?->id_profesional])
+            ->create();
+
+        // Intervención
+        Documento::factory()->count(2)->intervencion()
+            ->state(['fk_id_profesional' => $profDoc?->id_profesional])
+            ->create();
     }
 }

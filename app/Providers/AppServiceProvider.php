@@ -54,6 +54,11 @@ use App\Services\Interfaces\NotificacionServiceInterface;
 use App\Services\Implementations\NotificacionService;
 use App\Repositories\Interfaces\NotificacionRepositoryInterface;
 use App\Repositories\Eloquent\NotificacionRepository;
+// Documento
+use App\Services\Interfaces\DocumentoServiceInterface;
+use App\Services\Implementations\DocumentoService;
+use App\Repositories\Interfaces\DocumentoRepositoryInterface;
+use App\Repositories\Eloquent\DocumentoRepository;
 // Observers
 use App\Models\Evento;
 use App\Models\Intervencion;
@@ -80,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(EventoRepositoryInterface::class, EventoRepository::class);
         $this->app->bind(AulaRepositoryInterface::class, AulaRepository::class);
         $this->app->bind(NotificacionRepositoryInterface::class, NotificacionRepository::class);
+        $this->app->bind(DocumentoRepositoryInterface::class, DocumentoRepository::class);
 
         // Services
         $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
@@ -91,6 +97,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(EventoServiceInterface::class, EventoService::class);
         $this->app->bind(AulaServiceInterface::class, AulaService::class);
         $this->app->bind(NotificacionServiceInterface::class, NotificacionService::class);
+        $this->app->bind(DocumentoServiceInterface::class, DocumentoService::class);
     }
 
     /**

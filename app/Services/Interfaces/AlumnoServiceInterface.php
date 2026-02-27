@@ -28,4 +28,6 @@ interface AlumnoServiceInterface
     array $familiaresAEliminar, array $hermanosAEliminar): bool;
 
     public function esAlumno(int $idPersona): bool;
+
+    public function prepararDatosEdicion(Alumno $alumno): array;
 }

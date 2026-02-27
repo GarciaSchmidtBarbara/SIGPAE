@@ -87,7 +87,7 @@
                 </div>
 
                 <x-nav-item route="planillas.principal" label="Planillas" icon="icons.icono-planilla" exact></x-nav-item>
-                <x-nav-item label="Documentos" icon="icons.icono-documento" exact></x-nav-item>
+                <x-nav-item route="documentos.principal" label="Documentos" icon="icons.icono-documento" exact></x-nav-item>
                 <x-nav-item label="Reportes" icon="icons.icono-reporte" exact></x-nav-item>
                 <x-nav-item route="usuarios.principal" label="Usuarios" icon="icons.icono-usuario" exact></x-nav-item>
             </nav>
@@ -157,6 +157,30 @@
 
             <!-- Modales globales -->
             <div>
+                <!-- Modal Error dinámico (AJAX) -->
+                <div x-data="{ open: false, message: '' }"
+                     @abrir-modal-error.window="message = $event.detail.message; open = true;">
+                    <div x-cloak x-show="open" x-transition.opacity
+                         class="fixed inset-0 z-[100] flex items-center justify-center"
+                         role="dialog" aria-modal="true"
+                         @keydown.escape.window="open = false">
+                        <div class="fixed inset-0 bg-black/50" @click="open = false"></div>
+                        <div x-show="open" x-transition.scale
+                             class="relative z-[110] w-full max-w-lg rounded-2xl bg-white shadow-xl">
+                            <div class="px-6 py-4 text-center">
+                                <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-black text-white">
+                                    <span class="text-2xl leading-none">!</span>
+                                </div>
+                                <h3 class="mb-3 text-lg font-semibold tracking-wide text-black">ERROR</h3>
+                                <p class="mx-auto max-w-[36ch] text-[20px] leading-snug text-gray-900" x-text="message"></p>
+                            </div>
+                            <div class="flex justify-end gap-2 border-t px-5 py-4">
+                                <button class="btn-aceptar" @click="open = false">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Modal Confirmar reutilizable -->
                 <div x-data="{ open: false, formId: null, message: '' }"
                      @abrir-modal-confirmar.window="

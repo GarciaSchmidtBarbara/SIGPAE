@@ -407,26 +407,89 @@
                     </div>
                 </div>
 
-                {{-- Documentos (placeholder) --}}
-                <div class="space-y-6 mb-6">
+                {{-- Documentos --}}
+                <div class="space-y-6 mb-6"
+                    @if($esEdicion)
+                    x-data="documentosIntervencion(
+                        {{ json_encode($documentos ?? []) }},
+                        '{{ route('intervenciones.subirDocumento', $intervencion->id_intervencion) }}'
+                    )"
+                    @confirm-accepted.window="onConfirmarEliminar()"
+                    @endif>
                     <p class="separador">Documentos</p>
-                    <div class="flex items-center gap-2">
-                        <button type="button" class="btn-subir">Examinar</button>
-                        <span class="text-sm text-gray-500">Formato: pdf, jpeg, png, doc. Máx 100Kb (placeholder)</span>
+
+                    @if($esEdicion)
+                    {{-- Upload --}}
+                    <div class="flex flex-col gap-3">
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="btn-subir" @click="$refs.archivoInput.click()">Examinar</button>
+                            <span class="text-sm text-gray-500">Solo PDF, JPEG, PNG, DOC, DOCX, XLS o XLSX · máx 10 MB</span>
+                            <input type="file" x-ref="archivoInput" class="hidden"
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx"
+                                @change="onArchivoChange($event)">
+                        </div>
+
+                        <div x-show="archivoSeleccionado" x-cloak class="flex items-center gap-3">
+                            <input type="text" x-model="nombreDocumento"
+                                class="flex-1 p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                placeholder="Nombre del documento">
+                            <span class="text-sm text-gray-500" x-text="archivoNombre"></span>
+                            <button type="button" class="btn-aceptar text-sm px-3 py-1"
+                                :disabled="cargando" @click="subirDocumento()">
+                                <span x-show="!cargando">Subir</span>
+                                <span x-show="cargando">Subiendo…</span>
+                            </button>
+                            <button type="button" class="btn-volver text-sm px-3 py-1" @click="cancelar()">Cancelar</button>
+                        </div>
+
+                        <p x-show="errorMsg" x-cloak class="text-red-600 text-sm" x-text="errorMsg"></p>
                     </div>
 
-                    {{-- TODO: activar cuando exista la lógica de documentos --}}
-                    @if(false)
-                    @if($esEdicion && isset($intervencion->documentos) && $intervencion->documentos->isNotEmpty())
-                        <div class="space-y-2 mt-2">
-                            @foreach($intervencion->documentos as $doc)
-                                <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
-                                    <span class="text-sm text-gray-600">{{ $doc->nombre ?? 'Documento' }}</span>
-                                    <a href="{{ route('intervenciones.descargarDocumento', $doc->id ?? $doc->id_documento) }}" class="text-indigo-600">Descargar</a>
+                    {{-- Lista activa --}}
+                    <div class="space-y-2">
+                        <p class="text-sm font-medium text-gray-700">Cargados:</p>
+                        <template x-if="documentos.length === 0">
+                            <p class="text-sm text-gray-400 italic">Sin documentos.</p>
+                        </template>
+                        <template x-for="doc in documentos" :key="doc.id_documento">
+                            <div class="flex items-center justify-between p-2 bg-gray-100 rounded-md">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="text-xs font-semibold uppercase text-gray-500 w-12 shrink-0" x-text="doc.tipo_formato"></span>
+                                    <a :href="doc.ruta_descarga" class="text-sm text-indigo-700 hover:underline truncate" x-text="doc.nombre"></a>
+                                    <span class="text-xs text-gray-400 shrink-0" x-text="doc.tamanio + ' · ' + doc.fecha"></span>
                                 </div>
-                            @endforeach
-                        </div>
-                    @endif
+                                <button type="button" class="text-gray-400 hover:text-red-500 ml-4 shrink-0"
+                                    @click="pedirConfirmacionEliminar(doc)" title="Eliminar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- Pendientes de eliminación --}}
+                    <div x-show="docsEliminados.length > 0" x-cloak class="space-y-2">
+                        <p class="text-sm font-medium text-amber-600">Se eliminarán al actualizar:</p>
+                        <template x-for="doc in docsEliminados" :key="doc.id_documento">
+                            <div class="flex items-center justify-between p-2 bg-amber-50 border border-amber-200 rounded-md opacity-60">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="text-xs font-semibold uppercase text-gray-400 w-12 shrink-0" x-text="doc.tipo_formato"></span>
+                                    <span class="text-sm text-gray-400 line-through truncate" x-text="doc.nombre"></span>
+                                </div>
+                                <button type="button" class="text-amber-600 hover:text-amber-800 ml-4 shrink-0 text-xs underline"
+                                    @click="deshacerEliminar(doc)">Deshacer</button>
+                            </div>
+                        </template>
+                    </div>
+
+                    {{-- Hidden inputs para eliminación diferida --}}
+                    <template x-for="id in idsAEliminar" :key="id">
+                        <input type="hidden" name="docs_a_eliminar[]" :value="id">
+                    </template>
+
+                    @else
+                    <p class="text-sm text-gray-400 italic">Los documentos se podrán cargar una vez guardada la intervención.</p>
                     @endif
                 </div>
 
@@ -519,6 +582,102 @@
             eliminarProfesional(id) {
                 this.profesionalesSeleccionados = this.profesionalesSeleccionados.filter(p => p.id !== id);
             }
+        };
+    }
+
+    function documentosIntervencion(documentosIniciales, urlSubir) {
+        return {
+            documentos: documentosIniciales,
+            archivoSeleccionado: false,
+            archivoNombre: '',
+            archivoArchivo: null,
+            nombreDocumento: '',
+            cargando: false,
+            errorMsg: '',
+            docPendienteEliminar: null,
+            docsEliminados: [],
+            idsAEliminar: [],
+
+            onArchivoChange(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) {
+                    this.errorMsg = 'El archivo supera el límite de 10 MB.';
+                    event.target.value = '';
+                    return;
+                }
+                const ext = file.name.split('.').pop().toLowerCase();
+                const permitidos = ['pdf','jpg','jpeg','png','doc','docx','xls','xlsx'];
+                if (!permitidos.includes(ext)) {
+                    this.errorMsg = 'Formato no permitido. Use PDF, JPG, PNG, DOC, DOCX, XLS o XLSX.';
+                    event.target.value = '';
+                    return;
+                }
+                this.errorMsg = '';
+                this.archivoArchivo = file;
+                this.archivoNombre = file.name;
+                this.nombreDocumento = file.name.replace(/\.[^.]+$/, '');
+                this.archivoSeleccionado = true;
+            },
+
+            cancelar() {
+                this.archivoSeleccionado = false;
+                this.archivoNombre = '';
+                this.archivoArchivo = null;
+                this.nombreDocumento = '';
+                this.errorMsg = '';
+                this.$refs.archivoInput.value = '';
+            },
+
+            async subirDocumento() {
+                if (!this.archivoArchivo || !this.nombreDocumento.trim()) {
+                    this.errorMsg = 'Ingrese un nombre para el documento.';
+                    return;
+                }
+                this.cargando = true;
+                this.errorMsg = '';
+                const formData = new FormData();
+                formData.append('nombre', this.nombreDocumento.trim());
+                formData.append('archivo', this.archivoArchivo);
+                formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+                try {
+                    const resp = await fetch(urlSubir, { method: 'POST', body: formData });
+                    const json = await resp.json();
+                    if (!resp.ok) {
+                        this.$dispatch('abrir-modal-error', { message: json.error ?? 'Error al subir el documento.' });
+                        return;
+                    }
+                    this.documentos.unshift(json);
+                    this.cancelar();
+                } catch (e) {
+                    this.$dispatch('abrir-modal-error', { message: 'Error de red. Inténtelo de nuevo.' });
+                } finally {
+                    this.cargando = false;
+                }
+            },
+
+            pedirConfirmacionEliminar(doc) {
+                this.docPendienteEliminar = doc;
+                this.$dispatch('abrir-modal-confirmar', {
+                    message: `¿Eliminar el documento "${doc.nombre}"?`,
+                    formId: null,
+                });
+            },
+
+            onConfirmarEliminar() {
+                if (!this.docPendienteEliminar) return;
+                const doc = this.docPendienteEliminar;
+                this.docPendienteEliminar = null;
+                this.documentos = this.documentos.filter(d => d.id_documento !== doc.id_documento);
+                this.docsEliminados.push(doc);
+                this.idsAEliminar.push(doc.id_documento);
+            },
+
+            deshacerEliminar(doc) {
+                this.docsEliminados = this.docsEliminados.filter(d => d.id_documento !== doc.id_documento);
+                this.idsAEliminar = this.idsAEliminar.filter(id => id !== doc.id_documento);
+                this.documentos.unshift(doc);
+            },
         };
     }
 </script>

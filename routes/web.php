@@ -33,6 +33,7 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])
     ->name('planDeAccion.iniciar-creacion');
     Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
+    Route::post('/{id}/subir-documento', [PlanDeAccionController::class, 'subirDocumento'])->name('planDeAccion.subirDocumento');
 
 });
 
@@ -117,6 +118,12 @@ Route::middleware(['auth', \App\Http\Middleware\SessionAlumnoCrearEditar::class]
 Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
 Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
+// Documentos de alumno (AJAX, sin sesión de asistente)
+Route::middleware('auth')->group(function () {
+    Route::post('/alumnos/{id}/subir-documento', [AlumnoController::class, 'subirDocumento'])->name('alumnos.subirDocumento');
+    Route::delete('/alumnos/{id}/documento/{docId}', [AlumnoController::class, 'eliminarDocumento'])->name('alumnos.eliminarDocumento');
+});
+
 
 //Rutas de los usuarios (profesionales)
 use App\Http\Controllers\ProfesionalController;
@@ -149,6 +156,7 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::put('/{id}', [IntervencionController::class, 'editar'])->name('actualizar');
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
+    Route::post('/{id}/subir-documento', [IntervencionController::class, 'subirDocumento'])->name('subirDocumento');
 });
 
 
@@ -201,3 +209,16 @@ Route::prefix('notificaciones')->middleware('auth')->name('notificaciones.')->gr
 Route::post('/eventos/{id}/dejar-de-recordar', [EventoController::class, 'dejarDeRecordar'])
     ->middleware('auth')
     ->name('eventos.dejar-de-recordar');
+
+// ── Documentos ────────────────────────────────────────────────────
+use App\Http\Controllers\DocumentoController;
+Route::prefix('documentos')->middleware('auth')->name('documentos.')->group(function () {
+    Route::get('/', [DocumentoController::class, 'index'])->name('principal');
+    Route::get('/subir', [DocumentoController::class, 'create'])->name('crear');
+    Route::post('/', [DocumentoController::class, 'store'])->name('guardar');
+    Route::delete('/{id}', [DocumentoController::class, 'destroy'])->name('eliminar');
+    Route::get('/{id}/descargar', [DocumentoController::class, 'download'])->name('descargar');
+    Route::get('/{id}/ver', [DocumentoController::class, 'preview'])->name('ver');
+    // API Ajax para buscar entidades (alumno / plan / intervención)
+    Route::get('/api/buscar-entidad', [DocumentoController::class, 'buscarEntidad'])->name('buscar-entidad');
+});

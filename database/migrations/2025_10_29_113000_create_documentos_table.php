@@ -14,6 +14,7 @@ return new class extends Migration
             $table->id('id_documento');
 
             $table->string('nombre')->unique();
+            $table->enum('contexto', ['perfil_alumno', 'plan_accion', 'intervencion', 'institucional'])->default('institucional');
             $table->enum('tipo_formato', ['DOCX', 'DOC', 'JPG', 'PNG', 'PDF', 'XLS', 'XLSX']);
             $table->boolean('disponible_presencial');
             $table->integer('tamanio_archivo');
@@ -62,7 +63,9 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
 
-            $table->timestamps();
+            // Usamos un nombre semántico en vez del created_at genérico de Laravel
+            $table->timestamp('fecha_hora_carga')->useCurrent();
+            // Sin updated_at (el documento no se edita, solo se sube y se borra)
         });
     }
 

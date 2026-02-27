@@ -10,6 +10,7 @@ interface PlanDeAccionServiceInterface
 {
     public function cambiarActivo(int $id): bool;
     public function crear(array $data): PlanDeAccion;
+    public function actualizar(int $id, array $data): ?PlanDeAccion;
     public function eliminar(int $id): bool;
     public function buscarPorId(int $id): ?PlanDeAccion;
     public function filtrar(Request $request): Collection;
