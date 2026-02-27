@@ -13,7 +13,7 @@
 
 @if(session('error_subida'))
     <div x-data="{ open: true }">
-        <x-ui.modal-error message="{{ session('error_subida') }}" />
+        <x-ui.modal-error :message="session('error_subida')" />
     </div>
 @endif
 
