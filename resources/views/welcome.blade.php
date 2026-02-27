@@ -47,7 +47,10 @@
                         <li class="{{ $notif->leida ? 'bg-white' : 'bg-indigo-50' }} hover:bg-gray-50 transition-colors">
                             <form method="POST" action="{{ route('notificaciones.leer', $notif->id_notificacion) }}">
                                 @csrf
-                                <button type="submit" class="w-full text-left px-4 py-3 flex gap-3 items-start">
+
+                                {{-- Área clicable que marca como leída y navega --}}
+                                <div class="w-full text-left px-4 py-3 flex gap-3 items-start cursor-pointer"
+                                     onclick="this.closest('form').submit()">
 
                                     {{-- Ícono del tipo --}}
                                     <span class="mt-0.5 shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100">
@@ -78,7 +81,20 @@
 
                                         <p class="text-xs text-gray-400 mt-1">{{ $notif->created_at->diffForHumans() }}</p>
                                     </div>
-                                </button>
+                                </div>
+
+                                {{-- Botón "Dejar de recordar" fuera del div clicable (evita botón dentro de botón) --}}
+                                @if ($notif->tipo === \App\Enums\TipoNotificacion::RECORDATORIO_DERIVACION)
+                                    <div class="px-4 pb-2">
+                                        <button
+                                            type="button"
+                                            onclick="dejarDeRecordar({{ $notif->fk_id_evento }}, this.closest('li'))"
+                                            class="inline-flex items-center gap-1 text-xs text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
+                                        >
+                                            <i class="fas fa-bell-slash text-[11px]"></i> Dejar de recordar
+                                        </button>
+                                    </div>
+                                @endif
                             </form>
                         </li>
                     @endforeach
@@ -296,6 +312,17 @@ function modalEventoData() {
             return `${dia} de ${mes} de ${anio}`;
         },
     };
+}
+async function dejarDeRecordar(eventoId, li) {
+    await fetch(`/eventos/${eventoId}/dejar-de-recordar`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+            'Accept': 'application/json',
+        }
+    });
+    // Solo oculta el botón "Dejar de recordar", la notificación sigue visible
+    li.querySelector('[onclick*="dejarDeRecordar"]').closest('div').remove();
 }
 </script>
 

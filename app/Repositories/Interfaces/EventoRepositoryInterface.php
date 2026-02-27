@@ -63,6 +63,9 @@ interface EventoRepositoryInterface
     //Obtiene eventos que tienen recordatorio configurado
     public function getWithRecordatorio(): Collection;
 
+    //Obtiene derivaciones externas cuyo recordatorio ya está vencido
+    public function getDerivacionesPendientesRecordatorio(): Collection;
+
     //Cuenta eventos por tipo
     public function countByTipo(TipoEvento $tipo): int;
 

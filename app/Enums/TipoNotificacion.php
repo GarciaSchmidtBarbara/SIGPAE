@@ -23,6 +23,9 @@ enum TipoNotificacion: string
     case INTERVENCION_EDITADA     = 'INTERVENCION_EDITADA';
     case INTERVENCION_BORRADA     = 'INTERVENCION_BORRADA';
 
+    //Recordatorio periódico de derivación externa
+    case RECORDATORIO_DERIVACION  = 'RECORDATORIO_DERIVACION';
+
     public function etiqueta(): string
     {
         return match($this) {
@@ -34,6 +37,7 @@ enum TipoNotificacion: string
             self::PLAN_BORRADO            => 'Plan de acción eliminado',
             self::INTERVENCION_EDITADA    => 'Intervención editada',
             self::INTERVENCION_BORRADA    => 'Intervención eliminada',
+            self::RECORDATORIO_DERIVACION => 'Recordatorio de derivación',
         };
     }
 
@@ -48,6 +52,7 @@ enum TipoNotificacion: string
             self::PLAN_BORRADO            => 'fa-trash-alt',
             self::INTERVENCION_EDITADA    => 'fa-pencil-alt',
             self::INTERVENCION_BORRADA    => 'fa-trash-alt',
+            self::RECORDATORIO_DERIVACION => 'fa-clock',
         };
     }
 
@@ -62,6 +67,7 @@ enum TipoNotificacion: string
             self::PLAN_BORRADO            => 'text-red-500',
             self::INTERVENCION_EDITADA    => 'text-yellow-500',
             self::INTERVENCION_BORRADA    => 'text-red-500',
+            self::RECORDATORIO_DERIVACION => 'text-blue-500',
         };
     }
 }

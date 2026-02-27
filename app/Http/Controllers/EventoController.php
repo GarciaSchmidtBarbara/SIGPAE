@@ -273,4 +273,18 @@ class EventoController extends Controller
                 ->with('error', 'Error al eliminar evento: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Establece periodo_recordatorio = 0 para detener los recordatorios de una derivación externa.
+     */
+    public function dejarDeRecordar(int $id): JsonResponse
+    {
+        $resultado = $this->eventoService->dejarDeRecordar($id);
+
+        if (!$resultado) {
+            return response()->json(['success' => false, 'message' => 'Evento no encontrado'], 404);
+        }
+
+        return response()->json(['success' => true]);
+    }
 }

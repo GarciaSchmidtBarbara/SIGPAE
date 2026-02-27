@@ -36,6 +36,18 @@
             this.notificaciones.forEach(n => n.leida = true);
             this.noLeidas = 0;
         },
+
+        async dejarDeRecordar(eventoId, n) {
+            await fetch(`/eventos/${eventoId}/dejar-de-recordar`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json',
+                }
+            });
+            // Oculta el botón marcando es_recordatorio = false
+            n.es_recordatorio = false;
+        },
     }"
     x-init="cargar()"
     @click.outside="open = false"
@@ -152,6 +164,16 @@
 
                                 {{-- Fecha relativa --}}
                                 <p class="text-xs text-gray-400 mt-1" x-text="n.fecha"></p>
+
+                                {{-- Botón Dejar de recordar (solo para RECORDATORIO_DERIVACION) --}}
+                                <button
+                                    x-show="n.es_recordatorio"
+                                    @click.stop.prevent="dejarDeRecordar(n.evento_id_recordatorio, n)"
+                                    type="button"
+                                    class="mt-1.5 inline-flex items-center gap-1 text-xs text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
+                                >
+                                    <i class="fas fa-bell-slash text-[11px]"></i> Dejar de recordar
+                                </button>
                             </div>
                         </button>
                     </form>

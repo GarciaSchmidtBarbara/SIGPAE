@@ -30,6 +30,8 @@ class NotificacionController extends Controller
                 'fecha'           => $n->created_at->diffForHumans(),
                 'url'             => $n->urlDestino(),
                 'recurso_borrado' => $n->recursoBorrado(),
+                'es_recordatorio'        => $n->tipo === \App\Enums\TipoNotificacion::RECORDATORIO_DERIVACION,
+                'evento_id_recordatorio' => $n->fk_id_evento,
             ];
         });
 

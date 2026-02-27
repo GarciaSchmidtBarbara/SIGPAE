@@ -27,6 +27,7 @@ class Evento extends Model{
             'notas',
             'profesional_tratante', // preguntar a Lucas
             'periodo_recordatorio', // integer en dias
+            'ultimo_recordatorio_at',
             'fk_id_profesional_creador',
         ];
 
@@ -34,6 +35,7 @@ class Evento extends Model{
             'fecha_hora' => 'datetime',
             'periodo_recordatorio' => 'integer',
             'tipo_evento' => TipoEvento::class,
+            'ultimo_recordatorio_at' => 'datetime',
         ];
 
         

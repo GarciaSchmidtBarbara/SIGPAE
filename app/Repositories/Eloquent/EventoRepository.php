@@ -155,6 +155,14 @@ class EventoRepository implements EventoRepositoryInterface
             ->get();
     }
 
+    public function getDerivacionesPendientesRecordatorio(): Collection
+    {
+        return Evento::where('tipo_evento', TipoEvento::DERIVACION_EXTERNA->value)
+            ->where('periodo_recordatorio', '>', 0)
+            ->whereNotNull('fecha_hora')
+            ->get();
+    }
+
     public function countByTipo(TipoEvento $tipo): int
     {
         return Evento::where('tipo_evento', $tipo)->count();
