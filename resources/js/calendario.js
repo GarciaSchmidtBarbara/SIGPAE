@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
             right: 'today'
         },
         buttonText: {
-            today: 'Hoy',
+            today: 'Mes actual',
             month: 'Mes',
             list: 'Lista'
         },
