@@ -51,11 +51,12 @@
     }"
     x-init="cargar()"
     @click.outside="open = false"
+    @notif-leida.window="if (noLeidas > 0) noLeidas--"
     class="relative"
 >
     {{-- ── Botón campana ──────────────────────────────────────────────── --}}
     <button
-        @click="open = !open"
+        @click="open = !open; if (open) marcarTodasLeidas()"
         class="relative p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors focus:outline-none"
         aria-label="Notificaciones"
     >
@@ -79,7 +80,7 @@
         x-transition:leave="transition ease-in duration-100"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
+        class="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
         style="display:none"
     >
         {{-- Cabecera --}}

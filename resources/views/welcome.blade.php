@@ -13,27 +13,27 @@
             <div class=" text-lg flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold text-gray-800">
                     Notificaciones recientes
-                    @if ($noLeidas > 0)
-                        <span class="ml-2 inline-flex items-center justify-center min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full px-1">
-                            {{ $noLeidas > 99 ? '99+' : $noLeidas }}
-                        </span>
-                    @endif
+                    <span id="home-no-leidas-badge"
+                          class="ml-2 inline-flex items-center justify-center min-w-[22px] h-[22px] bg-red-500 text-white text-xs font-bold rounded-full px-1"
+                          style="{{ $noLeidas > 0 ? '' : 'display:none' }}">
+                        {{ $noLeidas > 99 ? '99+' : $noLeidas }}
+                    </span>
                 </h2>
-                @if ($noLeidas > 0)
-                    <button
-                        type="button"
-                        onclick="fetch('{{ route('notificaciones.leer-todas') }}', {
-                            method: 'POST',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                                'Accept': 'application/json'
-                            }
-                        }).then(() => window.location.reload())"
-                        class="text-xs text-indigo-600 hover:underline focus:outline-none"
-                    >
-                        Marcar todas como leídas
-                    </button>
-                @endif
+                <button
+                    id="home-marcar-todas-btn"
+                    type="button"
+                    style="{{ $noLeidas > 0 ? '' : 'display:none' }}"
+                    onclick="fetch('{{ route('notificaciones.leer-todas') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                            'Accept': 'application/json'
+                        }
+                    }).then(() => window.location.reload())"
+                    class="text-xs text-indigo-600 hover:underline focus:outline-none"
+                >
+                    Marcar todas como leídas
+                </button>
             </div>
 
             @if ($notificaciones->isEmpty())
@@ -44,7 +44,8 @@
             @else
                 <ul class="divide-y divide-gray-100 -mx-4">
                     @foreach ($notificaciones as $notif)
-                        <li class="{{ $notif->leida ? 'bg-white' : 'bg-indigo-50' }} hover:bg-gray-50 transition-colors">
+                        <li class="{{ $notif->leida ? 'bg-white' : 'bg-indigo-50' }} hover:bg-gray-50 transition-colors"
+                            onmouseenter="marcarLeidaHome({{ $notif->id_notificacion }}, this)">
                             <form method="POST" action="{{ route('notificaciones.leer', $notif->id_notificacion) }}">
                                 @csrf
 
@@ -313,6 +314,35 @@ function modalEventoData() {
         },
     };
 }
+async function marcarLeidaHome(id, li) {
+    if (!li.classList.contains('bg-indigo-50')) return;
+    await fetch(`/notificaciones/${id}/leer`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+            'Accept': 'application/json',
+        },
+        redirect: 'manual'
+    });
+    li.classList.remove('bg-indigo-50');
+    li.classList.add('bg-white');
+    const dot = li.querySelector('.bg-indigo-500.rounded-full');
+    if (dot) dot.remove();
+    // Actualizar badge del home
+    const badge = document.getElementById('home-no-leidas-badge');
+    if (badge) {
+        const actual = parseInt(badge.textContent.trim()) || 0;
+        const nuevo = Math.max(0, actual - 1);
+        if (nuevo === 0) {
+            badge.style.display = 'none';
+            const btn = document.getElementById('home-marcar-todas-btn');
+            if (btn) btn.style.display = 'none';
+        } else {
+            badge.textContent = nuevo > 99 ? '99+' : nuevo;
+        }
+    }
+    window.dispatchEvent(new CustomEvent('notif-leida'));
+}
 async function dejarDeRecordar(eventoId, li) {
     await fetch(`/eventos/${eventoId}/dejar-de-recordar`, {
         method: 'POST',
@@ -321,7 +351,7 @@ async function dejarDeRecordar(eventoId, li) {
             'Accept': 'application/json',
         }
     });
-    // Solo oculta el botón "Dejar de recordar", la notificación sigue visible
+    //Solo oculta el botón "Dejar de recordar", la notificación sigue visible
     li.querySelector('[onclick*="dejarDeRecordar"]').closest('div').remove();
 }
 </script>
