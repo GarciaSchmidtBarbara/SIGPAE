@@ -21,14 +21,18 @@ class EventoRepository implements EventoRepositoryInterface
         return $query->find($eventoId);
     }
 
-    public function all(array $relations = []): Collection
+    public function all(array $relations = [], array $filters = []): Collection
     {
         $query = Evento::query();
-        
+
         if (!empty($relations)) {
             $query->with($relations);
         }
-        
+
+        if (!empty($filters['tipo_evento'])) {
+            $query->where('tipo_evento', $filters['tipo_evento']);
+        }
+
         return $query->latest('fecha_hora')->get();
     }
 
@@ -86,7 +90,7 @@ class EventoRepository implements EventoRepositoryInterface
     public function getEventosByDateRange(string $start, string $end): Collection
     {
         return Evento::whereBetween('fecha_hora', [$start, $end])
-            ->with(['profesionalCreador.persona'])
+            ->with(['profesionalCreador.persona', 'esInvitadoA'])
             ->orderBy('fecha_hora', 'asc')
             ->get();
     }

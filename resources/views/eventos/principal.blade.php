@@ -4,16 +4,26 @@
 
 @section('contenido')
 <div class="p-6" x-data="eventosData()" @abrir-modal-eliminar.window="abrir($event.detail)">
-    <!-- Botones de acción -->
-    <div class="flex gap-2 mb-6">
+    <!-- Botones de acción y filtros -->
+    <form method="GET" action="{{ route('eventos.principal') }}" class="flex gap-2 mb-6 flex-wrap items-center">
         <a href="{{ route('eventos.crear') }}" class="btn-aceptar">Crear evento</a>
         <a href="{{ route('eventos.crear-derivacion') }}" class="btn-aceptar">Crear derivación externa</a>
-    </div>
+
+        <select name="tipo_evento" class="border px-2 py-1 rounded" onchange="this.form.submit()">
+            <option value="">Todos los tipos</option>
+            @foreach($tiposEvento as $tipo)
+                <option value="{{ $tipo->value }}" {{ request('tipo_evento') === $tipo->value ? 'selected' : '' }}>
+                    {{ $tipo->label() }}
+                </option>
+            @endforeach
+        </select>
+
+    </form>
 
     <!-- Tabla de eventos -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <table  class="modern-table">
-            <thead class="bg-primary text-white">
+            <thead class="bg-gray-100">
                 <tr>
                     <th class="px-4 py-3 text-left">Tipo</th>
                     <th class="px-4 py-3 text-left">Fecha</th>
@@ -30,10 +40,22 @@
                         $estaInvitado = $invitacion !== null;
                         $confirmado = $invitacion ? $invitacion->confirmacion : false;
                         $puedeConfirmar = $estaInvitado; // Solo invitados pueden confirmar
+                        $tipoColor = match($evento->tipo_evento?->value) {
+                            'BANDA'             => 'bg-blue-100 text-blue-700 border-blue-200',
+                            'RG'                => 'bg-indigo-100 text-indigo-700 border-indigo-200',
+                            'RD'                => 'bg-purple-100 text-purple-700 border-purple-200',
+                            'CITA_FAMILIAR'     => 'bg-green-100 text-green-700 border-green-200',
+                            'DERIVACION_EXTERNA'=> 'bg-amber-100 text-amber-700 border-amber-200',
+                            default             => 'bg-gray-100 text-gray-600 border-gray-200',
+                        };
                     @endphp
                     <tr class="border-b hover:bg-gray-50 cursor-pointer" 
                         onclick="window.location='{{ $evento->tipo_evento?->value === 'DERIVACION_EXTERNA' ? route('eventos.editar-derivacion', $evento->id_evento) : route('eventos.ver', $evento->id_evento) }}'">
-                        <td class="px-4 py-3">{{ $evento->tipo_evento?->value ?? 'N/A' }}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border {{ $tipoColor }}">
+                                {{ $evento->tipo_evento?->label() ?? 'N/A' }}
+                            </span>
+                        </td>
                         <td class="px-4 py-3">{{ $evento->fecha_hora->format('d/m/Y H:i') }}</td>
                         <td class="px-4 py-3 text-center" onclick="event.stopPropagation()">
                             @if($puedeConfirmar)

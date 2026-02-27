@@ -88,7 +88,7 @@ class BaseInstitucionalSeeder extends Seeder
         Evento::factory()->count(3)->futuro()->create();
 
         //Notificaciones
-        $profesionales = Profesional::all();
+        $profesionales = Profesional::with('persona')->get();
         $destPrincipal = $profesionales->firstWhere('usuario', 'lucia.g');
         $origen        = $profesionales->first(fn($p) => $p->usuario !== 'lucia.g') ?? $profesionales->skip(1)->first();
         $origen2       = $profesionales->where('usuario', '!=', 'lucia.g')->skip(1)->first() ?? $origen;

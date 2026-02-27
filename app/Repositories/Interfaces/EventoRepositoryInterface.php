@@ -10,7 +10,7 @@ use Carbon\Carbon;
 interface EventoRepositoryInterface
 {
     //Obtiene todos los eventos
-    public function all(array $relations = []): Collection;
+    public function all(array $relations = [], array $filters = []): Collection;
 
     //Encuentra un evento por su ID
     public function find(int $eventoId, array $relations = []): ?Evento;

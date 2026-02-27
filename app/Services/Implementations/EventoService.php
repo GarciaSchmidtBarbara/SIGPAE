@@ -17,9 +17,9 @@ class EventoService implements EventoServiceInterface
         $this->repo = $repo;
     }
 
-    public function listarTodos(): Collection
+    public function listarTodos(array $filters = []): Collection
     {
-        return $this->repo->all();
+        return $this->repo->all(['esInvitadoA'], $filters);
     }
 
     public function obtenerPorId(int $id): ?Evento

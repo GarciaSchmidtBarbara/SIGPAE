@@ -69,7 +69,7 @@
     @else
         <div class="overflow-x-auto rounded-lg shadow">
             <table class="min-w-full divide-y divide-gray-200 bg-white text-sm">
-                <thead class="bg-indigo-50 text-indigo-700 uppercase text-xs">
+                <thead class="bg-gray-100">
                     <tr>
                         <th class="px-4 py-3 text-left">Fecha</th>
                         <th class="px-4 py-3 text-left">Contexto</th>
