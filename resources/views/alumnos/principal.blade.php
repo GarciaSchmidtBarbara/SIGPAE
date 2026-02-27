@@ -5,14 +5,16 @@
 
 @section('contenido')
 
-<div class="p-6" x-data="estadoAlumno()"
+<div class="px-4 py-6 md:p-6" x-data="estadoAlumno()"
      @abrir-modal-estado.window="abrir($event.detail)">
-    <form id="form-alumno" method="GET" action="{{ route('alumnos.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+    <form id="form-alumno" method="GET" action="{{ route('alumnos.principal') }}" class="flex flex-col md:flex-row gap-3 mb-6">    
         <a class="btn-aceptar" href="{{ route('alumnos.crear') }}">Registrar Alumno</a>
-        <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
-        <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
-        <input name="documento" placeholder="Documento" class="border px-2 py-1 rounded w-1/5">
-        <select name="aula" class="border px-2 py-1 rounded w-1/5">
+        
+        <p class="text-sm font-semibold text-gray-600 mt-2"> Buscar alumnos </p>
+        <input name="nombre" placeholder="Nombre" class="form-input md:w-1/5">
+        <input name="apellido" placeholder="Apellido" class="form-input md:w-1/5">
+        <input name="documento" placeholder="Documento" class="form-input md:w-1/5">
+        <select name="aula" class="form-input md:w-1/5">
             <option value="">Todos los cursos</option>
             @foreach($cursos as $curso)
                 <option value="{{ $curso }}" {{ request('aula') === $curso ? 'selected' : '' }}>
@@ -20,7 +22,7 @@
                 </option>
             @endforeach
         </select>
-        <select name="estado" class="border px-2 py-1 rounded w-1/5">
+        <select name="estado" class="form-input md:w-1/5">
             <option value="" {{ request('estado', 'activos')  === '' ? 'selected' : '' }}>Todos</option>
             <option value="activos" {{ request('estado', 'activos') === 'activos' ? 'selected' : '' }}>Activos</option>
             <option value="inactivos" {{ request('estado', 'activos')  === 'inactivos' ? 'selected' : '' }}>Inactivos</option>
@@ -45,7 +47,7 @@
         };
     @endphp
     
-<div class="data-table-to-print">
+<div class="data-table-to-print bg-white rounded-xl shadow-sm overflow-hidden">
     <x-tabla-dinamica 
         :columnas="[
             ['key' => 'persona.nombre', 'label' => 'Nombre'],
@@ -69,23 +71,6 @@
         class="tabla-imprimir"
         :filaEnlace="fn($fila) => route('alumnos.editar', data_get($fila, 'id_alumno'))"
     >
-        <x-slot:accionesPorFila>
-            @php
-                // función anónima que recibirá $fila
-            @endphp
-            @once
-                @php
-                    $accionesPorFila = function ($fila) {
-                        $activo = data_get($fila, 'persona.activo');
-                        $ruta = route('alumnos.cambiarActivo', data_get($fila, 'id_alumno'));
-                        return view('components.boton-estado', [
-                            'activo' => $activo,
-                            'route' => $ruta
-                        ])->render();
-                    };
-                @endphp
-            @endonce
-        </x-slot:accionesPorFila>
     </x-tabla-dinamica>
 </div>
 
@@ -102,7 +87,7 @@
          @click="cerrar()"></div>
 
     <!-- Panel -->
-    <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+    <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6 mx-4">
 
         <h3 class="text-lg font-semibold mb-4">
             ¿Confirmar desactivación?
@@ -133,7 +118,7 @@
 </div>
 
     <div class="fila-botones mt-8">
-        <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir listado</button>
+        <button type="button" class="btn-aceptar">Imprimir listado</button>
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>
 </div>

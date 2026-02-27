@@ -201,5 +201,16 @@
 
     @stack('scripts')
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    {{-- Script para hacer clic en filas de tabla móvil si se proporciona 'filaEnlace' --}}
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".fila-click").forEach(fila => {
+            fila.addEventListener("click", function () {
+                window.location = this.dataset.href;
+            });
+        });
+    });
+    </script>
 </body>
 </html>
