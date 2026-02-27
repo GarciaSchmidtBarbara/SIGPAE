@@ -201,3 +201,16 @@ Route::prefix('notificaciones')->middleware('auth')->name('notificaciones.')->gr
 Route::post('/eventos/{id}/dejar-de-recordar', [EventoController::class, 'dejarDeRecordar'])
     ->middleware('auth')
     ->name('eventos.dejar-de-recordar');
+
+// ── Documentos ────────────────────────────────────────────────────
+use App\Http\Controllers\DocumentoController;
+Route::prefix('documentos')->middleware('auth')->name('documentos.')->group(function () {
+    Route::get('/', [DocumentoController::class, 'index'])->name('principal');
+    Route::get('/subir', [DocumentoController::class, 'create'])->name('crear');
+    Route::post('/', [DocumentoController::class, 'store'])->name('guardar');
+    Route::delete('/{id}', [DocumentoController::class, 'destroy'])->name('eliminar');
+    Route::get('/{id}/descargar', [DocumentoController::class, 'download'])->name('descargar');
+    Route::get('/{id}/ver', [DocumentoController::class, 'preview'])->name('ver');
+    // API Ajax para buscar entidades (alumno / plan / intervención)
+    Route::get('/api/buscar-entidad', [DocumentoController::class, 'buscarEntidad'])->name('buscar-entidad');
+});

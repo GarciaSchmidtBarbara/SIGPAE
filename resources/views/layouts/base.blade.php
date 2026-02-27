@@ -87,7 +87,7 @@
                 </div>
 
                 <x-nav-item route="planillas.principal" label="Planillas" icon="icons.icono-planilla" exact></x-nav-item>
-                <x-nav-item label="Documentos" icon="icons.icono-documento" exact></x-nav-item>
+                <x-nav-item route="documentos.principal" label="Documentos" icon="icons.icono-documento" exact></x-nav-item>
                 <x-nav-item label="Reportes" icon="icons.icono-reporte" exact></x-nav-item>
                 <x-nav-item route="usuarios.principal" label="Usuarios" icon="icons.icono-usuario" exact></x-nav-item>
             </nav>
