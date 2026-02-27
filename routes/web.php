@@ -33,6 +33,7 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])
     ->name('planDeAccion.iniciar-creacion');
     Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
+    Route::post('/{id}/subir-documento', [PlanDeAccionController::class, 'subirDocumento'])->name('planDeAccion.subirDocumento');
 
 });
 

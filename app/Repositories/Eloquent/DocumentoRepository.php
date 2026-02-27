@@ -88,4 +88,12 @@ class DocumentoRepository implements DocumentoRepositoryInterface
             ->orderByDesc('fecha_hora_carga')
             ->get();
     }
+
+    public function buscarPorPlanDeAccion(int $idPlan): Collection
+    {
+        return $this->model->newQuery()
+            ->where('fk_id_plan_de_accion', $idPlan)
+            ->orderByDesc('fecha_hora_carga')
+            ->get();
+    }
 }

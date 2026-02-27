@@ -15,4 +15,5 @@ interface DocumentoRepositoryInterface
     public function eliminar(int $id): bool;
     public function buscarPorAlumno(int $idAlumno): Collection;
     public function buscarPorIntervencion(int $idIntervencion): Collection;
+    public function buscarPorPlanDeAccion(int $idPlan): Collection;
 }

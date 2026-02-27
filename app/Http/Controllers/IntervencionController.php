@@ -128,7 +128,7 @@ class IntervencionController extends Controller
                     'disponible_presencial' => false,
                 ],
                 $request->file('archivo'),
-                auth()->id()
+                auth()->user()->id_profesional
             );
 
             return response()->json([

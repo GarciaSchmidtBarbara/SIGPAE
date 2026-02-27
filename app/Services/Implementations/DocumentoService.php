@@ -87,7 +87,25 @@ class DocumentoService implements DocumentoServiceInterface
             default         => null,
         };
 
-        return $this->repo->crear($payload);
+        try {
+            return $this->repo->crear($payload);
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            // Limpiar el archivo físico ya guardado antes de propagar el error
+            Storage::disk('local')->delete($ruta);
+            throw new \RuntimeException(
+                'Ya existe un documento con el nombre "' . $data['nombre'] . '". Por favor, elija un nombre diferente.'
+            );
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Captura para DBs que lanzan QueryException con SQLSTATE 23505 (e.g. PostgreSQL < L10)
+            if (str_contains($e->getCode(), '23505')) {
+                Storage::disk('local')->delete($ruta);
+                throw new \RuntimeException(
+                    'Ya existe un documento con el nombre "' . $data['nombre'] . '". Por favor, elija un nombre diferente.'
+                );
+            }
+            Storage::disk('local')->delete($ruta);
+            throw $e;
+        }
     }
 
     // ── Descarga de archivo ────────────────────────────────────
@@ -146,6 +164,21 @@ class DocumentoService implements DocumentoServiceInterface
     public function listarParaIntervencion(int $idIntervencion): array
     {
         return $this->repo->buscarPorIntervencion($idIntervencion)
+            ->map(fn (Documento $d) => [
+                'id_documento'  => $d->id_documento,
+                'nombre'        => $d->nombre,
+                'tipo_formato'  => $d->tipo_formato?->value ?? '',
+                'tamanio'       => $d->tamanio_formateado,
+                'fecha'         => $d->fecha_hora_carga?->format('d/m/Y') ?? '',
+                'ruta_descarga' => route('documentos.descargar', $d->id_documento),
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    public function listarParaPlanDeAccion(int $idPlan): array
+    {
+        return $this->repo->buscarPorPlanDeAccion($idPlan)
             ->map(fn (Documento $d) => [
                 'id_documento'  => $d->id_documento,
                 'nombre'        => $d->nombre,

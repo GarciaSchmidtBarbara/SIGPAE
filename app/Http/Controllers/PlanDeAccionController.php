@@ -3,17 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Services\Interfaces\PlanDeAccionServiceInterface;
+use App\Services\Interfaces\DocumentoServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class PlanDeAccionController extends Controller
 {
-    protected PlanDeAccionServiceInterface $planDeAccionService; 
+    protected PlanDeAccionServiceInterface $planDeAccionService;
+    protected DocumentoServiceInterface $documentoService;
 
-    public function __construct(PlanDeAccionServiceInterface $planDeAccionService) 
-    {
+    public function __construct(
+        PlanDeAccionServiceInterface $planDeAccionService,
+        DocumentoServiceInterface $documentoService,
+    ) {
         $this->planDeAccionService = $planDeAccionService;
+        $this->documentoService    = $documentoService;
     }
 
     //vista planes filtrados
@@ -108,100 +114,12 @@ class PlanDeAccionController extends Controller
     public function iniciarEdicion(int $id): View
     {
         $data = $this->planDeAccionService->datosParaFormulario($id);
-        $plan = $data['plan'];
+        $documentos = $this->documentoService->listarParaPlanDeAccion($id);
 
-        //Alumnos seleccionados con datos completos para Alpine
-        $alumnosSeleccionados = $plan->alumnos->map(function ($al) {
-            $persona = $al->persona;
-            return [
-                'id' => $al->id_alumno,
-                'nombre' => $persona->nombre,
-                'apellido' => $persona->apellido,
-                'dni' => $persona->dni,
-                'fecha_nacimiento' => $persona->fecha_nacimiento
-                    ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
-                    : 'N/A',
-                'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-                'domicilio' => $persona->domicilio ?? 'N/A',
-                'edad' => $persona->fecha_nacimiento
-                    ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age
-                    : 'N/A',
-                'curso'   => $al->aula?->descripcion,
-                'aula_id' => $al->fk_id_aula,
-            ];
-        })->toArray();
-
-        // Profesional generador y participantes (datos completos para Alpine)
-        $profesionalesSeleccionados = $plan->profesionalesParticipantes->map(function ($prof) {
-            $persona = $prof->persona;
-            return [
-                'id' => $prof->id_profesional,
-                'nombre' => $persona->nombre ?? null,
-                'apellido' => $persona->apellido ?? null,
-                'profesion' => $prof->profesion ?? 'N/A',
-            ];
-        })->toArray();
-
-        // Aulas seleccionadas
-        $aulasSeleccionadas = $plan->aulas->pluck('id_aula')->toArray();
-
-        // Alumno individual (solo si el plan es INDIVIDUAL)
-        $initialAlumnoId = null;
-        $initialAlumnoInfo = null;
-        if ($plan->tipo_plan->value === 'INDIVIDUAL') {
-            $alumno = $plan->alumnos->first();
-            if ($alumno) {
-                $initialAlumnoId = $alumno->id_alumno;
-                $initialAlumnoInfo = $alumnosJson[$initialAlumnoId] ?? null;
-            }
-        }
-        // Intervenciones asociadas directamente al plan
-        $intervencionesAsociadas = $plan->intervenciones
-            ->map(function ($i) {
-                return [
-                    'id_intervencion' => $i->id_intervencion,
-                    'fecha_hora_intervencion' => $i->fecha_hora_intervencion->format('d/m/Y H:i'),
-                    'tipo_intervencion' => $i->tipo_intervencion,
-                    'estado' => $i->activo ? 'Activo' : 'Inactivo',
-                ];
-            });
-
-        return view('planDeAccion.crear-editar', [
-            'modo' => 'editar',
-            'planDeAccion' => $plan,
-
-            // Datos del plan cargado
-            'alumnosSeleccionados' => $alumnosSeleccionados,
-            'profesionalesSeleccionados' => $profesionalesSeleccionados,
-            'aulasSeleccionadas' => $aulasSeleccionadas,
-            'alumnos' => $data['alumnos'],
-            'aulas' => $data['aulas'],
-            'profesionales' => $data['profesionales'],
-
-            // Proveer el mapping completo de alumnos (id => datos) para que Alpine pueda
-            // mostrar información del alumno al editar (no sólo los seleccionados)
-            'alumnosJson' => collect($data['alumnos'])->mapWithKeys(function ($al) {
-                $persona = $al->persona;
-                return [
-                    $al->id_alumno => [
-                        'id' => $al->id_alumno,
-                        'nombre' => $persona->nombre,
-                        'apellido' => $persona->apellido,
-                        'dni' => $persona->dni,
-                        'fecha_nacimiento' => $persona->fecha_nacimiento
-                            ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
-                            : 'N/A',
-                        'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-                        'domicilio' => $persona->domicilio ?? 'N/A',
-                        'edad' => $persona->fecha_nacimiento ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age : 'N/A',
-                        'curso' => $al->aula?->descripcion,
-                        'aula_id' => $al->fk_id_aula,
-                    ]
-                ];
-            }),
-            'initialAlumnoId' => $initialAlumnoId,
-            'initialAlumnoInfo' => $initialAlumnoInfo,
-            'intervencionesAsociadas' => $intervencionesAsociadas,
+        return view('planDeAccion.crear-editar', $data + [
+            'modo'        => 'editar',
+            'planDeAccion' => $data['plan'],
+            'documentos'  => $documentos,
         ]);
     }
 
@@ -219,12 +137,55 @@ class PlanDeAccionController extends Controller
             'profesionales.*' => 'integer|exists:profesionales,id_profesional',
             'intervenciones_asociadas' => 'array',
             'intervenciones_asociadas.*' => 'integer|exists:intervenciones,id_intervencion',
+            'docs_a_eliminar' => 'array',
+            'docs_a_eliminar.*' => 'integer',
         ]);
+
+        if (!empty($validatedData['docs_a_eliminar'])) {
+            $this->documentoService->eliminarVarios($validatedData['docs_a_eliminar']);
+        }
 
         $this->planDeAccionService->actualizar($id, $validatedData);
 
         return redirect()->route('planDeAccion.principal')
             ->with('success', 'Plan actualizado');
+    }
+
+    public function subirDocumento(Request $request, int $id): JsonResponse
+    {
+        $request->validate([
+            'archivo' => 'required|file|max:10240',
+            'nombre'  => 'required|string|max:255',
+        ]);
+
+        $profesionalId = auth()->user()?->id_profesional;
+        if (!$profesionalId) {
+            return response()->json(['error' => 'Sin profesional asociado.'], 403);
+        }
+
+        try {
+            $doc = $this->documentoService->subir(
+                [
+                    'nombre'                => $request->input('nombre'),
+                    'contexto'              => 'plan_accion',
+                    'fk_id_entidad'         => $id,
+                    'disponible_presencial' => false,
+                ],
+                $request->file('archivo'),
+                $profesionalId
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'id_documento'  => $doc->id_documento,
+            'nombre'        => $doc->nombre,
+            'tipo_formato'  => $doc->tipo_formato?->value ?? '',
+            'tamanio'       => $doc->tamanio_formateado,
+            'fecha'         => $doc->fecha_hora_carga?->format('d/m/Y') ?? '',
+            'ruta_descarga' => route('documentos.descargar', $doc->id_documento),
+        ], 201);
     }
 
     public function eliminar(int $id): RedirectResponse

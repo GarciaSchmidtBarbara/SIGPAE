@@ -110,20 +110,29 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
                 $initialAlumnoInfo = $alumnosJson[$initialAlumnoId] ?? null;
             }
         }
-        // alumnos seleccionados (modo grupal)
+        // alumnos seleccionados (modo grupal/individual)
         $alumnosSeleccionados = $plan?->alumnos->map(function ($al) {
             $persona = $al->persona;
             return [
-                'id_alumno' => $al->id_alumno,
-                'nombre' => $persona->nombre,
+                'id'       => $al->id_alumno,
+                'nombre'   => $persona->nombre,
                 'apellido' => $persona->apellido,
-                'dni' => $persona->dni,
-                'curso' => $al->aula ? ($al->aula->curso . '° ' . $al->aula->division) : 'N/A',
+                'dni'      => $persona->dni,
+                'curso'    => $al->aula?->descripcion,
+                'aula_id'  => $al->fk_id_aula,
             ];
         }) ?? collect();
 
-        //profesionales
-        $profesionalesSeleccionados = $plan?->profesionalesParticipantes->pluck('id_profesional')->toArray() ?? [];
+        //profesionales (objetos completos para Alpine)
+        $profesionalesSeleccionados = $plan?->profesionalesParticipantes->map(function ($prof) {
+            $persona = $prof->persona;
+            return [
+                'id'        => $prof->id_profesional,
+                'nombre'    => $persona->nombre ?? null,
+                'apellido'  => $persona->apellido ?? null,
+                'profesion' => $prof->profesion ?? 'N/A',
+            ];
+        })->values()->toArray() ?? [];
         $profesionales = $this->serviceProfesional->getAllProfesionales();
 
         //aulas

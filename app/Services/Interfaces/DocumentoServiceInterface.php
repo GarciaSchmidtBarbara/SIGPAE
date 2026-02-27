@@ -12,6 +12,7 @@ interface DocumentoServiceInterface
     public function listar(Request $request): Collection;
     public function listarParaAlumno(int $idAlumno): array;
     public function listarParaIntervencion(int $idIntervencion): array;
+    public function listarParaPlanDeAccion(int $idPlan): array;
     public function subir(array $data, UploadedFile $archivo, int $idProfesional): Documento;
     public function descargar(int $id): Documento;
     public function eliminar(int $id): bool;

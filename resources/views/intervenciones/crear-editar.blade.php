@@ -644,13 +644,13 @@
                     const resp = await fetch(urlSubir, { method: 'POST', body: formData });
                     const json = await resp.json();
                     if (!resp.ok) {
-                        this.errorMsg = json.error ?? 'Error al subir el documento.';
+                        this.$dispatch('abrir-modal-error', { message: json.error ?? 'Error al subir el documento.' });
                         return;
                     }
                     this.documentos.unshift(json);
                     this.cancelar();
                 } catch (e) {
-                    this.errorMsg = 'Error de red. Inténtelo de nuevo.';
+                    this.$dispatch('abrir-modal-error', { message: 'Error de red. Inténtelo de nuevo.' });
                 } finally {
                     this.cargando = false;
                 }

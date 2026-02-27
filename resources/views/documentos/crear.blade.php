@@ -4,10 +4,16 @@
 
 @section('contenido')
 
-@if(session('error_subida') || session('error_formato'))
+@if(session('error_formato'))
     <div x-data="{ open: true }">
         <x-ui.modal-error
             message="No es posible subir este documento. Verifique formato y tamaño permitido. (PDF, DOC, DOCX, XLS, XLSX, JPG, PNG — máx. 10 MB)" />
+    </div>
+@endif
+
+@if(session('error_subida'))
+    <div x-data="{ open: true }">
+        <x-ui.modal-error message="{{ session('error_subida') }}" />
     </div>
 @endif
 
