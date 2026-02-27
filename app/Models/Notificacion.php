@@ -63,6 +63,9 @@ class Notificacion extends Model
         }
 
         if ($this->fk_id_evento && $this->evento) {
+            if ($this->evento->tipo_evento === \App\Enums\TipoEvento::DERIVACION_EXTERNA) {
+                return route('eventos.editar-derivacion', $this->fk_id_evento);
+            }
             return route('eventos.ver', $this->fk_id_evento);
         }
         if ($this->fk_id_plan_de_accion && $this->planDeAccion) {

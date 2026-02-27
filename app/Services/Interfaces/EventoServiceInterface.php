@@ -24,6 +24,10 @@ interface EventoServiceInterface
     public function crearDerivacionExterna(array $data): Evento;
 
     public function actualizarDerivacionExterna(int $id, array $data): bool;
+
+    public function dejarDeRecordar(int $id): bool;
+
+    public function obtenerDerivacionesPendientesRecordatorio(): Collection;
     
     public function obtenerEventosParaCalendario(string $start, string $end): array;
 }

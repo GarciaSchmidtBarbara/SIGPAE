@@ -13,6 +13,7 @@ use App\Models\Evento;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Notificacion;
 use App\Enums\TipoNotificacion;
+use App\Enums\TipoEvento;
 
 
 class BaseInstitucionalSeeder extends Seeder
@@ -95,6 +96,22 @@ class BaseInstitucionalSeeder extends Seeder
         $evento2      = Evento::skip(1)->first() ?? $evento;
         $plan         = PlanDeAccion::first();
         $intervencion = Intervencion::first();
+
+        //Derivación externa vencida: fecha_hora hace 2 semanas, periodo = 1 semana
+        //el comando la detectaría como pendiente hoy; la notificación se genera directo en el seeder
+        $derivacionVencida = null;
+        if ($destPrincipal) {
+            $derivacionVencida = Evento::create([
+                'tipo_evento'           => TipoEvento::DERIVACION_EXTERNA,
+                'fecha_hora'            => now()->subWeeks(2),
+                'lugar'                 => 'Hospital Regional',
+                'notas'                 => 'Profesional externo: Dr. Ramírez (neurología)',
+                'profesional_tratante'  => 'Dr. Ramírez',
+                'periodo_recordatorio'  => 1,
+                'ultimo_recordatorio_at' => null,
+                'fk_id_profesional_creador' => $destPrincipal->id_profesional,
+            ]);
+        }
 
         if ($destPrincipal && $origen) {
             $notificaciones = [
@@ -181,6 +198,17 @@ class BaseInstitucionalSeeder extends Seeder
                     'fk_id_intervencion'   => null,
                     'offset'               => now()->subDays(5),
                 ],
+                // Recordatorio de derivación externa vencida
+                [
+                    'tipo'    => TipoNotificacion::RECORDATORIO_DERIVACION,
+                    'mensaje' => 'Recordatorio: hay una derivación externa pendiente (Hospital Regional – Dr. Ramírez). Han pasado 1 semana desde el último recordatorio.',
+                    'leida'                => false,
+                    'fk_id_evento'         => $derivacionVencida?->id_evento,
+                    'fk_id_plan_de_accion' => null,
+                    'fk_id_intervencion'   => null,
+                    'id_origen'            => null, // notificación del sistema, sin origen
+                    'offset'               => now()->subMinutes(1),
+                ],
             ];
 
             foreach ($notificaciones as $n) {
@@ -189,7 +217,7 @@ class BaseInstitucionalSeeder extends Seeder
                     'mensaje'                        => $n['mensaje'],
                     'leida'                          => $n['leida'],
                     'fk_id_profesional_destinatario' => $destPrincipal->id_profesional,
-                    'fk_id_profesional_origen'       => $origen->id_profesional,
+                    'fk_id_profesional_origen'       => array_key_exists('id_origen', $n) ? $n['id_origen'] : $origen->id_profesional,
                     'fk_id_evento'                   => $n['fk_id_evento'],
                     'fk_id_plan_de_accion'           => $n['fk_id_plan_de_accion'],
                     'fk_id_intervencion'             => $n['fk_id_intervencion'],

@@ -66,10 +66,10 @@
                     <input type="number" 
                            name="periodo_recordatorio"
                            x-model="formData.periodo_recordatorio"
-                           min="1"
+                           min="0"
                            placeholder="1"
                            class="w-24 border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <span>semana(s)</span>
+                    <span>semana(s) <span class="text-xs text-gray-400">(0 = sin recordatorio)</span></span>
                 </div>
             </div>
         </div>
@@ -166,7 +166,7 @@ function derivacionForm() {
             fecha: '{{ old('fecha', isset($evento) ? ($evento->fecha_hora?->format('Y-m-d') ?? '') : '') }}',
             lugar: '{{ old('lugar', $evento->lugar ?? '') }}',
             profesional_tratante: '{{ old('profesional_tratante', $evento->profesional_tratante ?? '') }}',
-            periodo_recordatorio: {{ old('periodo_recordatorio', $evento->periodo_recordatorio ?? 1) }},
+            periodo_recordatorio: {{ old('periodo_recordatorio', $evento->periodo_recordatorio ?? '') }},
             notas: '{{ old('notas', '') }}'
         },
         alumnosSeleccionados: @json(old('alumnos', $alumnosEvento ?? [])),

@@ -20,6 +20,7 @@ return new class extends Migration
                 'PLAN_BORRADO',
                 'INTERVENCION_EDITADA',
                 'INTERVENCION_BORRADA',
+                'RECORDATORIO_DERIVACION',
             ]);
 
             $table->text('mensaje');

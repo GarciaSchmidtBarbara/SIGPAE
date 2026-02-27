@@ -36,14 +36,27 @@
             this.notificaciones.forEach(n => n.leida = true);
             this.noLeidas = 0;
         },
+
+        async dejarDeRecordar(eventoId, n) {
+            await fetch(`/eventos/${eventoId}/dejar-de-recordar`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json',
+                }
+            });
+            // Oculta el botón marcando es_recordatorio = false
+            n.es_recordatorio = false;
+        },
     }"
     x-init="cargar()"
     @click.outside="open = false"
+    @notif-leida.window="if (noLeidas > 0) noLeidas--"
     class="relative"
 >
     {{-- ── Botón campana ──────────────────────────────────────────────── --}}
     <button
-        @click="open = !open"
+        @click="open = !open; if (open) marcarTodasLeidas()"
         class="relative p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-md transition-colors focus:outline-none"
         aria-label="Notificaciones"
     >
@@ -67,7 +80,7 @@
         x-transition:leave="transition ease-in duration-100"
         x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
-        class="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
+        class="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
         style="display:none"
     >
         {{-- Cabecera --}}
@@ -152,6 +165,16 @@
 
                                 {{-- Fecha relativa --}}
                                 <p class="text-xs text-gray-400 mt-1" x-text="n.fecha"></p>
+
+                                {{-- Botón Dejar de recordar (solo para RECORDATORIO_DERIVACION) --}}
+                                <button
+                                    x-show="n.es_recordatorio"
+                                    @click.stop.prevent="dejarDeRecordar(n.evento_id_recordatorio, n)"
+                                    type="button"
+                                    class="mt-1.5 inline-flex items-center gap-1 text-xs text-orange-600 hover:text-orange-800 font-medium hover:underline focus:outline-none"
+                                >
+                                    <i class="fas fa-bell-slash text-[11px]"></i> Dejar de recordar
+                                </button>
                             </div>
                         </button>
                     </form>

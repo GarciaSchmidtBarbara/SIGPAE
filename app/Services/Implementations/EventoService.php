@@ -223,6 +223,19 @@ class EventoService implements EventoServiceInterface
         }
     }
 
+    public function dejarDeRecordar(int $id): bool
+    {
+        return $this->repo->update($id, [
+            'periodo_recordatorio'   => 0,
+            'ultimo_recordatorio_at' => null,
+        ]);
+    }
+
+    public function obtenerDerivacionesPendientesRecordatorio(): Collection
+    {
+        return $this->repo->getDerivacionesPendientesRecordatorio();
+    }
+
     public function obtenerEventosParaCalendario(string $start, string $end): array
     {
         $profesional = auth()->user();

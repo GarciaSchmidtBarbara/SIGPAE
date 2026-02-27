@@ -196,3 +196,8 @@ Route::prefix('notificaciones')->middleware('auth')->name('notificaciones.')->gr
     // POST /notificaciones/leer-todas → marca todas como leídas
     Route::post('/leer-todas', [NotificacionController::class, 'marcarTodasLeidas'])->name('leer-todas');
 });
+
+// POST /eventos/{id}/dejar-de-recordar → establece periodo_recordatorio = 0
+Route::post('/eventos/{id}/dejar-de-recordar', [EventoController::class, 'dejarDeRecordar'])
+    ->middleware('auth')
+    ->name('eventos.dejar-de-recordar');

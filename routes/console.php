@@ -45,3 +45,10 @@ Schedule::call(function () {
   ->onSuccess(fn () => \Log::info('Revision de correo diario completada.'))
   ->onFailure(fn () => \Log::error('Fallo en la revisión de correo diario.'))
   ->withoutOverlapping();
+
+//Recordatorios de derivaciones externas
+Schedule::command('enviar:recordatorios-derivacion')
+  ->daily()
+  ->withoutOverlapping()
+  ->onSuccess(fn () => \Log::info('Recordatorios de derivación enviados.'))
+  ->onFailure(fn () => \Log::error('Fallo al enviar recordatorios de derivación.'));
