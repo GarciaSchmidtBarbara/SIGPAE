@@ -252,12 +252,12 @@
             <button type="submit" class="btn-aceptar">
                 <span x-text="esEventoFinalizado ? 'Guardar cambios' : 'Guardar'"></span>
             </button>
-            <a href="{{ route('eventos.principal') }}" class="btn-eliminar">Cancelar</a>
+            <a href="{{ url()->previous() }}" class="btn-volver">Volver</a>
         </div>
     </form>
 </div>
 
-<script>
+<script>s
 function eventoForm(esEdicion = false, esFinalizado = false) {
     return {
         esEventoFinalizado: esFinalizado,

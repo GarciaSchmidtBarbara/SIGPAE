@@ -150,7 +150,7 @@
 
                                 {{-- ACCIONES --}}
                                 <td class="p-4 text-center">
-                                    <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="flex items-center justify-center gap-2">
 
                                         {{-- BOTÓN ELIMINAR (Tacho) --}}
                                         <x-boton-eliminar 

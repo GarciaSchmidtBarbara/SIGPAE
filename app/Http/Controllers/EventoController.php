@@ -9,6 +9,7 @@ use App\Services\Interfaces\EventoServiceInterface;
 use App\Services\Interfaces\ProfesionalServiceInterface;
 use App\Models\Aula;
 use App\Models\Alumno;
+use App\Enums\TipoEvento;
 
 class EventoController extends Controller
 {
@@ -23,11 +24,20 @@ class EventoController extends Controller
         $this->profesionalService = $profesionalService;
     }
 
-    public function vista()
+    public function vista(Request $request)
     {
         $eventos = $this->eventoService->listarTodos();
         $eventos->load(['profesionalCreador.persona', 'esInvitadoA']);
-        return view('eventos.principal', compact('eventos'));
+
+        if ($request->filled('tipo_evento')) {
+            $eventos = $eventos->filter(
+                fn($e) => $e->tipo_evento?->value === $request->tipo_evento
+            );
+        }
+
+        $tiposEvento = TipoEvento::cases();
+
+        return view('eventos.principal', compact('eventos', 'tiposEvento'));
     }
 
     public function actualizarConfirmacion(Request $request, int $id): JsonResponse

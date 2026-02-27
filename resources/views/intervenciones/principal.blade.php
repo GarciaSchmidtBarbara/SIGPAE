@@ -43,13 +43,21 @@
 
     {{--ENVOLVER LA TABLA A IMPRIMIR--}}
     <div class="data-table-to-print">
-        <x-tabla-dinamica 
-            :columnas="[
-                ['key' => 'tipo_intervencion', 'label' => 'Tipo'],
+        @php
+            $columnasIntervenciones = [
+                ['key' => 'tipo_intervencion', 'label' => 'Tipo', 'formatter' => function($v) {
+                    $colors = ['PROGRAMADA' => 'bg-blue-100 text-blue-700 border-blue-200', 'ESPONTANEA' => 'bg-green-100 text-green-700 border-green-200'];
+                    $val = $v instanceof \BackedEnum ? $v->value : (string)$v;
+                    $color = $colors[$val] ?? 'bg-gray-100 text-gray-600 border-gray-200';
+                    return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ' . $color . '">' . ucfirst(strtolower($val)) . '</span>';
+                }],
                 ['key' => 'fecha_hora_intervencion', 'label' => 'Fecha y Hora'],
                 ['key' => 'alumnos', 'label' => 'Destinatarios'],
                 ['key' => 'profesionales', 'label' => 'Intervinientes'],
-            ]"
+            ];
+        @endphp
+        <x-tabla-dinamica 
+            :columnas="$columnasIntervenciones"
             :filas="$intervenciones"
             :acciones="fn($fila) => view('components.boton-eliminar', [
                 'route' => route('intervenciones.eliminar', $fila['id_intervencion']),
