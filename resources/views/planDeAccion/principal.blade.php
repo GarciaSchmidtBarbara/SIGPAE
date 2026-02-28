@@ -124,9 +124,11 @@
         :acciones="fn($plan) => 
             view('components.boton-estado', [
                 'activo' => $plan->activo,
-                'route'  => route('planDeAccion.cambiarActivo', $plan->id_plan_de_accion),
+                'route'  => route('planDeAccion.cambiarActivo', ['id' => $plan->id_plan_de_accion]),
                 'text_activo' => 'Cerrar', 
                 'text_inactivo' => 'Abrir',
+                'message_activo' => '¿Cerrar el plan?',
+                'message_inactivo' => '¿Abrir el plan?'
             ])->render()
             . ' ' .
             view('components.boton-eliminar', [

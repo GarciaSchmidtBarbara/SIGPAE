@@ -29,7 +29,7 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::post('/', [PlanDeAccionController::class, 'store'])->name('planDeAccion.store');
     Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
     Route::get('/papelera', [PlanDeAccionController::class, 'papelera'])->name('planDeAccion.papelera');
-    Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
+    Route::patch('/{id}/cambiar-estado', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
     Route::post('/restaurar/{id}', [PlanDeAccionController::class, 'restaurar'])->name('planDeAccion.restaurar');
     Route::delete('/destruir/{id}', [PlanDeAccionController::class, 'destruir'])->name('planDeAccion.destruir'); //eliminar definitivamente
     Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])->name('planDeAccion.iniciar-creacion');

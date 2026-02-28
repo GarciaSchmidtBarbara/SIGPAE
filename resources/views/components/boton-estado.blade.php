@@ -44,9 +44,9 @@
         })">
 
         @if($esActivo)
-            <x-icons.icono-eliminar class="w-5 h-5" />
+            <x-icons.icono-cerrar class="w-5 h-5" />
         @else
-            {{ $texto }}
+            <x-icons.icono-abrir class="w-5 h-5" />
         @endif
 
     </button>
