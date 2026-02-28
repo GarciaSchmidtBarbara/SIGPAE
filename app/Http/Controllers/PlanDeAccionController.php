@@ -209,5 +209,31 @@ class PlanDeAccionController extends Controller
                         ->with('success', 'Plan eliminado correctamente.');
     }
 
-   
+    public function papelera(): View
+    {
+        $borradas = $this->planDeAccionService->obtenerEliminados();
+
+        return view('planDeAccion.papelera', compact('borradas'));
+    }
+    public function restaurar(int $id): RedirectResponse
+    {
+        $ok = $this->planDeAccionService->restaurar($id);
+
+        return redirect()->route('planDeAccion.papelera')
+            ->with($ok
+                ? ['success' => 'Plan restaurado correctamente.']
+                : ['error' => 'No se pudo restaurar el plan.']
+            );
+    }
+
+    public function destruir(int $id): RedirectResponse
+    {
+        $ok = $this->planDeAccionService->eliminarDefinitivo($id);
+
+        return redirect()->route('planDeAccion.papelera')
+            ->with($ok
+                ? ['success' => 'Plan eliminado definitivamente.']
+                : ['error' => 'No se pudo eliminar el plan.']
+            );
+    }
 }

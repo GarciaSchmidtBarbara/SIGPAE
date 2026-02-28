@@ -142,6 +142,25 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     {
         return $this->model->destroy($id);
     }
+
+    public function obtenerEliminados(): Collection
+{
+    return $this->model->onlyTrashed()
+        ->orderBy('deleted_at', 'desc')
+        ->get();
+}
+
+    public function restaurar(int $id): bool
+    {
+        $plan = $this->model->onlyTrashed()->find($id);
+        return $plan ? $plan->restore() : false;
+    }
+
+    public function eliminarDefinitivo(int $id): bool
+    {
+        $plan = $this->model->onlyTrashed()->find($id);
+        return $plan ? $plan->forceDelete() : false;
+    }
     
     public function cambiarActivo(int $id): bool
     {
@@ -167,6 +186,7 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         // Carga Eager de todas las relaciones necesarias para la vista
         $query->with([
             'alumnos.persona',
+            'alumnos.aula',
             'aulas', 
             'profesionalGenerador.persona', 
             'profesionalesParticipantes.persona',
@@ -199,20 +219,11 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             });
         }
         
-        $planes = $query->get();
-
         // Ordenamiento por 'activo' (primero activos) y luego por fecha.
-        return $planes->sort(function ($a, $b) {
-            $activoA = $a->activo ? 1 : 0;
-            $activoB = $b->activo ? 1 : 0;
-            
-            if ($activoA !== $activoB) {
-                return $activoA > $activoB ? -1 : 1;
-            }
+        $query->orderByDesc('activo')
+            ->orderByDesc('created_at');
 
-            // Si el estado es el mismo, ordenar por la fecha más reciente (desc)
-            return $b->created_at <=> $a->created_at; 
-        })->values();
+        return $query->get();
     }
 
     public function obtenerAulas(): Collection

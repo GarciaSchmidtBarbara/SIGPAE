@@ -34,6 +34,12 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     ->name('planDeAccion.iniciar-creacion');
     Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
     Route::post('/{id}/subir-documento', [PlanDeAccionController::class, 'subirDocumento'])->name('planDeAccion.subirDocumento');
+    Route::get('/papelera', [PlanDeAccionController::class, 'papelera'])
+    ->name('planDeAccion.papelera');
+    Route::post('/restaurar/{id}', [PlanDeAccionController::class, 'restaurar'])
+        ->name('planDeAccion.restaurar');
+    Route::delete('/destruir/{id}', [PlanDeAccionController::class, 'destruir'])
+        ->name('planDeAccion.destruir');
 
 });
 

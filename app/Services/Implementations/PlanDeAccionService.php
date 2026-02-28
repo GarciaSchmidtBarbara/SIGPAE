@@ -76,6 +76,21 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
     {
         return $this->repository->eliminar($id);
     }
+
+    public function obtenerEliminados(): Collection
+{
+    return $this->repository->obtenerEliminados();
+}
+
+    public function restaurar(int $id): bool
+    {
+        return $this->repository->restaurar($id);
+    }
+
+    public function eliminarDefinitivo(int $id): bool
+    {
+        return $this->repository->eliminarDefinitivo($id);
+    }
     
     public function datosParaFormulario(?int $id = null): array
     {
@@ -96,6 +111,8 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
                     'domicilio' => $persona->domicilio ?? 'N/A',
                     'edad' => optional($persona->fecha_nacimiento)->age,
                     'curso' => $al->aula ? ($al->aula->curso . '° ' . $al->aula->division) : 'N/A',
+                    'curso' => $al->aula?->descripcion ?? 'N/A',
+                    'aula_id' => $al->fk_id_aula,
                 ]
             ];
         });
@@ -133,7 +150,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
                 'profesion' => $prof->profesion ?? 'N/A',
             ];
         })->values()->toArray() ?? [];
-        $profesionales = $this->serviceProfesional->getAllProfesionales();
+        $profesionales = $this->serviceProfesional->getAllProfesionales()->load('persona');
 
         //aulas
         $aulasSeleccionadas = $plan?->aulas->pluck('id_aula')->toArray() ?? [];

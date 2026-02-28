@@ -6,8 +6,21 @@
 @section('contenido')
 
 <div class="p-6">
-    <form id="form-plan" method="GET" action="{{ route('planDeAccion.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
-        <a class="btn-aceptar" href="{{ route('planDeAccion.iniciar-creacion') }}">Crear Plan de Acción</a>
+    <form id="form-plan" method="GET" action="{{ route('planDeAccion.principal') }}" 
+        class="flex gap-2 mb-6 flex-nowrap items-center justify-between">    
+
+        <div class="flex gap-3 items-center">
+            <a class="btn-aceptar" href="{{ route('planDeAccion.iniciar-creacion') }}">Crear Plan de Acción</a>
+
+            <a href="{{ route('planDeAccion.papelera') }}"
+                class="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1 ml-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                    Ver Papelera
+            </a>
+        </div>
 
         <input name="alumno" placeholder="Alumno (Nombre/DNI)" class="border px-2 py-1 rounded w-1/5" value="{{ request('alumno') }}">
 
@@ -108,13 +121,19 @@
         class="tabla-imprimir"
         :filaEnlace="fn($plan) => route('planDeAccion.iniciar-edicion', $plan->id_plan_de_accion)"
 
-        :acciones="fn($plan) => view('components.boton-estado', [
-            'activo' => $plan->activo,
-            'route'  => route('planDeAccion.cambiarActivo', $plan->id_plan_de_accion),
-            'text_activo' => 'Cerrar', 
-            'text_inactivo' => 'Abrir',
-        ])->render()"
-    />
+        :acciones="fn($plan) => 
+            view('components.boton-estado', [
+                'activo' => $plan->activo,
+                'route'  => route('planDeAccion.cambiarActivo', $plan->id_plan_de_accion),
+                'text_activo' => 'Cerrar', 
+                'text_inactivo' => 'Abrir',
+            ])->render()
+            . ' ' .
+            view('components.boton-eliminar', [
+                'route' => route('planDeAccion.papelera', $plan->id_plan_de_accion),
+                'message' => '¿Enviar a la papelera?'
+            ])->render()"
+        />
 </div>
 
     <div class="fila-botones mt-8">
