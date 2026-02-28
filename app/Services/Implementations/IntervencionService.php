@@ -135,7 +135,7 @@ class IntervencionService implements IntervencionServiceInterface
         }) ?? collect();
 
         // Profesionales
-        $profesionales = $this->serviceProfesional->getAllProfesionales();
+        $profesionales = $this->serviceProfesional->getAllProfesionalesWithPersona();
         $profesionalesSeleccionados = $intervencion?->profesionales->map(function ($prof) {
             $persona = $prof->persona;
             return [
