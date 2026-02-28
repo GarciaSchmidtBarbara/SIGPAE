@@ -12,6 +12,7 @@ return new class extends Migration
             //revisado
             $table->id('id_evaluacion_plan_de_accion');
 
+            $table->enum('tipo', ['parcial', 'final']);
             $table->text('observaciones')->nullable();
             $table->text('criterios');
             $table->text('conclusiones');
