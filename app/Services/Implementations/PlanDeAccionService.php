@@ -150,7 +150,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
                 'profesion' => $prof->profesion ?? 'N/A',
             ];
         })->values()->toArray() ?? [];
-        $profesionales = $this->serviceProfesional->getAllProfesionales()->load('persona');
+        $profesionales = $this->serviceProfesional->getAllProfesionalesWithPersona();
 
         //aulas
         $aulasSeleccionadas = $plan?->aulas->pluck('id_aula')->toArray() ?? [];
