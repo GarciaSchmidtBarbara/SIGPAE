@@ -39,8 +39,15 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
 
 });
 
-use App\Http\Controllers\PlanillaController;
+// EVALUCIÓN DE PLANES
+use App\Http\Controllers\EvaluacionDePlanController;
 
+Route::post('/evaluaciones-planes', [EvaluacionDePlanController::class, 'store'])
+    ->name('evaluaciones.planes.store');
+
+
+// PLANILLAS
+use App\Http\Controllers\PlanillaController;
 // Lo dejo todo unificado en el mismo grupo
 Route::prefix('planillas')->middleware('auth')->name('planillas.')->group(function () {
 
