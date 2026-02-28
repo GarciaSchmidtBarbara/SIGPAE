@@ -130,7 +130,7 @@
             ])->render()
             . ' ' .
             view('components.boton-eliminar', [
-                'route' => route('planDeAccion.papelera', $plan->id_plan_de_accion),
+                'route' => route('planDeAccion.eliminar', ['id' => $plan->id_plan_de_accion]),
                 'message' => '¿Enviar a la papelera?'
             ])->render()"
         />

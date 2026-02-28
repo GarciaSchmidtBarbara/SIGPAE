@@ -45,9 +45,9 @@
                                     </td>
                                     <td>
                                         <x-papelera-acciones 
-                                            :id="$plan->id_plan_de_accion"
-                                            restoreRoute="planes.restaurar"
-                                            destroyRoute="planes.eliminarDefinitivo"
+                                            :id="$item->id_plan_de_accion"
+                                            restoreRoute="planDeAccion.restaurar"
+                                            destroyRoute="planDeAccion.destruir"
                                         />
                                     </td>
                                 </tr>
@@ -75,8 +75,8 @@
                             <div class="flex gap-4 mt-3">
                                 <x-papelera-acciones 
                                             :id="$item->id_plan_de_accion"
-                                            restoreRoute="planes.restaurar"
-                                            destroyRoute="planes.eliminarDefinitivo"
+                                            restoreRoute="planDeAccion.restaurar"
+                                            destroyRoute="planDeAccion.destruir"
                                 />
                             </div>
                         </div>

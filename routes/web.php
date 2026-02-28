@@ -28,18 +28,14 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::get('/', [PlanDeAccionController::class, 'vista'])->name('planDeAccion.principal');
     Route::post('/', [PlanDeAccionController::class, 'store'])->name('planDeAccion.store');
     Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
+    Route::get('/papelera', [PlanDeAccionController::class, 'papelera'])->name('planDeAccion.papelera');
     Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
-    Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar');
-    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])
-    ->name('planDeAccion.iniciar-creacion');
+    Route::post('/restaurar/{id}', [PlanDeAccionController::class, 'restaurar'])->name('planDeAccion.restaurar');
+    Route::delete('/destruir/{id}', [PlanDeAccionController::class, 'destruir'])->name('planDeAccion.destruir'); //eliminar definitivamente
+    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])->name('planDeAccion.iniciar-creacion');
     Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
     Route::post('/{id}/subir-documento', [PlanDeAccionController::class, 'subirDocumento'])->name('planDeAccion.subirDocumento');
-    Route::get('/papelera', [PlanDeAccionController::class, 'papelera'])
-    ->name('planDeAccion.papelera');
-    Route::post('/restaurar/{id}', [PlanDeAccionController::class, 'restaurar'])
-        ->name('planDeAccion.restaurar');
-    Route::delete('/destruir/{id}', [PlanDeAccionController::class, 'destruir'])
-        ->name('planDeAccion.destruir');
+    Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar'); //enviar a papelera
 
 });
 

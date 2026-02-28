@@ -144,11 +144,11 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     }
 
     public function obtenerEliminados(): Collection
-{
-    return $this->model->onlyTrashed()
-        ->orderBy('deleted_at', 'desc')
-        ->get();
-}
+    {
+        return $this->model->onlyTrashed()
+            ->orderBy('deleted_at', 'desc')
+            ->get();
+    }
 
     public function restaurar(int $id): bool
     {

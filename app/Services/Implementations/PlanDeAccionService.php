@@ -69,7 +69,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
 
     public function buscarPorId(int $id): ?PlanDeAccion
     {
-        return $this->repository->obtenerPorId($id); 
+        return $this->repository->buscarPorId($id); 
     }
     
     public function eliminar(int $id): bool
