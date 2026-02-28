@@ -39,9 +39,6 @@ class Profesional extends Authenticatable
         'email',
         'siglas',
         'contrasenia',
-        'google_access_token',
-        'google_refresh_token',
-        'google_token_expires_at',
         'notifiction_anticipation_minutos',
         'hora_envio_resumen_diario',
     ];
@@ -62,7 +59,6 @@ class Profesional extends Authenticatable
         'email_verified_at' => 'datetime', 
         'contrasenia' => 'hashed',
         'siglas' => Siglas::class,
-        'google_token_expires_at' => 'datetime',
         'hora_envio_resumen_diario' => 'time',
     ];
 
@@ -138,12 +134,6 @@ class Profesional extends Authenticatable
     public static function crearProfesional(array $data): Alumno
     {
         return self::create($data);
-    }
-
-    //revisa si el token de acceso de google está expirado
-    public function googleTokenExpirado():bool
-    {
-        return $this->google_token_expires_at && $this->google_token_expires_at->isPast();
     }
 
     public function eventosCreados(): HasMany

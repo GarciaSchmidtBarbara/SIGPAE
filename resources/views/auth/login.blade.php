@@ -8,8 +8,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
-    <div class="min-h-screen w-full px-4 sm:px-6 bg-[radial-gradient(circle_at_top_left,_#9850CF,_#6688F6)] flex items-center justify-center">
-        <div class="bg-white w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-lg z-10">
+    <div class="relative min-h-screen w-full px-4 sm:px-6 
+                bg-login-grid
+                flex items-center justify-center">
+        <div class="relative bg-white w-full max-w-md p-6 sm:p-8 rounded-2xl shadow-2xl z-10">
             <h1 class="text-3xl sm:text-4xl font-bold text-center mb-8">Iniciar Sesión</h1>
             <form method="POST" action="{{ route('login.store') }}">
                 @csrf
