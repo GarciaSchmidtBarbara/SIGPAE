@@ -247,7 +247,7 @@ class PlanDeAccionController extends Controller
                 ->with('error', $e->getMessage());
         }
 
-        return view('planes.evaluacion', compact('plan'));
+        return view('planDeAccion.evaluacion', compact('plan'));
     }
     public function guardarEvaluacion(Request $request, int $id): RedirectResponse
     {

@@ -30,27 +30,34 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('planes.evaluacion.store', $plan->id_plan_de_accion) }}">
+    <form method="POST" action="{{ route('planDeAccion.guardarEvaluacion', $plan->id_plan_de_accion) }}">
         @csrf
 
         <div class="space-y-6">
 
-            <div>
-                <label class="font-semibold">Criterios *</label>
-                <textarea name="criterios" rows="3"
-                    class="input-area" required></textarea>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-1 md:col-span-2">
+                    <label>Criterios *</label>
+                    <textarea name="criterios" rows="3"
+                        class="input-area w-full p-2 border border-gray-300 rounded-md required"></textarea>
+                </div>
+            </div>
+            
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="col-span-1 md:col-span-2">
+                    <label>Observaciones</label>
+                    <textarea name="observaciones" rows="3"
+                        class="input-area w-full p-2 border border-gray-300 rounded-md"></textarea>
+                </div>
             </div>
 
-            <div>
-                <label>Observaciones</label>
-                <textarea name="observaciones" rows="3"
-                    class="input-area"></textarea>
-            </div>
-
-            <div>
-                <label class="font-semibold">Conclusiones *</label>
-                <textarea name="conclusiones" rows="3"
-                    class="input-area" required></textarea>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 ">
+                <div class="col-span-1 md:col-span-2  ">
+                    <label class="font-semibold">Conclusiones *</label>
+                    <textarea name="conclusiones" rows="3"
+                        class="input-area w-full p-2 border border-gray-300 rounded-md required"></textarea>
+                </div>
             </div>
 
         </div>
@@ -61,9 +68,7 @@
                 Cancelar
             </a>
 
-            <button type="submit" class="btn-aceptar">
-                Guardar Evaluación
-            </button>
+            <button type="submit" class="btn-aceptar">Guardar Evaluación</button>
         </div>
 
     </form>

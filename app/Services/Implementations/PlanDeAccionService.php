@@ -73,7 +73,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
     {
         $plan = $this->repository->buscarPorId($idPlan);
 
-        if (!$plan || $plan->estado_plan !== \App\Enums\EstadoPlan::ABIERTO->value) {
+        if (!$plan || $plan->estado_plan !== EstadoPlan::ABIERTO) {
             return false;
         }
 
@@ -207,7 +207,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             throw new \Exception('El plan no existe.');
         }
 
-        if ($plan->estado_plan !== EstadoPlan::ABIERTO->value) {
+        if ($plan->estado_plan !== EstadoPlan::ABIERTO) {
             throw new \Exception('El plan debe estar abierto para evaluarse.');
         }
 
@@ -223,7 +223,7 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             throw new \Exception('El plan no existe.');
         }
 
-        if ($plan->estado_plan !== EstadoPlan::ABIERTO->value) {
+        if ($plan->estado_plan !== EstadoPlan::ABIERTO) {
             throw new \Exception('El plan ya está cerrado.');
         }
 
@@ -238,9 +238,9 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             'observaciones' => $data['observaciones'] ?? null,
             'conclusiones' => $data['conclusiones'],
         ]);
-        $this->planRepository->actualizarEstado(
+        $this->repository->actualizarEstado(
             $plan->id_plan_de_accion,
-            EstadoPlan::CERRADO->value
+            EstadoPlan::CERRADO
         );
     }
 
