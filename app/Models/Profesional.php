@@ -13,6 +13,7 @@ use App\Models\Persona;
 use App\Models\Evento;
 use App\Models\EsInvitadoA;
 use App\Mail\ResetPasswordMail;
+use App\Mail\ActivarCuentaMail;
 use Illuminate\Support\Facades\Mail;
 
 class Profesional extends Authenticatable
@@ -39,8 +40,9 @@ class Profesional extends Authenticatable
         'email',
         'siglas',
         'contrasenia',
-        'notifiction_anticipation_minutos',
+        'notification_anticipation_minutos',
         'hora_envio_resumen_diario',
+        'activo',
     ];
 
     /**
@@ -131,7 +133,7 @@ class Profesional extends Authenticatable
     }
 
     // Métodos personalizados
-    public static function crearProfesional(array $data): Alumno
+    public static function crearProfesional(array $data): Profesional
     {
         return self::create($data);
     }
@@ -150,11 +152,21 @@ class Profesional extends Authenticatable
 
     public function sendPasswordResetNotification($token)
     {
+        if (!$this->activo) {
+            $url = url('/activar-cuenta/'.$token.'?email='.$this->email);
+            
+            Mail::to($this->email)
+                ->send(new \App\Mail\ActivarCuentaMail($url, $this));
+
+            return;
+        }
+
         $url = url(route('password.reset', [
             'token' => $token,
             'email' => $this->email,
         ], false));
-    
-        Mail::to($this->email)->send(new ResetPasswordMail($url));
+
+        Mail::to($this->email)
+            ->send(new \App\Mail\ResetPasswordMail($url));
     }
 }

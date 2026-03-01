@@ -137,6 +137,7 @@ Route::get('/usuarios/{id}/editar', [ProfesionalController::class, 'editar'])->n
 
 //Ruta Perfil
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\ProfileController;
 Route::middleware(['auth'])->group(function () {
     Route::get('/perfil', [ProfesionalController::class, 'perfil'])
         ->name('perfil.principal');
@@ -144,6 +145,8 @@ Route::middleware(['auth'])->group(function () {
         ->name('perfil.cambiar-contrasenia');
     Route::post('/perfil/actualizar', [ProfesionalController::class, 'actualizarPerfil'])
         ->name('perfil.actualizar');
+    Route::patch('/mi-perfil/desactivar', [ProfileController::class, 'desactivar'])
+    ->name('perfil.desactivar');
 });
 
 //Ruta Intervenciones
@@ -158,14 +161,6 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
     Route::post('/{id}/subir-documento', [IntervencionController::class, 'subirDocumento'])->name('subirDocumento');
 });
-
-
-//Rutas OAuth google
-use App\Http\Controllers\GoogleCalendarController;
-
-Route::get('auth/google', [GoogleCalendarController::class, 'redirectToGoogle'])
-    ->name('google.login');
-Route::get('auth/google/callback', [GoogleCalendarController::class, 'handleGoogleCallback']);
 
 //Rutas Eventos (Calendario)
 use App\Http\Controllers\EventoController;
@@ -222,3 +217,10 @@ Route::prefix('documentos')->middleware('auth')->name('documentos.')->group(func
     // API Ajax para buscar entidades (alumno / plan / intervención)
     Route::get('/api/buscar-entidad', [DocumentoController::class, 'buscarEntidad'])->name('buscar-entidad');
 });
+
+use App\Http\Controllers\ActivacionCuentaController;
+Route::get('/activar-cuenta/{token}', [ActivacionCuentaController::class, 'create']
+    )->name('activar.cuenta');
+
+Route::post('/activar-cuenta', [ActivacionCuentaController::class, 'store']
+    )->name('activar.cuenta.store');

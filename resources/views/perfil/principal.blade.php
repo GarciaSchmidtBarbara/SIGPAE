@@ -52,7 +52,7 @@
                 <div>
                     <label class="label-perfil">Telefono</label>
                     <input type="text" name="telefono"
-                        value="{{ $prof->persona->telefono }}"
+                        value="{{ $prof->telefono }}"
                         class="input-perfil">
                 </div>
                 
@@ -102,12 +102,51 @@
         </section>
 
         <!-- Preferencias -->
+        <section class="space-y-4 border-b pb-4">
+            <h3 class="separador">Preferencias</h3>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="label-perfil">Hora de envio del resumen diario</label>
+                    <input type="text" name="hora_envio_resumen_diario"
+                        value="{{ old('hora_envio_resumen_diario') }}"
+                        class="input-perfil">
+                </div>
+
+                 <div>
+                    <label class="label-perfil">
+                        Anticipación aviso de eventos (minutos)
+                    </label>
+                    <select name="notification_anticipation_minutos"
+                        class="input-perfil">
+
+                        <option value="10" 
+                            {{ old('notification_anticipation_minutos', $prof->notification_anticipation_minutos) == 10 ? 'selected' : '' }}>
+                            10 minutos
+                        </option>
+                        <option value="30" 
+                            {{ old('notification_anticipation_minutos', $prof->notification_anticipation_minutos) == 30 ? 'selected' : '' }}>
+                            30 minutos
+                        </option>
+                        <option value="60" 
+                            {{ old('notification_anticipation_minutos', $prof->notification_anticipation_minutos) == 60 ? 'selected' : '' }}>1
+                             hora
+                        </option>
+                        <option value="120" 
+                            {{ old('notification_anticipation_minutos', $prof->notification_anticipation_minutos) == 120 ? 'selected' : '' }}>
+                            2 horas
+                        </option>
+                        <option value="1440" 
+                            {{ old('notification_anticipation_minutos', $prof->notification_anticipation_minutos) == 1440 ? 'selected' : '' }}>
+                            1 día
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </section>
 
         <!-- Botones -->
         <div class="flex justify-between items-center">
-            <button type="button" class="text-red-500 hover:text-red-600 text-sm">
-                Eliminar cuenta
-            </button>
 
             <div class="flex gap-4">
                 <button type="button"
@@ -124,5 +163,75 @@
         </div>
     </form>
 
+    <!-- Modal cambiar estado -->
+    <div x-data="modalPerfil()">
+
+        <button 
+            @click="abrir()"
+            class="btn-eliminar">
+            Desactivar cuenta
+        </button>
+
+        <!-- Modal -->
+        <div x-show="mostrar"
+            x-cloak
+            x-transition.opacity
+            @keydown.escape.window="cerrar()"
+            class="fixed inset-0 z-50 flex items-center justify-center"
+            role="dialog">
+
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-black/50"
+                @click="cerrar()"></div>
+
+                <!-- Panel -->
+                <div class="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl p-6">
+
+                    <h3 class="text-lg font-semibold mb-4">
+                        ¿Desea desactivar su cuenta?
+                    </h3>
+
+                    <p class="text-gray-600 mb-6">
+                        Tu cuenta pasará a estado inactivo y se cerrará su sesión.
+                    </p>
+
+                    <form method="POST" action="{{ route('perfil.desactivar') }}">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="flex justify-end gap-3">
+                            <button type="button"
+                                    @click="cerrar()"
+                                    class="btn-volver">
+                                Cancelar
+                            </button>
+
+                            <button type="submit"
+                                    class="btn-eliminar">
+                                Desactivar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<script>
+function modalPerfil() {
+    return {
+        mostrar: false,
+
+        abrir() {
+            this.mostrar = true
+        },
+
+        cerrar() {
+            this.mostrar = false
+        }
+    }
+}
+</script>
 @endsection
