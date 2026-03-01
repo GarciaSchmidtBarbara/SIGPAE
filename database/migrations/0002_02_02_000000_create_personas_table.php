@@ -15,7 +15,7 @@ return new class extends Migration
             $table->biginteger('dni')->unique();
             $table->string('nombre');
             $table->string('apellido');
-            $table->date('fecha_nacimiento');
+            $table->date('fecha_nacimiento')->nullable();
             $table->string('domicilio')->nullable();
             $table->string('nacionalidad')->nullable();
             $table->boolean('activo')->default(true);   

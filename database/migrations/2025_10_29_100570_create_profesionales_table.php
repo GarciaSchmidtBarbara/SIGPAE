@@ -12,8 +12,8 @@ return new class extends Migration
             //revisado
             $table->id('id_profesional');
 
-            $table->enum('siglas', ['AS', 'AT', 'FN', 'PG', 'PS']);
-            $table->string('profesion');
+            $table->enum('siglas', ['AS', 'AT', 'FN', 'PG', 'PS'])->nullable();
+            $table->string('profesion')->nullable();
             $table->string('email')->unique();
             $table->string('telefono')->nullable();
             $table->string('usuario')->unique();

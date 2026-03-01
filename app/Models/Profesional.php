@@ -13,6 +13,7 @@ use App\Models\Persona;
 use App\Models\Evento;
 use App\Models\EsInvitadoA;
 use App\Mail\ResetPasswordMail;
+use App\Mail\ActivarCuentaMail;
 use Illuminate\Support\Facades\Mail;
 
 class Profesional extends Authenticatable
@@ -39,11 +40,9 @@ class Profesional extends Authenticatable
         'email',
         'siglas',
         'contrasenia',
-        'google_access_token',
-        'google_refresh_token',
-        'google_token_expires_at',
-        'notifiction_anticipation_minutos',
+        'notification_anticipation_minutos',
         'hora_envio_resumen_diario',
+        'activo',
     ];
 
     /**
@@ -62,7 +61,6 @@ class Profesional extends Authenticatable
         'email_verified_at' => 'datetime', 
         'contrasenia' => 'hashed',
         'siglas' => Siglas::class,
-        'google_token_expires_at' => 'datetime',
         'hora_envio_resumen_diario' => 'time',
     ];
 
@@ -135,15 +133,9 @@ class Profesional extends Authenticatable
     }
 
     // Métodos personalizados
-    public static function crearProfesional(array $data): Alumno
+    public static function crearProfesional(array $data): Profesional
     {
         return self::create($data);
-    }
-
-    //revisa si el token de acceso de google está expirado
-    public function googleTokenExpirado():bool
-    {
-        return $this->google_token_expires_at && $this->google_token_expires_at->isPast();
     }
 
     public function eventosCreados(): HasMany
@@ -160,11 +152,21 @@ class Profesional extends Authenticatable
 
     public function sendPasswordResetNotification($token)
     {
+        if (!$this->activo) {
+            $url = url('/activar-cuenta/'.$token.'?email='.$this->email);
+            
+            Mail::to($this->email)
+                ->send(new \App\Mail\ActivarCuentaMail($url, $this));
+
+            return;
+        }
+
         $url = url(route('password.reset', [
             'token' => $token,
             'email' => $this->email,
         ], false));
-    
-        Mail::to($this->email)->send(new ResetPasswordMail($url));
+
+        Mail::to($this->email)
+            ->send(new \App\Mail\ResetPasswordMail($url));
     }
 }

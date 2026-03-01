@@ -39,6 +39,7 @@ class BaseInstitucionalSeeder extends Seeder
             'email' => 'lucia@example.com',
             'contrasenia' => Hash::make('segura123'),
             'fk_id_persona' => $persona->id_persona,
+            'activo' => true,
         ]);
 
         Profesional::factory()->count(3)->create();

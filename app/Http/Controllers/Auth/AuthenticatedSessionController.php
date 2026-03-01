@@ -22,6 +22,18 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate(); //valida las credenciales
 
+        $usuario = Auth::user();
+
+        if (!$usuario->persona->activo){
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            return back()->withErrors([
+                'usuario'=>'Tu cuenta está desactivada.'
+            ])->onlyInput('usuario');
+        }
+
         $request->session()->regenerate(); //regenera el ID de sesion
 
         return redirect()->intended('welcome'); //redirige al usuario
