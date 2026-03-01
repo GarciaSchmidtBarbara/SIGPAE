@@ -4,7 +4,7 @@ namespace App\Repositories\Eloquent;
 
 use App\Repositories\Interfaces\PlanDeAccionRepositoryInterface;
 use App\Models\PlanDeAccion;
-use App\Models\EvaluacionPlan;
+use App\Models\EvaluacionDePlan;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Collection;
 use App\Models\Aula;
@@ -261,11 +261,11 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
 
     public function crearEvaluacion(array $data)
     {
-        return EvaluacionPlan::create($data);
+        return EvaluacionDePlan::create($data);
     }
 
     public function yaTieneEvaluacion($id)
     {
-        return EvaluacionPlan::where('fk_id_plan_de_accion', $id)->exists();
+        return EvaluacionDePlan::where('fk_id_plan_de_accion', $id)->exists();
     }
 }

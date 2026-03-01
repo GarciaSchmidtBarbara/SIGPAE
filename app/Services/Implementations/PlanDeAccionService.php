@@ -68,18 +68,6 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         return $this->repository->cambiarActivo($id);
     }
 
-
-    public function crearEvaluacion(int $idPlan, array $data): bool
-    {
-        $plan = $this->repository->buscarPorId($idPlan);
-
-        if (!$plan || $plan->estado_plan !== EstadoPlan::ABIERTO) {
-            return false;
-        }
-
-        return $this->repository->crearEvaluacion($idPlan, $data);
-    }
-
     public function buscarPorId(int $id): ?PlanDeAccion
     {
         return $this->repository->buscarPorId($id); 

@@ -10,6 +10,7 @@ class EvaluacionDePlan extends Model
     protected $primaryKey = 'id_evaluacion_plan_de_accion';
 
     protected $fillable = [
+        'fk_id_plan_de_accion',
         'observaciones',
         'criterios',
         'conclusiones',
