@@ -357,12 +357,6 @@ async function dejarDeRecordar(eventoId, li) {
 </script>
 
 
-@push('estilos')
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.8/main.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.8/main.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/list@6.1.8/main.min.css">
-@endpush
-
 @push('scripts')
     @vite(['resources/js/calendario.js'])
 @endpush

@@ -223,7 +223,7 @@
                     @click="guardar()">
                 Guardar
             </button>
-            <a class="btn-volver" href="{{ route('documentos.principal') }}">+ Volver</a>
+            <a class="btn-volver" href="{{ route('documentos.principal') }}">Volver</a>
         </div>
 
     </form>

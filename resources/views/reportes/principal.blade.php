@@ -124,6 +124,8 @@
         // 1. Configuración para el gráfico de líneas (Evolución)
         const ctxEvolucion = document.getElementById('chartEvolucion');
         if(ctxEvolucion) {
+            const existingEvolucion = Chart.getChart(ctxEvolucion);
+            if (existingEvolucion) existingEvolucion.destroy();
             new Chart(ctxEvolucion.getContext('2d'), {
                 type: 'line',
                 data: {
@@ -152,6 +154,8 @@
         // 2. Configuración para el gráfico de torta (Planes)
         const ctxPlanes = document.getElementById('chartPlanes');
         if(ctxPlanes) {
+            const existingPlanes = Chart.getChart(ctxPlanes);
+            if (existingPlanes) existingPlanes.destroy();
             new Chart(ctxPlanes.getContext('2d'), {
                 type: 'doughnut',
                 data: {
