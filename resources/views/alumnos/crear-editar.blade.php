@@ -43,7 +43,7 @@
 
         async validarYGuardar() {
             // 1. Limpieza inicial
-            this.errors = {}; 
+            Object.keys(this.errors).forEach(campo => this.errors[campo] = ''); 
             this.dniError = ''; 
             
             // Variable maestra única (Corrección del error anterior)
@@ -54,10 +54,10 @@
             const requeridos = ['dni', 'nombre', 'apellido', 'aula', 'inasistencias', 'fecha_nacimiento'];
 
             requeridos.forEach(campo => {
-                if (!this.alumnoData[campo] || String(this.alumnoData[campo]).trim() === '') {
-                    this.errors[campo] = 'Este campo es requerido.';
-                    hayErrores = true; 
-                }
+                const valor = this.alumnoData[campo]; 
+                if (valor === undefined || valor === null || String(valor).trim() === '') { 
+                    this.errors[campo] = 'Este campo es requerido.'; 
+                    hayErrores = true; }
             });
 
             // 3. Validación Remota de DNI
