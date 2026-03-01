@@ -22,18 +22,24 @@ Route::post('/probar-post', function () {
 });
 
 
-//Rutas Plan de Acción
+//PLAN DE ACCION------------------------------------------------------------------
 use App\Http\Controllers\PlanDeAccionController;
 Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::get('/', [PlanDeAccionController::class, 'vista'])->name('planDeAccion.principal');
     Route::post('/', [PlanDeAccionController::class, 'store'])->name('planDeAccion.store');
     Route::put('/{id}', [PlanDeAccionController::class, 'actualizar'])->name('planDeAccion.actualizar');
-    Route::put('/cambiar-activo/{id}', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
-    Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar');
-    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])
-    ->name('planDeAccion.iniciar-creacion');
+    Route::get('/papelera', [PlanDeAccionController::class, 'papelera'])->name('planDeAccion.papelera');
+    Route::patch('/{id}/cambiar-estado', [PlanDeAccionController::class, 'cambiarActivo'])->name('planDeAccion.cambiarActivo');
+    Route::post('/restaurar/{id}', [PlanDeAccionController::class, 'restaurar'])->name('planDeAccion.restaurar');
+    Route::delete('/destruir/{id}', [PlanDeAccionController::class, 'destruir'])->name('planDeAccion.destruir'); //eliminar definitivamente
+    Route::get('/crear', [PlanDeAccionController::class, 'iniciarCreacion'])->name('planDeAccion.iniciar-creacion');
     Route::get('/{id}/editar', [PlanDeAccionController::class, 'iniciarEdicion'])->name('planDeAccion.iniciar-edicion');
     Route::post('/{id}/subir-documento', [PlanDeAccionController::class, 'subirDocumento'])->name('planDeAccion.subirDocumento');
+    Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar'); //enviar a papelera
+
+    // EVALUACIONES DE PLANES (depende del ID del plan o intervención, por eso lo dejo acá)
+    Route::get('/{id}/evaluacion/crear', [PlanDeAccionController::class, 'crearEvaluacion'])->name('planDeAccion.crearEvaluacion'); 
+    Route::post('/{id}/evaluacion/guardar', [PlanDeAccionController::class, 'guardarEvaluacion'])->name('planDeAccion.guardarEvaluacion');
 
 });
 
@@ -42,8 +48,8 @@ Route::prefix('reportes')->middleware('auth')->group(function () {
     Route::get('/',[ReporteController::class, 'principal'])->name('reportes.principal');
 });
 
+// PLANILLAS------------------------------------------------------------------------------
 use App\Http\Controllers\PlanillaController;
-
 // Lo dejo todo unificado en el mismo grupo
 Route::prefix('planillas')->middleware('auth')->name('planillas.')->group(function () {
 
@@ -77,7 +83,7 @@ Route::prefix('planillas')->middleware('auth')->name('planillas.')->group(functi
         ->name('planilla-final.create');
     Route::post('/planilla-final/guardar', [PlanillaController::class, 'guardarPlanillaFinal'])
         ->name('planilla-final.store');
-
+ 
     // CRUD genérico de planillas
     Route::delete('/{id}/eliminar', [PlanillaController::class, 'eliminar'])->name('eliminar');
     Route::get('/papelera', [PlanillaController::class, 'verPapelera'])->name('papelera');
@@ -89,7 +95,7 @@ Route::prefix('planillas')->middleware('auth')->name('planillas.')->group(functi
     Route::get('/{id}/descargar', [PlanillaController::class, 'descargar'])->name('descargar');
 });
 
-//Rutas Alumnos
+//ALUMNOS-------------------------------------------------------------------------------
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\FamiliarController;
 
@@ -151,7 +157,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('perfil.actualizar');
 });
 
-//Ruta Intervenciones
+//INTERVENCIONES------------------------------------------------------------------
 use App\Http\Controllers\IntervencionController;
 Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::get('/', [IntervencionController::class, 'vista'])->name('principal');
@@ -162,6 +168,8 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
     Route::post('/{id}/subir-documento', [IntervencionController::class, 'subirDocumento'])->name('subirDocumento');
+    Route::get('/{id}/evaluacion/crear', [IntervencionController::class, 'crearEvaluacion'])->name('intervenciones.evaluacion.create');
+    Route::post('/{id}/evaluacion/guardar', [IntervencionController::class, 'guardarEvaluacion'])->name('intervenciones.evaluacion.store');
 });
 
 

@@ -17,9 +17,13 @@ class AlumnoRepository implements AlumnoRepositoryInterface
         return Alumno::with(['persona', 'aula'])
             ->whereHas('persona') // asegura que tenga relación
             ->get()
-            ->sortByDesc(fn($a) => $a->persona->activo) // primero activos
-            ->sortBy(fn($a) => $a->persona->apellido)   // luego orden alfabético
-            ->values(); // reindexa los resultados
+            ->sort(function($a, $b) {
+                if ($a->persona->activo !== $b->persona->activo) {
+                    return $b->persona->activo <=> $a->persona->activo; // primero activos
+                }
+                return strcmp($a->persona->apellido, $b->persona->apellido); // luego alfabéticamente
+            })
+            ->values();
     }
 
     public function crear(array $data): Alumno

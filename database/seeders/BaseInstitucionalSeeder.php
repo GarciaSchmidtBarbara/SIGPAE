@@ -60,7 +60,7 @@ class BaseInstitucionalSeeder extends Seeder
         PlanDeAccion::factory()->count(2)->institucional()->create();
 
         // Crear Intervenciones
-        Intervencion::factory()->count(10)->create();
+        Intervencion::factory()->count(20)->create();
 
         // Crear Eventos variados
         // Eventos BANDA (reuniones de grupo)

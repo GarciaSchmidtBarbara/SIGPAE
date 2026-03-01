@@ -47,6 +47,7 @@
                             <option value="acta-banda">Acta Reunión Banda (Completa)</option>
                             <option value="planilla-medial">Planilla Medial</option>
                             <option value="planilla-final">Planilla Final</option>
+
                         </select>
                     </div>
 
@@ -63,6 +64,7 @@
                                         if (tipo === 'acta-banda')     { window.location = '{{ route('planillas.acta-reuniones-banda.create') }}' }
                                         if (tipo === 'planilla-medial'){ window.location = '{{ route('planillas.planilla-medial.create') }}' }
                                         if (tipo === 'planilla-final') { window.location = '{{ route('planillas.planilla-final.create') }}' }
+                            
                                     ">
                                 Continuar &rarr;
                             </button>

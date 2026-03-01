@@ -6,13 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 use App\Enums\TipoPlan;
 use App\Enums\EstadoPlan;
 
 class PlanDeAccion extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'planes_de_accion';
 
     protected $primaryKey = 'id_plan_de_accion';
@@ -70,7 +71,8 @@ class PlanDeAccion extends Model
 
     public function alumnos(): BelongsToMany
     {
-        return $this->belongsToMany(Alumno::class, 'tiene_asignado', 'fk_id_plan_de_accion', 'fk_id_alumno');
+        return $this->belongsToMany(Alumno::class, 'tiene_asignado', 'fk_id_plan_de_accion', 'fk_id_alumno')
+        ->with('persona', 'aula');
     }
 
     public function documentos()

@@ -209,5 +209,58 @@ class PlanDeAccionController extends Controller
                         ->with('success', 'Plan eliminado correctamente.');
     }
 
-   
+    public function papelera(): View
+    {
+        $borradas = $this->planDeAccionService->obtenerEliminados();
+
+        return view('planDeAccion.papelera', compact('borradas'));
+    }
+    public function restaurar(int $id): RedirectResponse
+    {
+        $ok = $this->planDeAccionService->restaurar($id);
+
+        return redirect()->route('planDeAccion.papelera')
+            ->with($ok
+                ? ['success' => 'Plan restaurado correctamente.']
+                : ['error' => 'No se pudo restaurar el plan.']
+            );
+    }
+
+    public function destruir(int $id): RedirectResponse
+    {
+        $ok = $this->planDeAccionService->eliminarDefinitivo($id);
+
+        return redirect()->route('planDeAccion.papelera')
+            ->with($ok
+                ? ['success' => 'Plan eliminado definitivamente.']
+                : ['error' => 'No se pudo eliminar el plan.']
+            );
+    }
+
+    public function crearEvaluacion(int $id): View|RedirectResponse
+    {
+        try {
+            $plan = $this->planDeAccionService->obtenerParaEvaluacion($id);
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('planDeAccion.principal')
+                ->with('error', $e->getMessage());
+        }
+
+        return view('planDeAccion.evaluacion', compact('plan'));
+    }
+    public function guardarEvaluacion(Request $request, int $id): RedirectResponse
+    {
+        try {
+            $this->planDeAccionService->guardarEvaluacion($id, $request->all());
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('planDeAccion.principal')
+                ->with('error', $e->getMessage());
+        }
+
+        return redirect()
+            ->route('planDeAccion.principal')
+            ->with('success', 'Evaluación guardada correctamente.');
+    }
 }
