@@ -266,6 +266,8 @@
                     </div>
                 </x-campo-fecha-edad>
 
+            </div>{{-- Cierre fila-botones: DNI / Nombre / Apellido / Fecha --}}
+
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">
                     <p class="text-sm font-medium text-gray-700 mb-1">Nacionalidad</p>
