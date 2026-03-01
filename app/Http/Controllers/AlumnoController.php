@@ -83,6 +83,35 @@ class AlumnoController extends Controller
         return response()->json($this->alumnoService->buscar($q, $excludeId));
     }
 
+//Esto es para los planes de accion, busca por aula o individual
+    public function buscarParaFormulario(Request $request): JsonResponse
+    {
+        $aulaId = $request->filled('aula_id') ? (int) $request->get('aula_id') : null;
+
+        if ($aulaId) {
+            $alumnos = $this->alumnoService->buscarPorAula($aulaId);
+        } else {
+            $q = (string) $request->get('q', '');
+            if (strlen(trim($q)) < 2) {
+                return response()->json([]);
+            }
+            $alumnos = $this->alumnoService->buscar($q);
+        }
+
+        return response()->json($alumnos->map(fn($al) => [
+            'id'               => $al->id_alumno,
+            'nombre'           => $al->persona->nombre,
+            'apellido'         => $al->persona->apellido,
+            'dni'              => $al->persona->dni ?? '',
+            'fecha_nacimiento' => optional($al->persona->fecha_nacimiento)->format('d/m/Y') ?? 'N/A',
+            'nacionalidad'     => $al->persona->nacionalidad ?? 'N/A',
+            'domicilio'        => $al->persona->domicilio ?? 'N/A',
+            'edad'             => optional($al->persona->fecha_nacimiento)->age ?? 'N/A',
+            'curso'            => $al->aula?->descripcion ?? 'N/A',
+            'aula_id'          => $al->fk_id_aula,
+        ]));
+    }
+
     public function crear() {
         // limpio la sesion manualmente antes de entrar, en caso de que el usuario abra otra pestaña en el navegador
         // en caso de ir a otra ruta que no pertenece a la cobertura del middleware, este ultimo es quien se encarga de limpiar la sesion

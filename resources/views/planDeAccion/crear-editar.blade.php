@@ -22,62 +22,22 @@
     // helper para valores viejos del modelo
     $oldOr = fn($field, $fallback = null) => old($field, $fallback);
 
-    // CREACIÓN → genera alumnosJson para Alpine
-    if (!$esEdicion) {
-        $alumnosJson = collect($alumnos)->mapWithKeys(function ($al) {
-            $persona = $al->persona;
-            return [
-                $al->id_alumno => [
-                    'id' => $al->id_alumno,
-                    'nombre' => $persona->nombre,
-                    'apellido' => $persona->apellido,
-                    'dni' => $persona->dni,
-                    'fecha_nacimiento' => $persona->fecha_nacimiento
-                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->format('d/m/Y')
-                        : 'N/A',
-                    'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-                    'domicilio' => $persona->domicilio ?? 'N/A',
-                    'edad' => $persona->fecha_nacimiento
-                        ? \Carbon\Carbon::parse($persona->fecha_nacimiento)->age
-                        : 'N/A',
-                    'curso'   => $al->aula?->descripcion,
-                    'aula_id' => $al->fk_id_aula,
-                ]
-            ];
-        });
+    // JSON de profesionales para Alpine (necesario en ambos modos)
+    $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
+        $persona = $prof->persona;
+        return [
+            $prof->id_profesional => [
+                'id'        => $prof->id_profesional,
+                'nombre'    => $persona->nombre ?? null,
+                'apellido'  => $persona->apellido ?? null,
+                'profesion' => $prof->profesion ?? 'N/A',
+            ]
+        ];
+    });
 
-        $initialAlumnoId = $oldOr('alumno_seleccionado');
-        $initialAlumnoInfo = $initialAlumnoId && $alumnosJson->has($initialAlumnoId)
-                            ? $alumnosJson[$initialAlumnoId]
-                            : null;
-
-        $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
-            $persona = $prof->persona;
-            return [
-                $prof->id_profesional => [
-                    'id' => $prof->id_profesional,
-                    'nombre' => $persona->nombre,
-                    'apellido' => $persona->apellido,
-                    'profesion' => $prof->profesion ?? 'N/A',
-                ]
-            ];
-        });
-    }
-
-    // Asegurar que $profesionalesJson exista también en modo edición
-    if (!isset($profesionalesJson)) {
-        $profesionalesJson = collect($profesionales)->mapWithKeys(function ($prof) {
-            $persona = $prof->persona;
-            return [
-                $prof->id_profesional => [
-                    'id' => $prof->id_profesional,
-                    'nombre' => $persona->nombre ?? null,
-                    'apellido' => $persona->apellido ?? null,
-                    'profesion' => $prof->profesion ?? 'N/A',
-                ]
-            ];
-        });
-    }
+    // $initialAlumnoId e $initialAlumnoInfo vienen del service (edición) o son vacíos (creación)
+    $initialAlumnoId   = $initialAlumnoId ?? '';
+    $initialAlumnoInfo = $initialAlumnoInfo ?? null;
 
     //Profesional generador para mostrar en la vista
     $profesionalGenerador = null;
@@ -119,18 +79,7 @@
 
     {{-- Alpine para controlar secciones por tipo --}}
     <div x-data="{
-        tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}',
-        alumnosData: {{ $alumnosJson->toJson() }},
-        alumnoSeleccionadoInfo: @json($initialAlumnoInfo),
-        // nuevo: guardamos el id seleccionado (se envía como alumnos[] al backend)
-        alumnoSeleccionadoId: '{{ $initialAlumnoId }}',
-        
-        seleccionarAlumno(id) {
-            // aseguramos consistencia: actualizar info y el id seleccionado
-            id = String(id || '');
-            this.alumnoSeleccionadoId = id;
-            this.alumnoSeleccionadoInfo = this.alumnosData[id] || null;
-        }
+        tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}'
     }">
 
         <form method="POST" action="{{ $esEdicion 
@@ -175,30 +124,30 @@
                 </div>
 
                 {{-- DESTINATARIO - Individual --}}
-                <div id="destinatario-individual" x-data="planIndividual({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []), initialAlumnoId: '{{ $initialAlumnoId ?? '' }}' })" x-init="if (initialAlumnoId) seleccionarAlumno(initialAlumnoId)" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'INDIVIDUAL') ? '' : 'display:none;' }}">
+                <div id="destinatario-individual" x-data="planIndividual({ alumnosIniciales: @js($alumnosSeleccionados ?? []), initialAlumnoId: '{{ $initialAlumnoId ?? '' }}', initialAlumnoInfo: @js($initialAlumnoInfo) })" x-init="init()" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'INDIVIDUAL') ? '' : 'display:none;' }}">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatario</p>
 
-                        {{-- Select simple para elegir UN alumno --}}
+                        {{-- Buscador de alumno --}}
                         <div class="flex gap-4 mt-4">
-                            <div class="flex flex-col w-1/3">
-                                <label class="text-sm font-medium">Seleccionar alumno</label>
-                                <!-- vinculado al id seleccionado y actualiza la info -->
-                                <select name="alumno_seleccionado" class="border px-2 py-1 rounded" x-model="alumnoSeleccionadoId" x-on:change="seleccionarAlumno($event.target.value)">
-                                    <option value="">-- Seleccionar alumno --</option>
-                                    @foreach($alumnos as $al)
-                                        @php
-                                            $alId = $al->id_alumno ?? $al->id ?? null;
-                                            $label = $al->persona->nombre . ' ' . $al->persona->apellido;
-                                        @endphp
-                                        <option value="{{ $alId }}"
-                                            {{ $oldOr('alumno_seleccionado', $esEdicion ? ($planDeAccion->alumnos->first()->id_alumno ?? '') : '') == $alId ? 'selected' : '' }}>
-                                            {{ $label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-
-                                
+                            <div class="flex flex-col w-1/3 relative">
+                                <label class="text-sm font-medium">Buscar alumno</label>
+                                <input type="text"
+                                    x-model="busquedaQuery"
+                                    @input.debounce.300ms="buscarAlumnos()"
+                                    @keydown.escape="resultados = []"
+                                    placeholder="Nombre, apellido o DNI..."
+                                    class="border px-2 py-1 rounded">
+                                <p x-show="buscando" class="text-xs text-gray-400 mt-1">Buscando...</p>
+                                <ul x-show="resultados.length > 0" x-cloak
+                                    class="absolute z-20 top-full w-full bg-white border rounded shadow-lg max-h-48 overflow-y-auto mt-1">
+                                    <template x-for="al in resultados" :key="al.id">
+                                        <li @click="seleccionarAlumno(al)"
+                                            class="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm"
+                                            x-text="`${al.apellido}, ${al.nombre} — DNI: ${al.dni}`">
+                                        </li>
+                                    </template>
+                                </ul>
                             </div>
                         </div>
                         {{-- FRAGMENTO DE INFORMACIÓN PERSONAL DEL ALUMNO --}}
@@ -249,21 +198,29 @@
 
                 {{-- DESTINATARIO - Grupal --}}
                 <div id="destinatario-grupal" 
-                x-data="planGrupal({ alumnosData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
+                x-data="planGrupal({ alumnosIniciales: @js($alumnosSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
                 style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'GRUPAL') ? '' : 'display:none;' }}">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
-                            {{-- Selector de alumno--}}
-                            <div class="selector-box" style="width: 35%;">
-                                <select x-model="alumnoSeleccionado" @change="agregarAlumno()">
-                                    <option value="">Agregar alumno</option>
-                                    @foreach($alumnos as $al)
-                                        <option value="{{ $al->id_alumno }}">
-                                            {{ $al->persona->nombre }} {{ $al->persona->apellido }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            {{-- Buscador de alumno --}}
+                            <div class="selector-box relative" style="width: 35%;">
+                                <input type="text"
+                                    x-model="busquedaQuery"
+                                    @input.debounce.300ms="buscarAlumnos()"
+                                    @keydown.escape="resultados = []"
+                                    placeholder="Buscar alumno para agregar..."
+                                    class="w-full border px-2 py-1 rounded">
+                                <p x-show="buscando" class="text-xs text-gray-400 mt-1">Buscando...</p>
+                                <ul x-show="resultados.length > 0" x-cloak
+                                    class="absolute z-20 top-full w-full bg-white border rounded shadow-lg max-h-48 overflow-y-auto mt-1">
+                                    <template x-for="al in resultados" :key="al.id">
+                                        <li @click="agregarAlumno(al)"
+                                            class="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm"
+                                            x-text="`${al.apellido}, ${al.nombre} — DNI: ${al.dni}`">
+                                        </li>
+                                    </template>
+                                </ul>
                             </div>
 
                             {{-- Selección de aula --}}
@@ -569,10 +526,12 @@
 </div>
 
 <script>
-    function planGrupal({ alumnosData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
+    function planGrupal({ alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
         return {
             // Alumnos
-            alumnoSeleccionado: "",
+            busquedaQuery: '',
+            resultados: [],
+            buscando: false,
             aulaSeleccionada: "",
             alumnosSeleccionados: Array.isArray(alumnosIniciales) ? alumnosIniciales : [],
 
@@ -581,32 +540,39 @@
             profesionalesData: profesionalesData || {},
             profesionalesSeleccionados: Array.isArray(profesionalesIniciales) ? profesionalesIniciales : [],
 
-            agregarAlumno() {
-                if (!this.alumnoSeleccionado || this.alumnoSeleccionado === "") return;
+            buscarAlumnos() {
+                if (this.busquedaQuery.length < 2) { this.resultados = []; return; }
+                this.buscando = true;
+                fetch(`/api/alumnos/buscar-para-plan?q=${encodeURIComponent(this.busquedaQuery)}`, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => { this.resultados = data; this.buscando = false; })
+                .catch(() => { this.buscando = false; });
+            },
 
-                let id = parseInt(this.alumnoSeleccionado);
-                if (!alumnosData[id]) return;
-
-                // Evitar duplicados
-                if (!this.alumnosSeleccionados.find(a => a.id === id)) {
-                    this.alumnosSeleccionados.push(alumnosData[id]);
+            agregarAlumno(al) {
+                if (!this.alumnosSeleccionados.find(a => a.id === al.id)) {
+                    this.alumnosSeleccionados.push(al);
                 }
-                this.alumnoSeleccionado = ""; // reseteo
+                this.busquedaQuery = '';
+                this.resultados = [];
             },
 
             agregarAula() {
                 if (!this.aulaSeleccionada) return;
-
-                // Buscar alumnos por aula
                 let aulaId = parseInt(this.aulaSeleccionada);
-
-                let alumnos = Object.values(alumnosData)
-                    .filter(a => a.aula_id == aulaId);
-
-                alumnos.forEach(a => {
-                    if (!this.alumnosSeleccionados.find(x => x.id === a.id)) {
-                        this.alumnosSeleccionados.push(a);
-                    }
+                this.aulaSeleccionada = "";
+                fetch(`/api/alumnos/buscar-para-plan?aula_id=${aulaId}`, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    data.forEach(al => {
+                        if (!this.alumnosSeleccionados.find(x => x.id === al.id)) {
+                            this.alumnosSeleccionados.push(al);
+                        }
+                    });
                 });
             },
 
@@ -617,32 +583,58 @@
             // Profesionales
             agregarProfesional() {
                 if (!this.profesionalSeleccionado || this.profesionalSeleccionado === "") return;
-
                 let id = parseInt(this.profesionalSeleccionado);
                 if (!this.profesionalesData[id]) return;
-
-                // Evitar duplicados
                 if (!this.profesionalesSeleccionados.find(p => p.id === id)) {
                     this.profesionalesSeleccionados.push(this.profesionalesData[id]);
                 }
-                this.profesionalSeleccionado = ""; // reseteo
+                this.profesionalSeleccionado = "";
             },
             eliminarProfesional(id) {
                 this.profesionalesSeleccionados = this.profesionalesSeleccionados.filter(p => p.id !== id);
             }
         };
     }
-    function planIndividual({ alumnosData, alumnosIniciales, initialAlumnoId = null }) {
+    function planIndividual({ alumnosIniciales = [], initialAlumnoId = null, initialAlumnoInfo = null }) {
         return {
-            alumnosData,
-            alumnoSeleccionadoId: initialAlumnoId,
-            alumnoSeleccionadoInfo: initialAlumnoId ? alumnosData[initialAlumnoId] : null,
+            alumnoSeleccionadoId: initialAlumnoId ? String(initialAlumnoId) : '',
+            alumnoSeleccionadoInfo: initialAlumnoInfo,
+            busquedaQuery: initialAlumnoInfo ? `${initialAlumnoInfo.apellido}, ${initialAlumnoInfo.nombre}` : '',
+            resultados: [],
+            buscando: false,
 
-            seleccionarAlumno(id) {
-                this.alumnoSeleccionadoId = id;
-                this.alumnoSeleccionadoInfo = this.alumnosData[id] ?? null;
+            init() {
+                // En crear, si hay un old() ID pero no hay info, lo buscamos
+                if (this.alumnoSeleccionadoId && !this.alumnoSeleccionadoInfo) {
+                    fetch(`/api/alumnos/buscar-para-plan?q=${this.alumnoSeleccionadoId}`, {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        const found = data.find(a => String(a.id) === this.alumnoSeleccionadoId);
+                        if (found) this.seleccionarAlumno(found);
+                    });
+                }
+            },
+
+            buscarAlumnos() {
+                if (this.busquedaQuery.length < 2) { this.resultados = []; return; }
+                this.buscando = true;
+                fetch(`/api/alumnos/buscar-para-plan?q=${encodeURIComponent(this.busquedaQuery)}`, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(r => r.json())
+                .then(data => { this.resultados = data; this.buscando = false; })
+                .catch(() => { this.buscando = false; });
+            },
+
+            seleccionarAlumno(al) {
+                this.alumnoSeleccionadoId = String(al.id);
+                this.alumnoSeleccionadoInfo = al;
+                this.busquedaQuery = `${al.apellido}, ${al.nombre}`;
+                this.resultados = [];
             }
-        }
+        };
     }
 
     function documentosPlanDeAccion(documentosIniciales, urlSubir) {

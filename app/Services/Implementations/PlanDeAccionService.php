@@ -109,37 +109,28 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
     {
         $plan = $id ? $this->repository->buscarPorIdConRelaciones($id) : null;
 
-        $alumnos = $this->serviceAlumno->listar();
-
-        $alumnosJson = $alumnos->mapWithKeys(function ($al) {
-            $persona = $al->persona;
-            return [
-                $al->id_alumno => [
-                    'id' => $al->id_alumno,
-                    'nombre' => $persona->nombre,
-                    'apellido' => $persona->apellido,
-                    'dni' => $persona->dni,
-                    'fecha_nacimiento' => optional($persona->fecha_nacimiento)->format('d/m/Y'),
-                    'nacionalidad' => $persona->nacionalidad ?? 'N/A',
-                    'domicilio' => $persona->domicilio ?? 'N/A',
-                    'edad' => optional($persona->fecha_nacimiento)->age,
-                    'curso' => $al->aula ? ($al->aula->curso . '° ' . $al->aula->division) : 'N/A',
-                    'curso' => $al->aula?->descripcion ?? 'N/A',
-                    'aula_id' => $al->fk_id_aula,
-                ]
-            ];
-        });
-
-        // Alumno individual
+        //Alumno individual, solo se carga el alumno ya vinculado al plan
         $initialAlumnoId = '';
         $initialAlumnoInfo = null;
         if ($plan && $plan->tipo_plan->value === 'INDIVIDUAL') {
             $alumno = $plan->alumnos->first();
             if ($alumno) {
                 $initialAlumnoId = $alumno->id_alumno;
-                $initialAlumnoInfo = $alumnosJson[$initialAlumnoId] ?? null;
+                $initialAlumnoInfo = [
+                    'id'               => $alumno->id_alumno,
+                    'nombre'           => $alumno->persona->nombre,
+                    'apellido'         => $alumno->persona->apellido,
+                    'dni'              => $alumno->persona->dni ?? '',
+                    'fecha_nacimiento' => optional($alumno->persona->fecha_nacimiento)->format('d/m/Y') ?? 'N/A',
+                    'nacionalidad'     => $alumno->persona->nacionalidad ?? 'N/A',
+                    'domicilio'        => $alumno->persona->domicilio ?? 'N/A',
+                    'edad'             => optional($alumno->persona->fecha_nacimiento)->age ?? 'N/A',
+                    'curso'            => $alumno->aula?->descripcion ?? 'N/A',
+                    'aula_id'          => $alumno->fk_id_aula,
+                ];
             }
         }
+
         // alumnos seleccionados (modo grupal/individual)
         $alumnosSeleccionados = $plan?->alumnos->map(function ($al) {
             $persona = $al->persona;
@@ -185,17 +176,14 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         }
         return [
             'plan' => $plan,
-            'alumnos' => $alumnos,
             'aulas' => $aulas,
             'aulasSeleccionadas' => $aulasSeleccionadas,
             'profesionales' => $profesionales,
-            'alumnosJson' => $alumnosJson,
             'initialAlumnoId' => $initialAlumnoId,
             'initialAlumnoInfo' => $initialAlumnoInfo,
             'alumnosSeleccionados' => $alumnosSeleccionados,
             'profesionalesSeleccionados' => $profesionalesSeleccionados,
             'intervencionesAsociadas' => $intervencionesAsociadas,
-            
         ];
     }
 
