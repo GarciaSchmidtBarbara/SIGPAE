@@ -170,6 +170,21 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         return PlanDeAccion::where('id_plan_de_accion', $id)
             ->update(['estado_plan' => $estado]);
     }
+    public function cambiarActivo(int $id): bool
+    {
+        $plan = PlanDeAccion::find($id);
+
+        if (!$plan) {
+            return false;
+        }
+
+        // Cambiar ABIERTO -> CERRADO, CERRADO -> ABIERTO
+        $plan->estado_plan = $plan->estado_plan === EstadoPlan::ABIERTO
+            ? EstadoPlan::CERRADO
+            : EstadoPlan::ABIERTO;
+
+        return $plan->save();
+    }
 
     public function buscarPorIdPersona(int $idPersona): ?PlanDeAccion
     {

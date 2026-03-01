@@ -23,5 +23,7 @@ interface PlanDeAccionRepositoryInterface
     public function obtenerTodos(): Collection;
     public function crearEvaluacion(array $data);
     public function yaTieneEvaluacion($id);
+    public function cambiarActivo(int $id): bool;
+
 
 }
