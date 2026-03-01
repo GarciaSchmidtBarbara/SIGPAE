@@ -257,7 +257,7 @@
     </form>
 </div>
 
-<script>s
+<script>
 function eventoForm(esEdicion = false, esFinalizado = false) {
     return {
         esEventoFinalizado: esFinalizado,
