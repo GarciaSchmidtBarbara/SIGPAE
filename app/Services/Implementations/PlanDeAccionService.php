@@ -226,10 +226,9 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
             'observaciones' => $data['observaciones'] ?? null,
             'conclusiones' => $data['conclusiones'],
         ]);
-        $this->repository->actualizarEstado(
-            $plan->id_plan_de_accion,
-            EstadoPlan::CERRADO
-        );
+        // Cerrar el plan 
+        $this->repository->actualizarEstado( $plan->id_plan_de_accion, EstadoPlan::CERRADO );
+
     }
 
 }

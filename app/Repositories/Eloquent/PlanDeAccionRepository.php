@@ -42,7 +42,7 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             'objetivos' => $data['objetivos'] ?? null,
             'acciones' => $data['acciones'] ?? null,
             'observaciones' => $data['observaciones'] ?? null,
-            'estado_plan' => 'ABIERTO',
+            'estado_plan' => EstadoPlan::ABIERTO->value,
             'activo' => true,
             'fk_id_profesional_generador' => $data['fk_id_profesional_generador'],
         ]);
@@ -165,11 +165,13 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         return $plan ? $plan->forceDelete() : false;
     }
     
-    public function actualizarEstado($id, $estado)
+    public function actualizarEstado($id, EstadoPlan $estado)
     {
         return PlanDeAccion::where('id_plan_de_accion', $id)
-            ->update(['estado_plan' => $estado]);
+            ->update(['estado_plan' => $estado->value]);
     }
+
+
     public function cambiarActivo(int $id): bool
     {
         $plan = PlanDeAccion::find($id);
@@ -178,13 +180,13 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             return false;
         }
 
-        // Cambiar ABIERTO -> CERRADO, CERRADO -> ABIERTO
-        $plan->estado_plan = $plan->estado_plan === EstadoPlan::ABIERTO
-            ? EstadoPlan::CERRADO
-            : EstadoPlan::ABIERTO;
+        $plan->estado_plan = $plan->estado_plan->value === EstadoPlan::ABIERTO->value 
+            ? EstadoPlan::CERRADO->value 
+            : EstadoPlan::ABIERTO->value;
 
         return $plan->save();
     }
+
 
     public function buscarPorIdPersona(int $idPersona): ?PlanDeAccion
     {
@@ -211,11 +213,15 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         }
 
         // 2. Filtrar por Estado
-        $estado = $request->get('estado', 'activos');
-        if ($estado === 'activos') {
-            $query->where('activo', true);
-        } elseif ($estado === 'inactivos') {
-            $query->where('activo', false);
+        if ($estado = $request->get('estado')) {
+            $estadoDb = match ($estado) { 
+                'activos' => EstadoPlan::ABIERTO->value, 
+                'inactivos' => EstadoPlan::CERRADO->value, 
+                default => null, 
+            }; 
+            if ($estadoDb) { 
+                $query->where('estado_plan', $estadoDb); 
+            } 
         }
 
         // 3. Filtrar por Curso
@@ -278,6 +284,7 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     {
         return EvaluacionDePlan::create($data);
     }
+
 
     public function yaTieneEvaluacion($id)
     {

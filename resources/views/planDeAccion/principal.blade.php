@@ -34,10 +34,11 @@
         </select>
 
         <select name="estado" class="border px-2 py-1 rounded w-1/5">
-            <option value="" {{ request('estado')  === null ? 'selected' : '' }}>Todos</option>
-            <option value="activos" {{ request('estado', 'activos') === 'activos' ? 'selected' : '' }}>Abiertos</option>
-            <option value="inactivos" {{ request('estado', 'activos')  === 'inactivos' ? 'selected' : '' }}>Cerrados</option>
+            <option value="" {{ request('estado') === null ? 'selected' : '' }}>Todos</option>
+            <option value="activos" {{ request('estado') === 'activos' ? 'selected' : '' }}>Abiertos</option>
+            <option value="inactivos" {{ request('estado') === 'inactivos' ? 'selected' : '' }}>Cerrados</option>
         </select>
+
 
         <select name="curso" class="border px-2 py-1 rounded w-1/5">
             <option value="">Todos los cursos</option>
@@ -123,8 +124,10 @@
 
         :acciones="fn($plan) => 
             view('components.boton-estado', [
-                'activo' => $plan->activo,
-                'route'  => route('planDeAccion.cambiarActivo', ['id' =>$plan->id_plan_de_accion]),
+                'activo' => $plan->estado_plan->value === 'ABIERTO',
+                'route'  => $plan->estado_plan->value === 'ABIERTO'
+                    ? route('planDeAccion.crearEvaluacion', ['id' => $plan->id_plan_de_accion])
+                    : route('planDeAccion.cambiarActivo', ['id' => $plan->id_plan_de_accion]),
                 'text_activo' => 'Cerrar', 
                 'text_inactivo' => 'Abrir',
                 'message_activo' => '¿Cerrar el plan?',
