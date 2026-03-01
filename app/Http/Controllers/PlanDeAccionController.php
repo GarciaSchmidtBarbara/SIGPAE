@@ -236,4 +236,31 @@ class PlanDeAccionController extends Controller
                 : ['error' => 'No se pudo eliminar el plan.']
             );
     }
+
+    public function crearEvaluacion(int $id): View|RedirectResponse
+    {
+        try {
+            $plan = $this->planDeAccionService->obtenerParaEvaluacion($id);
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('planDeAccion.principal')
+                ->with('error', $e->getMessage());
+        }
+
+        return view('planes.evaluacion', compact('plan'));
+    }
+    public function guardarEvaluacion(Request $request, int $id): RedirectResponse
+    {
+        try {
+            $this->planDeAccionService->guardarEvaluacion($id, $request->all());
+        } catch (\Exception $e) {
+            return redirect()
+                ->route('planDeAccion.principal')
+                ->with('error', $e->getMessage());
+        }
+
+        return redirect()
+            ->route('planDeAccion.principal')
+            ->with('success', 'Evaluación guardada correctamente.');
+    }
 }

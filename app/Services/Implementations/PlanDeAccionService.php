@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use App\Models\PlanDeAccion;
 use App\Enums\TipoPlan;
+use App\Enums\EstadoPlan;
 use App\Models\Alumno;
 use App\Models\Aula;
 use App\Models\Profesional;
@@ -65,6 +66,18 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
     public function cambiarActivo(int $id): bool
     {
         return $this->repository->cambiarActivo($id);
+    }
+
+
+    public function crearEvaluacion(int $idPlan, array $data): bool
+    {
+        $plan = $this->repository->buscarPorId($idPlan);
+
+        if (!$plan || $plan->estado_plan !== \App\Enums\EstadoPlan::ABIERTO->value) {
+            return false;
+        }
+
+        return $this->repository->crearEvaluacion($idPlan, $data);
     }
 
     public function buscarPorId(int $id): ?PlanDeAccion
@@ -186,6 +199,49 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         ];
     }
 
+    public function obtenerParaEvaluacion(int $id): PlanDeAccion
+    {
+        $plan = $this->repository->buscarPorId($id);
 
+        if (!$plan) {
+            throw new \Exception('El plan no existe.');
+        }
+
+        if ($plan->estado_plan !== EstadoPlan::ABIERTO->value) {
+            throw new \Exception('El plan debe estar abierto para evaluarse.');
+        }
+
+        return $plan;
+    }
+
+    //DESPUES DE CREAR LA EVALUACION, CAMBIAR EL ESTADO DEL PLAN A CERRADO
+    public function guardarEvaluacion(int $id, array $data): void
+    {
+        $plan = $this->repository->buscarPorId($id);
+
+        if (!$plan) {
+            throw new \Exception('El plan no existe.');
+        }
+
+        if ($plan->estado_plan !== EstadoPlan::ABIERTO->value) {
+            throw new \Exception('El plan ya está cerrado.');
+        }
+
+        if ($this->repository->yaTieneEvaluacion($id)) {
+            throw new \Exception('Este plan ya fue evaluado.');
+        }
+
+        $this->repository->crearEvaluacion([
+            'fk_id_plan_de_accion' => $plan->id_plan_de_accion,
+            'tipo' => 'final',
+            'criterios' => $data['criterios'],
+            'observaciones' => $data['observaciones'] ?? null,
+            'conclusiones' => $data['conclusiones'],
+        ]);
+        $this->planRepository->actualizarEstado(
+            $plan->id_plan_de_accion,
+            EstadoPlan::CERRADO->value
+        );
+    }
 
 }

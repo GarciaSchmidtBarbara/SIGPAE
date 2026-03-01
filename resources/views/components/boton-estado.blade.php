@@ -5,6 +5,7 @@
     'text_inactivo' => null,
     'message_activo' => null,
     'message_inactivo' => null,
+    'redirect_before_submit' => null,
     'id' => uniqid('estado_')
 ])
 
@@ -19,6 +20,9 @@
 
     $texto = $esActivo ? $textoDesactivar : $textoActivar;
     $mensaje = $esActivo ? $mensajeDesactivar : $mensajeActivar;
+
+    $routeAfterClose = $route_after_close ?? null;
+
 @endphp
 
 <div class="flex items-center justify-center">
@@ -38,17 +42,22 @@
             ? 'text-gray-500 hover:text-red-600 transition flex justify-center w-full'
             : 'px-3 py-1 rounded text-white bg-green-500 hover:bg-green-600 transition'
         }}"
-        @click.stop="$dispatch('abrir-modal-confirmar', { 
-            formId: '{{ $id }}',
-            message: '{{ $mensaje }}'
-        })">
-
+        @click.stop="
+            @if($redirect_before_submit && $esActivo)
+                window.location = '{{ $redirect_before_submit }}'
+            @else
+                $dispatch('abrir-modal-confirmar', { 
+                    formId: '{{ $id }}',
+                    message: '{{ $mensaje }}'
+                })
+            @endif
+        "
+    >
         @if($esActivo)
             <x-icons.icono-cerrar class="w-5 h-5" />
         @else
             <x-icons.icono-abrir class="w-5 h-5" />
         @endif
-
     </button>
 
 </div>

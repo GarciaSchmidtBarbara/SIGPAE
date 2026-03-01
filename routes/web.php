@@ -22,7 +22,7 @@ Route::post('/probar-post', function () {
 });
 
 
-//Rutas Plan de Acción
+//PLAN DE ACCION------------------------------------------------------------------
 use App\Http\Controllers\PlanDeAccionController;
 Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::get('/', [PlanDeAccionController::class, 'vista'])->name('planDeAccion.principal');
@@ -37,16 +37,14 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     Route::post('/{id}/subir-documento', [PlanDeAccionController::class, 'subirDocumento'])->name('planDeAccion.subirDocumento');
     Route::delete('/{id}', [PlanDeAccionController::class, 'eliminar'])->name('planDeAccion.eliminar'); //enviar a papelera
 
+    // EVALUACIONES DE PLANES (depende del ID del plan o intervención, por eso lo dejo acá)
+    Route::get('/{id}/evaluacion/crear', [PlanDeAccionController::class, 'crearEvaluacion'])->name('planDeAccion.crearEvaluacion'); 
+    Route::post('/{id}/evaluacion/guardar', [PlanDeAccionController::class, 'guardarEvaluacion'])->name('planDeAccion.guardarEvaluacion');
+
 });
 
-// EVALUCIÓN DE PLANES
-use App\Http\Controllers\EvaluacionDePlanController;
 
-Route::post('/evaluaciones-planes', [EvaluacionDePlanController::class, 'store'])
-    ->name('evaluaciones.planes.store');
-
-
-// PLANILLAS
+// PLANILLAS------------------------------------------------------------------------------
 use App\Http\Controllers\PlanillaController;
 // Lo dejo todo unificado en el mismo grupo
 Route::prefix('planillas')->middleware('auth')->name('planillas.')->group(function () {
@@ -81,7 +79,7 @@ Route::prefix('planillas')->middleware('auth')->name('planillas.')->group(functi
         ->name('planilla-final.create');
     Route::post('/planilla-final/guardar', [PlanillaController::class, 'guardarPlanillaFinal'])
         ->name('planilla-final.store');
-
+ 
     // CRUD genérico de planillas
     Route::delete('/{id}/eliminar', [PlanillaController::class, 'eliminar'])->name('eliminar');
     Route::get('/papelera', [PlanillaController::class, 'verPapelera'])->name('papelera');
@@ -93,7 +91,7 @@ Route::prefix('planillas')->middleware('auth')->name('planillas.')->group(functi
     Route::get('/{id}/descargar', [PlanillaController::class, 'descargar'])->name('descargar');
 });
 
-//Rutas Alumnos
+//ALUMNOS-------------------------------------------------------------------------------
 use App\Http\Controllers\AlumnoController;
 use App\Http\Controllers\FamiliarController;
 
@@ -155,7 +153,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('perfil.actualizar');
 });
 
-//Ruta Intervenciones
+//INTERVENCIONES------------------------------------------------------------------
 use App\Http\Controllers\IntervencionController;
 Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::get('/', [IntervencionController::class, 'vista'])->name('principal');
@@ -166,6 +164,8 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::delete('/{id}/eliminar', [IntervencionController::class, 'eliminar'])->name('eliminar');
     Route::put('/{id}/cambiar-activo', [IntervencionController::class, 'cambiarActivo'])->name('cambiarActivo');
     Route::post('/{id}/subir-documento', [IntervencionController::class, 'subirDocumento'])->name('subirDocumento');
+    Route::get('/{id}/evaluacion/crear', [IntervencionController::class, 'crearEvaluacion'])->name('intervenciones.evaluacion.create');
+    Route::post('/{id}/evaluacion/guardar', [IntervencionController::class, 'guardarEvaluacion'])->name('intervenciones.evaluacion.store');
 });
 
 

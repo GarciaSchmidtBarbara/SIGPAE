@@ -13,7 +13,6 @@ interface PlanDeAccionRepositoryInterface
     public function restaurar(int $id): bool;
     public function eliminarDefinitivo(int $id): bool;
     public function obtenerEliminados(): Collection;
-    public function cambiarActivo(int $id): bool;
     public function buscarPorIdPersona(int $idPersona): ?PlanDeAccion;
     public function filtrar(Request $request): Collection;
     public function obtenerAulas(): Collection;
@@ -22,5 +21,7 @@ interface PlanDeAccionRepositoryInterface
     public function buscarPorIdConRelaciones(int $id);
     public function obtenerTodosConRelaciones(): Collection;
     public function obtenerTodos(): Collection;
-    
+    public function crearEvaluacion(array $data);
+    public function yaTieneEvaluacion($id);
+
 }

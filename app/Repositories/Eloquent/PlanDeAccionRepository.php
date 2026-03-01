@@ -4,9 +4,12 @@ namespace App\Repositories\Eloquent;
 
 use App\Repositories\Interfaces\PlanDeAccionRepositoryInterface;
 use App\Models\PlanDeAccion;
+use App\Models\EvaluacionPlan;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\Collection;
 use App\Models\Aula;
+use App\Enums\EstadoPlan;
+
 
 class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
 {
@@ -162,15 +165,10 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         return $plan ? $plan->forceDelete() : false;
     }
     
-    public function cambiarActivo(int $id): bool
+    public function actualizarEstado($id, $estado)
     {
-        $plan = PlanDeAccion::find($id);
-        if ($plan) {
-            $plan->activo = !$plan->activo;
-            $plan->estado_plan = $plan->activo ? 'ABIERTO' : 'CERRADO';
-            return $plan->save();
-        }
-        return false;
+        return PlanDeAccion::where('id_plan_de_accion', $id)
+            ->update(['estado_plan' => $estado]);
     }
 
     public function buscarPorIdPersona(int $idPersona): ?PlanDeAccion
@@ -261,4 +259,13 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
         ])->findOrFail($id);
     }
 
+    public function crearEvaluacion(array $data)
+    {
+        return EvaluacionPlan::create($data);
+    }
+
+    public function yaTieneEvaluacion($id)
+    {
+        return EvaluacionPlan::where('fk_id_plan_de_accion', $id)->exists();
+    }
 }
