@@ -127,6 +127,7 @@ Route::middleware(['auth', \App\Http\Middleware\SessionAlumnoCrearEditar::class]
 
 // Rutas sin el middleware del asistente
 Route::get('/api/alumnos/buscar', [AlumnoController::class, 'buscar'])->name('alumnos.buscar');
+Route::get('/api/alumnos/buscar-para-plan', [AlumnoController::class, 'buscarParaFormulario'])->name('alumnos.buscar-para-plan')->middleware('auth');
 Route::put('alumnos/{id}/cambiar-estado', [AlumnoController::class, 'cambiarActivo'])->name('alumnos.cambiarActivo');
 
 // Documentos de alumno (AJAX, sin sesión de asistente)

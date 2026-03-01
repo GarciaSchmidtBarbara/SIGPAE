@@ -148,6 +148,14 @@ class AlumnoRepository implements AlumnoRepositoryInterface
             ->get();
     }
 
+    public function buscarPorAula(int $aulaId): \Illuminate\Support\Collection
+    {
+        return Alumno::with(['persona', 'aula'])
+            ->where('fk_id_aula', $aulaId)
+            ->whereHas('persona', fn($q) => $q->where('activo', true))
+            ->get();
+    }
+
     public function filtrar(array $criterios): \Illuminate\Support\Collection
     {
         $query = Alumno::with('persona', 'aula');

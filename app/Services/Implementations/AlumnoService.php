@@ -100,6 +100,11 @@ class AlumnoService implements AlumnoServiceInterface
         });
     }
 
+    public function buscarPorAula(int $aulaId): \Illuminate\Support\Collection
+    {
+        return $this->repo->buscarPorAula($aulaId);
+    }
+
     public function buscar(string $q, ?int $excludeId = null): \Illuminate\Support\Collection
     {
         // Si está vacío, no consultamos a la bbdd
