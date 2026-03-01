@@ -21,7 +21,6 @@ interface PlanDeAccionServiceInterface
     public function obtenerAulas(): Collection;
     public function obtenerTipos(): Collection;
     public function datosParaFormulario(?int $id = null): array;
-    public function crearEvaluacion(int $idPlan, array $data): bool;
     public function obtenerParaEvaluacion(int $id): PlanDeAccion;
     public function guardarEvaluacion(int $id, array $data): void;
 

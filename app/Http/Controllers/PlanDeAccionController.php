@@ -25,6 +25,9 @@ class PlanDeAccionController extends Controller
     //vista planes filtrados
     public function vista(Request $request): View
     {
+        // Si no viene estado en la request, forzar "activos" 
+        if (!$request->has('estado')) { $request->merge(['estado' => 'activos']); }
+
         $planesDeAccion = $this->planDeAccionService->filtrar($request);
         $aulas = $this->planDeAccionService->obtenerAulas();
         $tipos = $this->planDeAccionService->obtenerTipos(); 

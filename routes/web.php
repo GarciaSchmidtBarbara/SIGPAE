@@ -48,6 +48,7 @@ Route::prefix('reportes')->middleware('auth')->group(function () {
     Route::get('/',[ReporteController::class, 'principal'])->name('reportes.principal');
 });
 
+
 // PLANILLAS------------------------------------------------------------------------------
 use App\Http\Controllers\PlanillaController;
 // Lo dejo todo unificado en el mismo grupo
