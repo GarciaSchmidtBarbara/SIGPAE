@@ -73,7 +73,7 @@
                 <x-nav-item route="eventos.principal" label="Eventos" icon="icons.icono-evento" exact></x-nav-item>
                 <x-nav-item route="intervenciones.principal" label="Intervenciones" icon="icons.icono-intervencion" exact></x-nav-item>
                 <x-nav-item route="planDeAccion.principal" label="Plan de Acción" icon="icons.icono-planDeAccion" exact></x-nav-item>
-
+               
                 <div class="pt-4 pb-2">
                     <hr class="border-t border-white/10">
                     <div class="text-xs font-semibold text-indigo-200 uppercase tracking-wider mt-4 mb-2 ml-2">
@@ -83,7 +83,7 @@
 
                 <x-nav-item route="planillas.principal" label="Planillas" icon="icons.icono-planilla" exact></x-nav-item>
                 <x-nav-item route="documentos.principal" label="Documentos" icon="icons.icono-documento" exact></x-nav-item>
-                <x-nav-item label="Reportes" icon="icons.icono-reporte" exact></x-nav-item>
+                <x-nav-item route="reportes.principal" label="Reportes" icon="icons.icono-reporte" exact></x-nav-item>
                 <x-nav-item route="usuarios.principal" label="Usuarios" icon="icons.icono-usuario" exact></x-nav-item>
             </nav>
             
