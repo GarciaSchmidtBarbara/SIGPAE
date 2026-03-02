@@ -22,12 +22,18 @@
 
     <div @confirm-accepted.window="ejecutarBaja()"
         x-data="{
-        familiares: {{ json_encode(session('asistente.familiares', [])) }},
-        alumnoData: {{ json_encode(session('asistente.alumno', [])) }},
+        familiares: [],
+        alumnoData: [],
+
+        init() {
+            // Cargamos los datos de la sesión una sola vez al arrancar
+            this.familiares = {{ json_encode(session('asistente.familiares', [])) }};
+            this.alumnoData = {{ json_encode(session('asistente.alumno', [])) }};
+        },
 
         indiceABorrar: null,
         tipoABorrar: null,
-        
+
         errors: {
             dni: '',
             nombre: '',
