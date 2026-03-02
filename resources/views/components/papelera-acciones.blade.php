@@ -9,7 +9,6 @@
     {{-- RESTAURAR --}}
     <form action="{{ route($restoreRoute, $id) }}" method="POST">
         @csrf
-        @method('PUT')
         <button type="submit"
                 class="text-green-600 hover:text-green-800 text-sm font-medium">
             Restaurar
