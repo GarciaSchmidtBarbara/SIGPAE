@@ -14,7 +14,7 @@
 >
     <x-ui.modal title="" size="md" x-show="open" @click.away="open=false">
         <div class="px-6 py-6">
-            <p class="text-center text-[20px] leading-snug text-gray-900" x-text="message"></p>
+            <p class="text-center text-[20px] leading-snug text-gray-900 whitespace-pre-line" x-text="message"></p>
         </div>
 
         <x-slot:footer>
