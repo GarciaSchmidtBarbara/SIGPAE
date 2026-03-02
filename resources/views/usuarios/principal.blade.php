@@ -3,26 +3,32 @@
 @section('encabezado', 'Usuarios')
 
 @section('contenido')
+
 <div class="p-6" x-data="estadoUsuario()"
      @abrir-modal-estado.window="abrir($event.detail)">
 
+    {{-- BARRA DE BUSQUEDA --}}
     <form id="form-usuario" method="GET" action="{{ route('usuarios.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
-        <a class="btn-aceptar" href="{{ route('usuarios.crear-editar') }}">Registrar Usuario</a>
-        <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
-        <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
-        <input name="documento" placeholder="Documento" class="border px-2 py-1 rounded w-1/5">
-        <select name="profesion" class="border px-2 py-1 rounded w-1/5">
-            <option value="">Todas las profesiones</option>
+        <section class="filtros-usuario">
+            <input name="nombre" placeholder="Nombre" class="border px-2 py-1 rounded w-1/5">
+            <input name="apellido" placeholder="Apellido" class="border px-2 py-1 rounded w-1/5">
+            <input name="documento" placeholder="Documento" class="border px-2 py-1 rounded w-1/5">
+            <select name="profesion" class="border px-2 py-1 rounded w-1/5">
+                <option value="">Todas las profesiones</option>
 
-            @foreach($siglas as $sigla)
-            <option value="{{ $sigla }}" {{ request('profesion') === $sigla ? 'selected' : '' }}>
-                {{ $sigla }}
-            </option>
-            @endforeach
-        </select>
+                @foreach($siglas as $sigla)
+                <option value="{{ $sigla }}" {{ request('profesion') === $sigla ? 'selected' : '' }}>
+                    {{ $sigla }}
+                </option>
+                @endforeach
+            </select>
 
-        <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('usuarios.principal') }}" >Limpiar</a>
+            <button type="submit" class="btn-aceptar">Filtrar</button>
+            <a class="btn-aceptar" href="{{ route('usuarios.principal') }}" >Limpiar</a>
+        </section>
+        <section>
+            <a class="btn-aceptar" href="{{ route('usuarios.crear-editar') }}">Registrar Usuario</a>
+        </section>
     </form>
 
     <x-tabla-dinamica 
