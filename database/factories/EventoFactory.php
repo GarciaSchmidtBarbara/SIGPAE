@@ -23,7 +23,8 @@ class EventoFactory extends Factory
             : $this->faker->optional(0.6)->sentence(8); // Máximo 8 palabras para no exceder 255 caracteres
 
         return [
-            'fecha_hora' => $this->faker->dateTimeBetween('-1 month', '+2 months'),
+            'fecha_hora' => $this->faker->dateTimeBetween('-1 month', '+2 months')
+                ->setTime(fake()->numberBetween(8, 18), fake()->randomElement([0, 15, 30, 45])),
             'lugar' => $this->faker->randomElement([
                 'Sala de reuniones',
                 'Aula 1',
@@ -148,7 +149,8 @@ class EventoFactory extends Factory
     public function pasado(): static
     {
         return $this->state(fn (array $attributes) => [
-            'fecha_hora' => fake()->dateTimeBetween('-2 months', '-1 day'),
+            'fecha_hora' => fake()->dateTimeBetween('-2 months', '-1 day')
+                ->setTime(fake()->numberBetween(8, 18), fake()->randomElement([0, 15, 30, 45])),
         ]);
     }
 
@@ -158,7 +160,8 @@ class EventoFactory extends Factory
     public function futuro(): static
     {
         return $this->state(fn (array $attributes) => [
-            'fecha_hora' => fake()->dateTimeBetween('+1 day', '+3 months'),
+            'fecha_hora' => fake()->dateTimeBetween('+1 day', '+3 months')
+                ->setTime(fake()->numberBetween(8, 18), fake()->randomElement([0, 15, 30, 45])),
         ]);
     }
 }

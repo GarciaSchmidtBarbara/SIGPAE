@@ -16,30 +16,31 @@
     <form method="POST" action="{{ route('usuarios.store') }}"> 
         @csrf 
         <section class="space-y-4 border-b pb-4">
-        <div class="">
-            <x-campo-requerido class="label-perfil" text="Nombres" required />
-            <input name="nombre" value="{{ $usuarioData['nombre'] ?? old('nombre') }}"
-                class="input-perfil">
-        </div>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="">
+                    <x-campo-requerido class="label-perfil" text="Nombres" required />
+                    <input name="nombre" value="{{ $usuarioData['nombre'] ?? old('nombre') }}"
+                        class="input-perfil">
+                </div>
 
-        <div class="">
-            <x-campo-requerido  class="label-perfil" text="Apellidos" required />
-            <input name="apellido" value="{{ $usuarioData['apellido'] ?? old('apellido') }}"
-                class="input-perfil">
-        </div>
+                <div class="">
+                    <x-campo-requerido  class="label-perfil" text="Apellidos" required />
+                    <input name="apellido" value="{{ $usuarioData['apellido'] ?? old('apellido') }}"
+                        class="input-perfil">
+                </div>
 
-        <div class="">
-            <x-campo-requerido  class="label-perfil" text="Documento" required />
-            <input name="dni" value="{{ $usuarioData['dni'] ?? old('dni') }}"
-                class="input-perfil">
-        </div>
+                <div class="">
+                    <x-campo-requerido  class="label-perfil" text="Documento" required />
+                    <input name="dni" value="{{ $usuarioData['dni'] ?? old('dni') }}"
+                        class="input-perfil">
+                </div>
 
-        <div class="">
-            <x-campo-requerido class="label-perfil" text="Email" required />
-            <input name="email" value="{{ $usuarioData['email'] ?? old('email') }}"
-                class="input-perfil">
-        </div>
-
+                <div class="">
+                    <x-campo-requerido class="label-perfil" text="Email" required />
+                    <input name="email" value="{{ $usuarioData['email'] ?? old('email') }}"
+                        class="input-perfil">
+                </div>
+            </div>
         </section>
 
         <div class="flex justify-end mt-6 gap-6"> 
