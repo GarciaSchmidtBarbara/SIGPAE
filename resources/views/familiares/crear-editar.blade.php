@@ -43,6 +43,9 @@
         this.formData.edad = '';
         this.formData.domicilio = '';
         this.formData.nacionalidad = '';
+        this.formData.curso = '';
+        this.formData.division = '';
+        this.formData.asiste_a_institucion = false;
         this.formData.fk_id_persona = null; // ¡Clave! Rompemos el vínculo
         this.isFilled = false; // Desbloqueamos
         this.selected = null;
