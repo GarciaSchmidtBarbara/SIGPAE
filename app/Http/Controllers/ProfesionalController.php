@@ -176,6 +176,7 @@ class ProfesionalController extends Controller {
         return redirect()->route('usuarios.principal')->with($mensaje);
     }
 
+    /*
     public function editar(int $id)
     {
         $usuario = $this->profesionalService->obtener($id);
@@ -199,7 +200,7 @@ class ProfesionalController extends Controller {
         Session::put('editando_usuario_id', $id);
 
         return view('usuarios.crear-editar', compact('usuarioData', 'siglas', 'usuario'))->with('modo', 'editar');
-    }
+    }*/
 
 
 }

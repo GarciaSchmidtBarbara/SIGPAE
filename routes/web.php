@@ -146,7 +146,7 @@ Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->na
 Route::post('/usuarios', [ProfesionalController::class, 'store'])->name('usuarios.store');
 Route::put('/usuarios/{id}', [ProfesionalController::class, 'update'])->name('usuarios.update');
 Route::patch('/usuarios/{id}/cambiar-estado', [ProfesionalController::class, 'cambiarActivo'])->name('usuarios.cambiarActivo');
-Route::get('/usuarios/{id}/editar', [ProfesionalController::class, 'editar'])->name('usuarios.editar');
+
 
 //Ruta Perfil
 use App\Http\Controllers\Auth\PasswordController;
