@@ -225,7 +225,8 @@ class FamiliarController extends Controller
         session(['asistente.familiares' => $familiares]);
 
         // 6. Volvemos al Hub (Vista 1) usando la ruta de retorno seguro
-        return redirect()->route('alumnos.continuar');
+        return redirect()->route('alumnos.continuar')
+                         ->with('success', 'Familiar listo para vincular. Recuerde guardar los cambios del alumno.');
     }
 
     public function validarDniAjax(Request $request): JsonResponse
