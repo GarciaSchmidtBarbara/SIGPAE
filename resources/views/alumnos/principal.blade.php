@@ -7,14 +7,26 @@
 
 <div class="px-4 py-6 md:p-6" x-data="estadoAlumno()"
      @abrir-modal-estado.window="abrir($event.detail)">
-    <form id="form-alumno" method="GET" action="{{ route('alumnos.principal') }}" class="flex flex-col md:flex-row gap-3 mb-6">    
+    <form id="form-alumno" x-ref="filtroForm" method="GET" action="{{ route('alumnos.principal') }}" class="flex flex-col md:flex-row gap-3 mb-6"
+        x-init="
+            const foco = '{{ request('foco') }}';
+            if (foco) $nextTick(() => {
+                const el = $refs.filtroForm.querySelector('[name=' + foco + ']');
+                if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
+            });
+        ">
+        <input type="hidden" x-ref="foco" name="foco">
         <a class="btn-aceptar" href="{{ route('alumnos.crear') }}">Registrar Alumno</a>
         
         <p class="text-sm font-semibold text-gray-600 mt-2"> Buscar alumnos </p>
-        <input name="nombre" placeholder="Nombre" class="form-input md:w-1/5">
-        <input name="apellido" placeholder="Apellido" class="form-input md:w-1/5">
-        <input name="documento" placeholder="Documento" class="form-input md:w-1/5">
-        <select name="aula" class="form-input md:w-1/5">
+        <input name="nombre" placeholder="Nombre" value="{{ request('nombre') }}" class="form-input md:w-1/5"
+            @input.debounce.700ms="$refs.foco.value = 'nombre'; $refs.filtroForm.submit()">
+        <input name="apellido" placeholder="Apellido" value="{{ request('apellido') }}" class="form-input md:w-1/5"
+            @input.debounce.700ms="$refs.foco.value = 'apellido'; $refs.filtroForm.submit()">
+        <input name="documento" placeholder="Documento" value="{{ request('documento') }}" class="form-input md:w-1/5"
+            @input.debounce.700ms="$refs.foco.value = 'documento'; $refs.filtroForm.submit()">
+        <select name="aula" class="form-input md:w-1/5"
+            @change="$refs.filtroForm.submit()">
             <option value="">Todos los cursos</option>
             @foreach($cursos as $curso)
                 <option value="{{ $curso }}" {{ request('aula') === $curso ? 'selected' : '' }}>
@@ -22,14 +34,14 @@
                 </option>
             @endforeach
         </select>
-        <select name="estado" class="form-input md:w-1/5">
+        <select name="estado" class="form-input md:w-1/5"
+            @change="$refs.filtroForm.submit()">
             <option value="" {{ request('estado', 'activos')  === '' ? 'selected' : '' }}>Todos</option>
             <option value="activos" {{ request('estado', 'activos') === 'activos' ? 'selected' : '' }}>Activos</option>
             <option value="inactivos" {{ request('estado', 'activos')  === 'inactivos' ? 'selected' : '' }}>Inactivos</option>
         </select>
 
-        <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('alumnos.principal') }}" >Limpiar</a>
+        <a class="btn-aceptar" href="{{ route('alumnos.principal') }}">Limpiar</a>
     </form>
 
     @php

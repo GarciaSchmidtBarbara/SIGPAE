@@ -35,7 +35,7 @@
 
                 {{-- MODAL DE SELECCIÓN --}}
                 <x-ui.modal x-data="{ open: false }"
-                    x-effect="open = abrirPlanilla; if (!open && abrirPlanilla) abrirPlanilla = false" @click.stop
+                    x-effect="open = abrirPlanilla; if (!open && abrirPlanilla) abrirPlanilla = false" @click.stop="$event.stopPropagation()"
                     title="Seleccione el tipo de documento" size="lg" :closeOnBackdrop="true">
 
                     <div class="p-4">
