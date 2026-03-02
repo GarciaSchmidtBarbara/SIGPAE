@@ -11,6 +11,7 @@ use App\Services\Interfaces\PersonaServiceInterface;
 use App\Models\Persona;
 // Illuminate
 use Illuminate\Support\Collection as ISupportCollection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -44,37 +45,34 @@ class ProfesionalService implements ProfesionalServiceInterface
     }
 
     // Lógica de búsqueda y filtrado
-    public function filtrar(Request $request): ISupportCollection {
-        $query = Profesional::with('persona');
+    public function filtrar(Request $request): LengthAwarePaginator
+{
+    $query = Profesional::with('persona');
 
-        if ($request->filled('nombre')) {
-            $nombre = $this->normalizarTexto($request->nombre);
-            $query->whereHas('persona', fn($q) =>
-                $q->whereRaw("LOWER(unaccent(nombre::text)) LIKE ?", ["%{$nombre}%"])
-            );
-        }
+    if ($request->filled('buscar')) {
 
-        if ($request->filled('apellido')) {
-            $apellido = $this->normalizarTexto($request->apellido);
-            $query->whereHas('persona', fn($q) =>
-                $q->whereRaw("LOWER(unaccent(apellido)) LIKE ?", ["%{$apellido}%"])
-            );
-        }
+        $buscar = strtolower($request->buscar);
 
-        if ($request->filled('documento')) {
-            $query->whereHas('persona', fn($q) =>
-                $q->where('dni', 'like', '%' . $request->documento . '%')
-            );
-        }
+        $query->where(function ($q) use ($buscar) {
 
-        if ($request->filled('profesion')) {
-            $query->where('siglas', $request->profesion);
-        }
+            // Buscar en persona
+            $q->whereHas('persona', function ($sub) use ($buscar) {
+                $sub->whereRaw("LOWER(nombre) LIKE ?", ["%{$buscar}%"])
+                    ->orWhereRaw("LOWER(apellido) LIKE ?", ["%{$buscar}%"])
+                    ->orWhere("dni", 'like', "%{$buscar}%");
+            })
 
-        $usuarios = $query->get();
-
-        return $usuarios;
+            // Buscar en profesional
+            ->orWhereRaw("LOWER(siglas) LIKE ?", ["%{$buscar}%"])
+            ->orWhereRaw("LOWER(profesion) LIKE ?", ["%{$buscar}%"]);
+        });
     }
+
+    return $query
+        ->orderBy('id_profesional', 'desc')
+        ->paginate(10)
+        ->withQueryString();
+}
 
     public function crearProfesional(array $data): Profesional {
         \DB::beginTransaction();
