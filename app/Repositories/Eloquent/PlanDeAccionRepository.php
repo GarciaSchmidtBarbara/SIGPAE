@@ -276,7 +276,8 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
             'profesionalGenerador.persona',
             'profesionalesParticipantes.persona',
             'alumnos.persona',
-            'aulas'
+            'aulas',
+            'evaluaciones'
         ])->findOrFail($id);
     }
 
