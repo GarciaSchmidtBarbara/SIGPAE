@@ -59,13 +59,15 @@
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Lugar</label>
+                    <x-campo-requerido text="Lugar" required />
                     <input type="text" 
                            name="lugar"
                            x-model="formData.lugar"
                            :disabled="esEventoFinalizado"
                            placeholder="Ubicación del evento"
+                           @input="limpiarError('lugar')"
                            class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.lugar" x-text="errors.lugar" class="text-xs text-red-600 mt-1"></div>
                 </div>
             </div>
         </div>
@@ -340,7 +342,7 @@ function eventoForm(esEdicion = false, esFinalizado = false) {
         },
 
         validarYGuardar(event) {
-            this.errors = { tipo_evento: '', fecha_hora: '' };
+            this.errors = { tipo_evento: '', fecha_hora: '', lugar: '' };
             let hayError = false;
 
             if (!this.formData.tipo_evento) {
@@ -350,6 +352,11 @@ function eventoForm(esEdicion = false, esFinalizado = false) {
 
             if (!this.formData.fecha_hora) {
                 this.errors.fecha_hora = 'Debe ingresar fecha y hora';
+                hayError = true;
+            }
+
+            if (!this.formData.lugar || this.formData.lugar.trim() === '') {
+                this.errors.lugar = 'Debe ingresar el lugar';
                 hayError = true;
             }
 
