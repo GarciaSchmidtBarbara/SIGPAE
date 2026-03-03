@@ -49,7 +49,7 @@ class ProfesionalController extends Controller {
         $request->validate([
             'nombre' => 'required|string|max:225',
             'apellido' => 'required|string|max:225',
-            'dni' => 'required|string|max:20|unique:personas,dni',
+            'dni' => 'required|numeric|digits_between:1,20|unique:personas,dni',
             'email' => 'required|email|unique:profesionales,email',
         ]);
 
