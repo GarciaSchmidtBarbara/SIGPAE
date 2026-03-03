@@ -170,8 +170,22 @@
 
     .selectors-row {
         display: flex;
-        gap: 20px;
+        flex-wrap: wrap;
+        /* colapsa en mobile */
+        gap: 12px;
         margin-top: 10px;
+    }
+
+    .selectors-row .selector-box {
+        flex: 1 1 100%;
+        /* full width en mobile */
+    }
+
+    @media (min-width: 768px) {
+        .selectors-row .selector-box {
+            flex: 0 1 auto;
+            /* vuelve al tamaño natural en desktop */
+        }
     }
 
     /* --- TABLA --- */
