@@ -40,7 +40,7 @@
     {{ $attributes->merge(['class' => 'flex gap-6 items-start border-0 p-0 m-0 min-w-0']) }}
 >
     <!-- Campo de fecha -->
-    <div class="flex flex-col w-1/2">
+    <div class="flex flex-col">
         <label class="text-sm font-medium text-gray-700 mb-1">
             {{ $label }}
             @if($required)
@@ -72,7 +72,7 @@
     </div>
 
     <!-- Campo de edad -->
-    <div class="flex flex-col w-1/4">
+    <div class="flex flex-col">
         <label class="text-sm font-medium text-gray-700 mb-1">Edad</label>
         <input 
             type="number"

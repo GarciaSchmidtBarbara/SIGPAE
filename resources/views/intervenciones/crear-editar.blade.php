@@ -83,7 +83,7 @@
 @endphp
 
 
-<div class="p-6">
+<div class="px-4 py-6 md:p-6">
     <div class="mt-4 my-4 flex justify-between items-center">
         <div class="text-sm text-red-600 min-h-[1.5rem]">
             @if($esEdicion && $cerrado)

@@ -20,37 +20,37 @@
 }
 
 @layer utilities {
-  .bg-login-grid {
-    background-color: white;
-
-    /* MOBILE (default) */
-    background-image:
-      linear-gradient(to right, #dbd8e4 1px, transparent 1px),
-      linear-gradient(to bottom, #dbd8e4 1px, transparent 1px),
-      radial-gradient(circle 450px at 50% 40%, #d5c5ff, transparent);
-
-    background-size:
-      64px 64px,
-      64px 64px,
-      100% 100%;
-  }
-
-  /* DESKTOP */
-  @media (min-width: 768px) {
     .bg-login-grid {
-      background-image:
-        linear-gradient(to right, #dbd8e4 1px, transparent 1px),
-        linear-gradient(to bottom, #dbd8e4 1px, transparent 1px),
-        radial-gradient(circle 600px at 0% 200px, #d5c5ff, transparent),
-        radial-gradient(circle 600px at 100% 200px, #d5c5ff, transparent);
+        background-color: white;
 
-      background-size:
-        96px 64px,
-        96px 64px,
-        100% 100%,
-        100% 100%;
+        /* MOBILE (default) */
+        background-image:
+            linear-gradient(to right, #dbd8e4 1px, transparent 1px),
+            linear-gradient(to bottom, #dbd8e4 1px, transparent 1px),
+            radial-gradient(circle 450px at 50% 40%, #d5c5ff, transparent);
+
+        background-size:
+            64px 64px,
+            64px 64px,
+            100% 100%;
     }
-  }
+
+    /* DESKTOP */
+    @media (min-width: 768px) {
+        .bg-login-grid {
+            background-image:
+                linear-gradient(to right, #dbd8e4 1px, transparent 1px),
+                linear-gradient(to bottom, #dbd8e4 1px, transparent 1px),
+                radial-gradient(circle 600px at 0% 200px, #d5c5ff, transparent),
+                radial-gradient(circle 600px at 100% 200px, #d5c5ff, transparent);
+
+            background-size:
+                96px 64px,
+                96px 64px,
+                100% 100%,
+                100% 100%;
+        }
+    }
 }
 
 @layer components {
@@ -103,7 +103,7 @@
 
 
     .separador {
-        @apply bg-gray-100 text-gray-700 font-medium px-3 text-lg
+        @apply block w-full bg-gray-100 text-gray-700 font-semibold text-lg px-4 py-2 rounded-md mb-4;
     }
 
     .caja {
@@ -230,24 +230,20 @@
     }
 
     .label-perfil {
-    @apply block text-xs uppercase tracking-wide text-gray-500 mb-2;
-  }
+        @apply block text-xs uppercase tracking-wide text-gray-500 mb-2;
+    }
 
-  .input-perfil {
-    @apply w-full border border-gray-300 rounded-lg px-3 py-2 
-           focus:outline-none focus:ring-2 focus:ring-violet-400
-           focus:border-violet-400 transition;
-  }
+    .input-perfil {
+        @apply w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition;
+    }
 
-  .btn-primario {
-    @apply bg-violet-600 text-white px-5 py-2 rounded-lg
-           hover:bg-violet-700 transition;
-  }
+    .btn-primario {
+        @apply bg-violet-600 text-white px-5 py-2 rounded-lg hover:bg-violet-700 transition;
+    }
 
-  .btn-secundario {
-    @apply border border-gray-300 px-5 py-2 rounded-lg
-           hover:bg-gray-100 transition;
-  }
+    .btn-secundario {
+        @apply border border-gray-300 px-5 py-2 rounded-lg hover:bg-gray-100 transition;
+    }
 
 }
 
