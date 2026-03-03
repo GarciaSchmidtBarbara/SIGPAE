@@ -1,5 +1,3 @@
-
-
 @extends('layouts.base')
 
 @section('encabezado', 'Planes de acción')
