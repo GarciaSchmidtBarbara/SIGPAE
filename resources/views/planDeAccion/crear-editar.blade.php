@@ -56,15 +56,15 @@
 @endphp
 
 
-<div class="p-6">
-    <div class="mt-4 my-4 flex justify-between items-center">
+<div class="px-4 py-6 md:p-6">
+    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
         <div class="text-sm text-red-600 min-h-[1.5rem]">
             @if($esEdicion && $cerrado)
                 <p>Este plan de acción está cerrado. No se permiten modificaciones.</p>
             @endif
         </div>
 
-        <div class="flex justify-end space-x-4">
+        <div class="flex justify-end space-y-6 mb-8">
             @if($esEdicion)
                 <x-boton-estado 
                     :activo="$planDeAccion->activo" 
@@ -73,7 +73,6 @@
                     :text_inactivo="'Abrir'"
                 />
             @endif
-            <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
         </div>
     </div>
 
@@ -98,7 +97,7 @@
 
             <fieldset {{ $cerrado ? 'disabled' : '' }}>
                 {{-- TIPO --}}
-                <div class="space-y-6 mb-6">
+                <div class="space-y-6 mb-8">
                     <p class="separador">Tipo de Plan</p>
 
                     @php
@@ -125,12 +124,12 @@
 
                 {{-- DESTINATARIO - Individual --}}
                 <div id="destinatario-individual" x-data="planIndividual({ alumnosIniciales: @js($alumnosSeleccionados ?? []), initialAlumnoId: '{{ $initialAlumnoId ?? '' }}', initialAlumnoInfo: @js($initialAlumnoInfo) })" x-init="init()" x-show="tipoPlanSeleccionado === 'INDIVIDUAL'" style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'INDIVIDUAL') ? '' : 'display:none;' }}">
-                    <div class="space-y-6 mb-6">
+                    <div class="space-y-6 mb-8">
                         <p class="separador">Destinatario</p>
 
                         {{-- Buscador de alumno --}}
-                        <div class="flex gap-4 mt-4">
-                            <div class="flex flex-col w-1/3 relative">
+                        <div class="flex flex-col md:flex-row gap-4 mt-4">
+                            <div class="flex flex-col w-full md:w-1/3 relative">
                                 <label class="text-sm font-medium">Buscar alumno</label>
                                 <input type="text"
                                     x-model="busquedaQuery"
@@ -154,7 +153,7 @@
                         <div x-show="alumnoSeleccionadoInfo" class="mt-8 p-4">
                             <h3 class="font-medium text-base text-gray-700 mb-4 border-b pb-2">Información Personal del Alumno</h3>
 
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-y-4 gap-x-6 text-sm">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                                 
                                 {{-- Fila 1 --}}
                                 <div class="col-span-1">
@@ -200,11 +199,11 @@
                 <div id="destinatario-grupal" 
                 x-data="planGrupal({ alumnosIniciales: @js($alumnosSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'GRUPAL'" 
                 style="{{ ($esEdicion && ($planDeAccion->tipo_plan->value ?? '') === 'GRUPAL') ? '' : 'display:none;' }}">
-                    <div class="space-y-6 mb-6">
+                    <div class="space-y-6 mb-8">
                         <p class="separador">Destinatarios</p>
-                        <div class="selectors-row">
+                        <div class="flex flex-col md:flex-row gap-4">
                             {{-- Buscador de alumno --}}
-                            <div class="selector-box relative" style="width: 35%;">
+                            <div class="relative w-full md:w-2/5">
                                 <input type="text"
                                     x-model="busquedaQuery"
                                     @input.debounce.300ms="buscarAlumnos()"
@@ -224,7 +223,7 @@
                             </div>
 
                             {{-- Selección de aula --}}
-                            <div class="selector-box" style="width: 20%;">
+                            <div class="w-full md:w-3/5">
                                 <select x-model="aulaSeleccionada" @change="agregarAula()">
                                     <option value="">Agregar aula</option>
                                     @foreach($aulas as $a)
@@ -237,8 +236,8 @@
                         </div>
 
                         {{-- TABLA DINÁMICA DE ALUMNOS SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
-                        <div class="mt-6">
-                            <table class="modern-table">
+                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead>
                                     <tr>
                                         <th>NOMBRE</th>
@@ -264,9 +263,6 @@
                                                     </svg>
                                                 </button>
                                             </td>
-
-                                            {{-- input hidden para enviar al backend---}}
-                                            <input type="hidden" name="alumnos[]" :value="al.id">
                                         </tr>
                                     </template>
 
@@ -274,8 +270,7 @@
                                         <td colspan="5" class="text-center">No hay alumnos seleccionados.</td>
                                     </tr>
                                 </tbody>
-                            </table>
-                            
+                            </table>    
                         </div>
                         
                         {{-- Inputs Ocultos (Mantener) --}}
@@ -287,7 +282,7 @@
                 </div>
 
                 {{-- CAMPOS COMUNES: Objetivos / Acciones / Observaciones --}}
-                <div class="space-y-8 mb-6">
+                <div class="space-y-6 mb-8">
                     <p class="separador">Descripción</p>
 
                     <div class="block text-sm font-medium text-gray-700">
@@ -311,7 +306,7 @@
 
                 {{-- Si el plan es INSTITUCIONAL en edición, mostrar el profesional creador en la sección de Profesionales --}}
                 @if($esEdicion && (($planDeAccion->tipo_plan->value ?? '') === 'INSTITUCIONAL'))
-                    <div class="space-y-6 mb-6">
+                    <div class="space-y-6 mb-8">
                         <p class="separador">Profesionales</p>
                         @if($profesionalGenerador)
                             <div class="font-medium text-base text-gray-700 mb-2">
@@ -325,7 +320,7 @@
                 <div id="responsables2" 
                 x-data="planGrupal({ profesionalesData: @js($profesionalesJson), profesionalesIniciales: @js($profesionalesSeleccionados ?? []) })" x-show="tipoPlanSeleccionado === 'INDIVIDUAL' || tipoPlanSeleccionado === 'GRUPAL'"
                 style="{{ ($esEdicion && in_array(($planDeAccion->tipo_plan->value ?? ''), ['INDIVIDUAL','GRUPAL'])) ? '' : 'display:none;' }}">
-                    <div class="space-y-6 mb-6">
+                    <div class="space-y-6 mb-8">
                         <p class="separador">Profesionales participantes</p>
 
                         {{-- Mostrar profesional generador--}}
@@ -337,7 +332,7 @@
                         
                         <div class="selectors-row">
                             {{-- Selector de profesional--}}
-                            <div class="selector-box" style="width: 35%;">
+                            <div class="selector-box w-full md:w-1/3">
                                 <select x-model="profesionalSeleccionado" @change="agregarProfesional()">
                                     <option value="">Agregar otros profesionales</option>
                                     @foreach($profesionales as $prof)
@@ -349,8 +344,8 @@
                             </div>
                         </div>
                         {{-- TABLA DINÁMICA DE PROFESIONALES SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
-                        <div class="mt-6">
-                            <table class="modern-table">
+                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead>
                                     <tr>
                                         <th>NOMBRE</th>
@@ -398,7 +393,7 @@
 
                 {{-- INTERVENCIONES RELACIONADAS --}}
                 <div id="intervenciones-asociadas" x-data="{ intervenciones: @js($intervencionesAsociadas ?? []) }">                    
-                    <div class="space-y-6 mb-6">
+                    <div class="space-y-6 mb-8">
                         <p class="separador">Intervenciones Asociadas</p>
                         <x-tabla-dinamica 
                             :columnas="[
@@ -416,7 +411,7 @@
 
 
                 {{-- Documentos --}}
-                <div class="space-y-6 mb-6"
+                <div class="space-y-6 mb-8"
                     @if($esEdicion)
                     x-data="documentosPlanDeAccion(
                         {{ json_encode($documentos ?? []) }},
@@ -500,18 +495,19 @@
                 </div>
 
                {{-- BLOQUE EVALUACIONES --}}
-                <div class="space-y-6 mt-10">
+               @if($esEdicion)
+                <div class="space-y-6 mb-8">
 
                     <p class="separador">Evaluaciones</p>
 
-                    <div class="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+                    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-x-auto">
 
                         @if($planDeAccion->evaluaciones->isEmpty())
                             <div class="p-6 text-sm text-gray-500 text-center">
                                 No hay evaluaciones registradas para este plan.
                             </div>
                         @else
-
+                        <div class="overflow-x-auto border border-gray-200 rounded-lg">
                             <table class="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead class="bg-gray-50">
                                     <tr>
@@ -548,26 +544,28 @@
                                     @endforeach
                                 </tbody>
                             </table>
-
+                        </div>  
                         @endif
                     </div>
 
-    {{-- BOTÓN NUEVA EVALUACIÓN --}}
-    @if($planDeAccion->estado_plan->value === 'ABIERTO')
-        <div class="text-right">
-            <a href="{{ route('planDeAccion.crearEvaluacion', $planDeAccion->id_plan_de_accion) }}"
-               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
-                Nueva Evaluación
-            </a>
-        </div>
-    @endif
+                    {{-- BOTÓN NUEVA EVALUACIÓN --}}
+                    @if($planDeAccion->estado_plan->value === 'ABIERTO')
+                        <div class="text-right">
+                            <a href="{{ route('planDeAccion.crearEvaluacion', $planDeAccion->id_plan_de_accion) }}"
+                            class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
+                                Nueva Evaluación
+                            </a>
+                        </div>
+                    @endif
+                </div>
+                @endif
 
 </div>
 
             </fieldset>
 
             {{-- BOTONES --}}
-            <div class="fila-botones mt-8">
+            <div class="mt-8 flex flex-col sm:flex-row sm:justify-end gap-4">
                 @if(!$cerrado)
                     <button type="submit" class="btn-aceptar">{{ $esEdicion ? 'Actualizar' : 'Crear' }}</button>
                 @endif
