@@ -30,7 +30,7 @@
       {{ $displayTitle }}
     </h3>
 
-    <p class="mx-auto max-w-[36ch] text-[20px] leading-snug text-gray-900">
+    <p class="mx-auto max-w-[36ch] text-[20px] leading-snug text-gray-900 whitespace-pre-line">
       {{ $message }}
     </p>
   </div>

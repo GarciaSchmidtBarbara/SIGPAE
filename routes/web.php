@@ -40,6 +40,8 @@ Route::prefix('planes-de-accion')->middleware('auth')->group(function () {
     // EVALUACIONES DE PLANES (depende del ID del plan o intervención, por eso lo dejo acá)
     Route::get('/{id}/evaluacion/crear', [PlanDeAccionController::class, 'crearEvaluacion'])->name('planDeAccion.crearEvaluacion'); 
     Route::post('/{id}/evaluacion/guardar', [PlanDeAccionController::class, 'guardarEvaluacion'])->name('planDeAccion.guardarEvaluacion');
+    Route::get('/evaluacion/{idEvaluacion}/editar',[PlanDeAccionController::class, 'editarEvaluacion'])->name('planDeAccion.editarEvaluacion');
+    Route::put('/evaluacion/{idEvaluacion}/actualizar', [PlanDeAccionController::class, 'actualizarEvaluacion'])->name('planDeAccion.actualizarEvaluacion');
 
 });
 

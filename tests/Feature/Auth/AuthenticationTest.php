@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
+use App\Models\Persona;
+use App\Models\Profesional;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -17,36 +19,63 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_users_can_authenticate_using_the_login_screen(): void
+    public function test_profesional_puede_autenticarse(): void
     {
-        $user = User::factory()->create();
+        $profesional = Profesional::factory()->create([
+            'fk_id_persona' => Persona::factory()->create()->id_persona,
+            'usuario'       => 'test.user',
+            'contrasenia'   => Hash::make('password123'),
+        ]);
 
         $response = $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'password',
+            'usuario'    => 'test.user',
+            'contrasenia' => 'password123',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect('welcome');
     }
 
-    public function test_users_can_not_authenticate_with_invalid_password(): void
+    public function test_profesional_no_puede_autenticarse_con_contrasenia_incorrecta(): void
     {
-        $user = User::factory()->create();
+        Profesional::factory()->create([
+            'fk_id_persona' => Persona::factory()->create()->id_persona,
+            'usuario'       => 'test.user',
+            'contrasenia'   => Hash::make('password123'),
+        ]);
 
         $this->post('/login', [
-            'email' => $user->email,
-            'password' => 'wrong-password',
+            'usuario'    => 'test.user',
+            'contrasenia' => 'wrong-password',
         ]);
 
         $this->assertGuest();
     }
 
-    public function test_users_can_logout(): void
+    public function test_profesional_inactivo_no_puede_autenticarse(): void
     {
-        $user = User::factory()->create();
+        $persona = Persona::factory()->create(['activo' => false]);
+        Profesional::factory()->create([
+            'fk_id_persona' => $persona->id_persona,
+            'usuario'       => 'inactivo.user',
+            'contrasenia'   => Hash::make('password123'),
+        ]);
 
-        $response = $this->actingAs($user)->post('/logout');
+        $this->post('/login', [
+            'usuario'    => 'inactivo.user',
+            'contrasenia' => 'password123',
+        ]);
+
+        $this->assertGuest();
+    }
+
+    public function test_profesional_puede_cerrar_sesion(): void
+    {
+        $profesional = Profesional::factory()->create([
+            'fk_id_persona' => Persona::factory()->create()->id_persona,
+        ]);
+
+        $response = $this->actingAs($profesional)->post('/logout');
 
         $this->assertGuest();
         $response->assertRedirect('/');

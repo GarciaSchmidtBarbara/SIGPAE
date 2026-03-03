@@ -20,11 +20,20 @@
         </div>
     </div>
 
-    <div x-data="{
-        familiares: {{ json_encode(session('asistente.familiares', [])) }},
+    <div @confirm-accepted.window="ejecutarBaja()"
+        x-data="{
+        familiares: [],
+        alumnoData: [],
 
-        alumnoData: {{ json_encode(session('asistente.alumno', [])) }},
-        
+        init() {
+            // Cargamos los datos de la sesión una sola vez al arrancar
+            this.familiares = {{ json_encode(session('asistente.familiares', [])) }};
+            this.alumnoData = {{ json_encode(session('asistente.alumno', [])) }};
+        },
+
+        indiceABorrar: null,
+        tipoABorrar: null,
+
         errors: {
             dni: '',
             nombre: '',
@@ -102,31 +111,52 @@
             this.$refs.form.submit();
         },
         
-        async gestionarEliminacion(indice, tipo) {
-            const confirmMsg = tipo === 'familiar' 
-                ? '¿Estás seguro de eliminar este familiar?' 
-                : '¿Estás seguro de desvincular este hermano alumno?';
+        gestionarEliminacion(indice, tipo) {
+            // 1. Guardamos los datos temporalmente
+            this.indiceABorrar = indice;
+            this.tipoABorrar = tipo;
 
-            if (confirm(confirmMsg)) {
-                try {
-                    // ¡LA MAGIA! Pasamos el 'tipo' como un query parameter en la URL
-                    const response = await fetch(`{{ url('/alumnos/asistente/item/eliminar') }}/${indice}?tipo=${tipo}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        }
-                    });
+            // 2. Preparamos el mensaje
+            const mensaje = tipo === 'familiar' 
+                ? '¿Desea desvincular al Familiar seleccionado?\n\nRecuerde guardar los cambios del Alumno para finalizar.' 
+                : '¿Desea desvincular al Familiar seleccionado?\n\nRecuerde guardar los cambios del Alumno para finalizar.';
 
-                    if (response.ok) {
-                        this.familiares.splice(indice, 1);
-                    } else {
-                        alert('Error al eliminar el item.');
+            // 3. Despertamos el modal de tus compañeros
+            this.$dispatch('abrir-modal-confirmar', {
+                message: mensaje,
+                formId: null // Fundamental que sea null
+            });
+        },
+
+        async ejecutarBaja() {
+            // Si no hay nada seleccionado, abortamos
+            if (this.indiceABorrar === null || this.tipoABorrar === null) return;
+
+            const indice = this.indiceABorrar;
+            const tipo = this.tipoABorrar;
+
+            try {
+                // Tu código fetch original intacto
+                const response = await fetch(`{{ url('/alumnos/asistente/item/eliminar') }}/${indice}?tipo=${tipo}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
                     }
-                } catch (error) {
-                    console.error('Error:', error);
+                });
+
+                if (response.ok) {
+                    this.familiares.splice(indice, 1);
+                } else {
                     alert('Error al eliminar el item.');
                 }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al eliminar el item.');
+            } finally {
+                // Limpiamos las variables temporales
+                this.indiceABorrar = null;
+                this.tipoABorrar = null;
             }
         },
 
@@ -265,8 +295,7 @@
                         La fecha no puede ser futura.
                     </div>
                 </x-campo-fecha-edad>
-
-            </div>{{-- Cierre fila-botones: DNI / Nombre / Apellido / Fecha --}}
+            </div>
 
             <div class="fila-botones mt-8">
                 <div class="flex flex-col w-1/5">

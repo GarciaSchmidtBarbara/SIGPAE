@@ -499,6 +499,71 @@
 
                 </div>
 
+               {{-- BLOQUE EVALUACIONES --}}
+                <div class="space-y-6 mt-10">
+
+                    <p class="separador">Evaluaciones</p>
+
+                    <div class="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+
+                        @if($planDeAccion->evaluaciones->isEmpty())
+                            <div class="p-6 text-sm text-gray-500 text-center">
+                                No hay evaluaciones registradas para este plan.
+                            </div>
+                        @else
+
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-600">
+                                            Fecha
+                                        </th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-600">
+                                            Tipo
+                                        </th>
+                                        <th class="px-4 py-3 text-left font-semibold text-gray-600">
+                                            Observaciones
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    @foreach($planDeAccion->evaluaciones->sortByDesc('created_at') as $evaluacion)
+                                        <tr 
+                                            onclick="window.location='{{ route('planDeAccion.editarEvaluacion', $evaluacion->id_evaluacion_plan_de_accion) }}'"
+                                            class="hover:bg-gray-50 cursor-pointer transition"
+                                        >
+                                            <td class="px-4 py-3">
+                                                {{ $evaluacion->created_at?->format('d/m/Y') ?? '-' }}
+                                            </td>
+
+                                            <td class="px-4 py-3">
+                                                {{ $evaluacion->tipo ?? '-' }}
+                                            </td>
+
+                                            <td class="px-4 py-3 text-gray-600 truncate max-w-xs">
+                                                {{ $evaluacion->observaciones ?? '-' }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+
+                        @endif
+                    </div>
+
+    {{-- BOTÓN NUEVA EVALUACIÓN --}}
+    @if($planDeAccion->estado_plan->value === 'ABIERTO')
+        <div class="text-right">
+            <a href="{{ route('planDeAccion.crearEvaluacion', $planDeAccion->id_plan_de_accion) }}"
+               class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition">
+                Nueva Evaluación
+            </a>
+        </div>
+    @endif
+
+</div>
+
             </fieldset>
 
             {{-- BOTONES --}}

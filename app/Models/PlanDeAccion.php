@@ -61,7 +61,7 @@ class PlanDeAccion extends Model
 
     public function evaluaciones(): hasMany
     {
-        return $this->hasMany(EvaluacionDePlan::class, 'fk_id_plan_de_accion', 'id_plan_de_accion');
+        return $this->hasMany(EvaluacionDePlan::class, 'fk_id_plan_de_accion', 'id_plan_de_accion')->orderByDesc('created_at');
     }
 
     public function aulas():BelongsToMany

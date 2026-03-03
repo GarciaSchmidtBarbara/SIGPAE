@@ -2,6 +2,10 @@
 
 @section('encabezado', 'Evaluación de Resultados')
 
+@php
+    $esEdicion = $esEdicion ?? false;
+@endphp
+
 @section('contenido')
 
 <div class="p-6 max-w-5xl mx-auto">
@@ -30,8 +34,15 @@
         </div>
     </div>
 
-    <form method="POST" action="{{ route('planDeAccion.guardarEvaluacion', $plan->id_plan_de_accion) }}">
+    <form method="POST"
+        action="{{ $esEdicion 
+                ? route('planDeAccion.actualizarEvaluacion', $evaluacion->id_evaluacion_plan_de_accion)
+                : route('planDeAccion.guardarEvaluacion', $plan->id_plan_de_accion) }}">
+
         @csrf
+        @if($esEdicion)
+            @method('PUT')
+        @endif
 
         <div class="space-y-6">
 
@@ -39,7 +50,9 @@
                 <div class="col-span-1 md:col-span-2">
                     <label>Criterios *</label>
                     <textarea name="criterios" rows="3"
-                        class="input-area w-full p-2 border border-gray-300 rounded-md required"></textarea>
+                        class="input-area w-full p-2 border border-gray-300 rounded-md required">
+                        {{ old('criterios', $esEdicion ? $evaluacion->criterios : '') }}
+                    </textarea>
                 </div>
             </div>
             
@@ -48,15 +61,19 @@
                 <div class="col-span-1 md:col-span-2">
                     <label>Observaciones</label>
                     <textarea name="observaciones" rows="3"
-                        class="input-area w-full p-2 border border-gray-300 rounded-md"></textarea>
+                        class="input-area w-full p-2 border border-gray-300 rounded-md">
+                        {{ old('observaciones', $esEdicion ? $evaluacion->observaciones : '') }}
+                    </textarea>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 ">
                 <div class="col-span-1 md:col-span-2  ">
                     <label class="font-semibold">Conclusiones *</label>
-                    <textarea name="conclusiones" rows="3"
-                        class="input-area w-full p-2 border border-gray-300 rounded-md required"></textarea>
+                        <textarea name="conclusiones" rows="3"
+                            class="input-area w-full p-2 border border-gray-300 rounded-md required">
+                            {{ old('conclusiones', $esEdicion ? $evaluacion->conclusiones : '') }}
+                        </textarea>
                 </div>
             </div>
 
@@ -68,7 +85,9 @@
                 Cancelar
             </a>
 
-            <button type="submit" class="btn-aceptar">Guardar Evaluación</button>
+            <button type="submit" class="btn-aceptar">
+                {{ $esEdicion ? 'Actualizar Evaluación' : 'Guardar Evaluación' }}
+            </button>
         </div>
 
     </form>

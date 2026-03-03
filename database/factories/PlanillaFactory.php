@@ -4,29 +4,21 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Planilla>
- */
+
 class PlanillaFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+   
     public function definition(): array
     {
         return [
             'anio' => 2025,
             'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
-            // Valores por defecto para que no falle si no usamos un estado
             'tipo_planilla' => 'GENÉRICA',
             'nombre_planilla' => 'Planilla Genérica',
             'datos_planilla' => [], 
         ];
     }
 
-    // --- ESTADO 1: ACTA DE EQUIPO (EI) ---
     public function actaEquipo()
     {
         return $this->state(function (array $attributes) {
@@ -57,7 +49,6 @@ class PlanillaFactory extends Factory
         });
     }
 
-    // --- ESTADO 2: PLANILLA MEDIAL ---
     public function planillaMedial()
     {
         return $this->state(function (array $attributes) {
@@ -87,7 +78,6 @@ class PlanillaFactory extends Factory
         });
     }
     
-    // --- ESTADO 3: ACTA BANDA (Docentes) ---
     public function actaBanda()
     {
         return $this->state(function (array $attributes) {

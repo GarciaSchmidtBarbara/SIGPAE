@@ -136,7 +136,7 @@ class AlumnoRepository implements AlumnoRepositoryInterface
 
         return Alumno::with(['persona', 'aula'])
             ->whereHas('persona', function ($sub) use ($like) {
-                $sub->where('dni', 'like', $like)
+                $sub->whereRaw('dni::text LIKE ?', [$like]) // Buscamos por DNI (convertido a texto para usar LIKE)
                     ->orWhere('nombre', 'ilike', $like) // ilike es para Postgres (insensible a mayúsculas)
                     ->orWhere('apellido', 'ilike', $like);
             })

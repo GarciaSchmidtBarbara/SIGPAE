@@ -26,6 +26,13 @@
 
     dniError: '',
 
+    // Banderas y controladores para el buscador de alumnos y familiares
+    isSearching: false,
+    abortController: null,
+
+    isSearchingFamiliar: false,
+    abortControllerFamiliar: null,
+
     // 3. Inicialización
 
     limpiarDatos() {
@@ -36,6 +43,9 @@
         this.formData.edad = '';
         this.formData.domicilio = '';
         this.formData.nacionalidad = '';
+        this.formData.curso = '';
+        this.formData.division = '';
+        this.formData.asiste_a_institucion = false;
         this.formData.fk_id_persona = null; // ¡Clave! Rompemos el vínculo
         this.isFilled = false; // Desbloqueamos
         this.selected = null;
@@ -150,26 +160,39 @@
             return; 
         }
 
+        // 1. Si ya hay una búsqueda en curso, la CANCELAMOS. Adiós resultados fantasma.
+        if (this.abortController) {
+            this.abortController.abort();
+        }
+        // 2. Creamos un nuevo controlador para esta búsqueda
+        this.abortController = new AbortController();
+
+        // 3. Activamos el cartelito de 'Buscando...'
+        this.isSearching = true;
+
         try {
-            // 1. Buscamos el ID del alumno en la sesión
             const excludeId = '{{ session('asistente.alumno.id_alumno', '') }}'; 
-            
-            // 2. Creamos la variable 'url' con la ruta base
             let url = '{{ route('alumnos.buscar') }}?q=' + encodeURIComponent(q);
             
-            // 3. Si estamos editando y hay un ID, se lo agregamos a esa url
             if (excludeId !== '') {
                 url += '&exclude_id=' + excludeId;
             }
 
-            // 4. Hacemos UN SOLO fetch usando la url final
-            const res = await fetch(url);
+            // 4. Le pasamos la señal de aborto al fetch
+            const res = await fetch(url, { signal: this.abortController.signal });
             
             if (!res.ok) return;
             
             this.results = await res.json();
         } catch(e) { 
-            console.error(e); 
+            // Si el error es porque nosotros lo cancelamos (AbortError), lo ignoramos.
+            // Si es un error real de red, lo mostramos.
+            if (e.name !== 'AbortError') {
+                console.error(e); 
+            }
+        } finally {
+            // 5. Ocultamos el cartelito de Buscando...
+            this.isSearching = false;
         }
     },
 
@@ -244,18 +267,35 @@
             return; 
         }
 
+        // 1. Cancelamos peticiones anteriores si el usuario teclea rápido
+        if (this.abortControllerFamiliar) {
+            this.abortControllerFamiliar.abort();
+        }
+        
+        // 2. Creamos un nuevo controlador para la búsqueda actual
+        this.abortControllerFamiliar = new AbortController();
+        
+        // 3. Mostramos el cartel de Buscando...
+        this.isSearchingFamiliar = true;
+
         try {
-            // Llama a la nueva ruta que creamos en web.php
-            const res = await fetch('{{ route('familiares.buscar') }}?q=' + encodeURIComponent(q));
+            // 4. Hacemos el fetch pasándole la señal de aborto
+            const res = await fetch('{{ route('familiares.buscar') }}?q=' + encodeURIComponent(q), {
+                signal: this.abortControllerFamiliar.signal
+            });
+            
             if (!res.ok) return;
             
             this.resultsFamiliares = await res.json();
             
-            // AGREGAMOS ESTO PARA VER QUÉ TRAE EL BACKEND:
-            console.log('Buscando:', q);
-            console.log('Resultados de la BD:', this.resultsFamiliares);
         } catch(e) { 
-            console.error(e); 
+            // 5. Si el error fue porque nosotros cancelamos la búsqueda, no hacemos nada
+            if (e.name !== 'AbortError') {
+                console.error(e); 
+            }
+        } finally {
+            // 6. Ocultamos el cartel de Buscando... pase lo que pase
+            this.isSearchingFamiliar = false;
         }
     },
 
@@ -369,7 +409,7 @@
                     <div class="flex-1">
                         <label class="text-sm font-medium text-gray-700 mb-1">Buscar Familiares (Opcional)</label>
                         <div class="relative">
-                            <input type="text" x-model.debounce.400ms="searchQueryFamiliar" @input="searchFamiliar()" placeholder="DNI / Nombre / Apellido" class="w-full border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="text" x-model="searchQueryFamiliar" @input.debounce.400ms="searchFamiliar()" placeholder="DNI / Nombre / Apellido" class="w-full border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <div x-show="searchErrorFamiliar" x-text="searchErrorFamiliar" class="text-xs text-red-600 mt-1 font-bold"></div>
                             
                             <div x-show="searchQueryFamiliar.length >= 1" class="absolute z-10 mt-1 w-full bg-white border rounded shadow">
@@ -379,7 +419,8 @@
                                         <span class="text-xs text-gray-500" x-text="' - DNI ' + fam.dni"></span>
                                     </button>
                                 </template>
-                                <div x-show="resultsFamiliares.length===0" class="px-3 py-2 text-sm text-gray-500">Sin resultados</div>
+                                <div x-show="isSearchingFamiliar" class="px-3 py-2 text-sm text-indigo-500 font-medium">Buscando...</div>
+                                <div x-show="!isSearchingFamiliar && resultsFamiliares.length === 0 && searchQueryFamiliar.length >= 1" class="px-3 py-2 text-sm text-indigo-500 font-medium">Sin resultados</div>
                             </div>
                         </div>
                     </div>
@@ -515,7 +556,7 @@
                     <div class="flex-1">
                         <label class="text-sm font-medium text-gray-700 mb-1">Buscar Alumnos</label>
                         <div class="relative">
-                            <input type="text" x-model.debounce.400ms="searchQuery" @input="search()" placeholder="DNI / Nombre / Apellido" class="w-full border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="text" x-model="searchQuery" @input.debounce.400ms="search()" placeholder="DNI / Nombre / Apellido" class="w-full border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <div x-show="searchError" x-text="searchError" class="text-xs text-red-600 mt-1 font-bold"></div>
                             <div x-show="searchQuery.length >= 1" class="absolute z-10 mt-1 w-full bg-white border rounded shadow">
                                 <template x-for="al in results" :key="al.id_alumno">
@@ -524,7 +565,8 @@
                                         <span class="text-xs text-gray-500" x-text="' - DNI ' + al.persona.dni"></span>
                                     </button>
                                 </template>
-                                <div x-show="results.length===0" class="px-3 py-2 text-sm text-gray-500">Sin resultados</div>
+                                <div x-show="isSearching" class="px-3 py-2 text-sm text-indigo-500 font-medium">Buscando...</div>
+                                <div x-show="!isSearching && results.length === 0 && searchQuery.length >= 1" class="px-3 py-2 text-sm text-indigo-500 font-medium">Sin resultados</div>
                             </div>
                         </div>
                     </div>

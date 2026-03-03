@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class DocumentoFactory extends Factory
 {
     protected $model = Documento::class;
-
-    // Archivos de muestra (simplemente placeholder paths, no archivos reales)
+    //Los archivos de muestra devuelven error porque no existen
+    //estamos usando rutas de ejemplo nomás
     private static array $nombrePlaceholders = [
         'Autorización familiar',
         'Informe psicopedagógico',
@@ -48,7 +48,6 @@ class DocumentoFactory extends Factory
         ];
     }
 
-    // ── Estado: Perfil de alumno ──────────────────────────────
 
     public function perfilAlumno(): static
     {
@@ -61,7 +60,6 @@ class DocumentoFactory extends Factory
         });
     }
 
-    // ── Estado: Plan de acción ────────────────────────────────
 
     public function planAccion(): static
     {
@@ -74,7 +72,6 @@ class DocumentoFactory extends Factory
         });
     }
 
-    // ── Estado: Intervención ──────────────────────────────────
 
     public function intervencion(): static
     {
@@ -87,7 +84,6 @@ class DocumentoFactory extends Factory
         });
     }
 
-    // ── Estado: Institucional ─────────────────────────────────
 
     public function institucional(): static
     {
