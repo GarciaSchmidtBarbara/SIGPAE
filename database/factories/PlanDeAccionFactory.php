@@ -31,11 +31,10 @@ class PlanDeAccionFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'tipo_plan' => TipoPlan::INDIVIDUAL->value,
         ])->afterCreating(function (PlanDeAccion $plan) {
-            // Asegura que tenga 1 alumno
+            //Asegura que tenga 1 alumno
             $alumno = Alumno::inRandomOrder()->first() ?? Alumno::factory()->create();
             $plan->alumnos()->attach($alumno->id_alumno);
             
-            // Opcional: Asegura que el profesional generador también participe.
             $plan->profesionalesParticipantes()->attach($plan->fk_id_profesional_generador);
         });
     }
@@ -45,15 +44,12 @@ class PlanDeAccionFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'tipo_plan' => TipoPlan::GRUPAL->value,
         ])->afterCreating(function (PlanDeAccion $plan) {
-            // Adjunta una o dos aulas existentes
             $aulas = Aula::inRandomOrder()->take($this->faker->numberBetween(1, 2))->get();
             $plan->aulas()->attach($aulas->pluck('id_aula'));
             
-            // Adjunta algunos alumnos de manera aleatoria
             $alumnos = Alumno::inRandomOrder()->take($this->faker->numberBetween(5, 10))->get();
             $plan->alumnos()->attach($alumnos->pluck('id_alumno'));
             
-            // Añade un profesional participante adicional
             $profesional = Profesional::inRandomOrder()->where('id_profesional', '!=', $plan->fk_id_profesional_generador)->first();
             if ($profesional) {
                 $plan->profesionalesParticipantes()->attach($profesional->id_profesional);
@@ -66,7 +62,6 @@ class PlanDeAccionFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'tipo_plan' => TipoPlan::INSTITUCIONAL->value,
         ])->afterCreating(function (PlanDeAccion $plan) {
-            // Puede que no tenga destinatarios, pero puede tener varios responsables (participantes)
             $profesionales = Profesional::inRandomOrder()->take($this->faker->numberBetween(1, 3))->get();
             $plan->profesionalesParticipantes()->attach($profesionales->pluck('id_profesional'));
         });

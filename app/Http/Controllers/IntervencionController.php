@@ -70,7 +70,7 @@ class IntervencionController extends Controller
             'alumnos' => 'nullable|array',
             'alumnos.*' => 'integer|exists:alumnos,id_alumno',
             'fk_id_profesional_generador' => 'required|integer|exists:profesionales,id_profesional',
-            'plan_de_accion' => 'nullable|integer|exists:plan_de_accion,id_plan_de_accion',
+            'plan_de_accion' => 'nullable|integer|exists:planes_de_accion,id_plan_de_accion',
         ]);
         $data['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
 

@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Enums\TipoNotificacion;
 
 class Notificacion extends Model
 {
+    use HasFactory;
     protected $table = 'notificaciones';
     protected $primaryKey = 'id_notificacion';
 

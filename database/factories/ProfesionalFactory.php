@@ -9,18 +9,10 @@ use Illuminate\Support\Str;
 
 class ProfesionalFactory extends Factory
 {
-    /**
-     * The name of the factory's corresponding model.
-     *
-     * @var string
-     */
+    
     protected $model = Profesional::class;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array
-     */
+    
     public function definition(): array
     {
 
@@ -36,8 +28,16 @@ class ProfesionalFactory extends Factory
             'email' => $usuarioSimulado . '@' . $this->faker->unique()->domainWord() . '.gob.ar',
             'siglas' => $siglaAleatoria,
             'profesion' => $siglaAleatoria->label(),
-            'contrasenia' => 'password', 
+            'contrasenia' => 'password',
+            'activo' => true,
         ];
+    }
+
+    public function inactivo(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'activo' => false,
+        ]);
     }
   
 }

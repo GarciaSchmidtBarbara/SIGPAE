@@ -17,10 +17,9 @@ class EventoFactory extends Factory
     {
         $tipoEvento = $this->faker->randomElement(TipoEvento::cases());
         
-        // Para DERIVACION_EXTERNA usamos un string en notas, para otros tipos dejamos notas normales
         $notas = $tipoEvento === TipoEvento::DERIVACION_EXTERNA 
             ? 'Profesional externo: ' . $this->faker->name() 
-            : $this->faker->optional(0.6)->sentence(8); // Máximo 8 palabras para no exceder 255 caracteres
+            : $this->faker->optional(0.6)->sentence(8); 
 
         return [
             'fecha_hora' => $this->faker->dateTimeBetween('-1 month', '+2 months')
@@ -39,19 +38,16 @@ class EventoFactory extends Factory
             'notas' => $notas,
             'profesional_tratante' => $this->faker->optional(0.3)->name(),
             'periodo_recordatorio' => $this->faker->optional(0.5)->randomElement([1, 3, 7, 15]),
-            'fk_id_profesional_creador' => Profesional::inRandomOrder()->first()->id_profesional,
+            'fk_id_profesional_creador' => Profesional::inRandomOrder()->first()?->id_profesional ?? Profesional::factory()->create()->id_profesional,
         ];
     }
 
-    /**
-     * Configurar el evento después de crearlo
-     */
+    
     public function configure()
     {
         return $this->afterCreating(function (Evento $evento) {
-            // Para DERIVACION_EXTERNA no agregamos profesionales invitados
+            //Para DERIVACION_EXTERNA no agregamos profesionales invitados
             if ($evento->tipo_evento !== TipoEvento::DERIVACION_EXTERNA) {
-                // Agregar profesionales invitados (1-3 profesionales)
                 $profesionales = Profesional::inRandomOrder()
                     ->take(fake()->numberBetween(1, 3))
                     ->get();
@@ -65,7 +61,6 @@ class EventoFactory extends Factory
                 }
             }
 
-            // Agregar alumnos relacionados (1-5 alumnos para eventos que no sean RG)
             if ($evento->tipo_evento !== TipoEvento::RG) {
                 $alumnos = Alumno::inRandomOrder()
                     ->take(fake()->numberBetween(1, 5))
@@ -75,7 +70,6 @@ class EventoFactory extends Factory
                 $evento->alumnos()->attach($alumnos);
             }
 
-            // Agregar aulas para eventos BANDA o RG (1-2 aulas)
             if (in_array($evento->tipo_evento, [TipoEvento::BANDA, TipoEvento::RG])) {
                 $aulas = Aula::inRandomOrder()
                     ->take(fake()->numberBetween(1, 2))
@@ -87,9 +81,6 @@ class EventoFactory extends Factory
         });
     }
 
-    /**
-     * Estado para evento tipo BANDA
-     */
     public function banda(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -98,9 +89,6 @@ class EventoFactory extends Factory
         ]);
     }
 
-    /**
-     * Estado para evento tipo Reunión de Gabinete
-     */
     public function reunionGabinete(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -109,9 +97,7 @@ class EventoFactory extends Factory
         ]);
     }
 
-    /**
-     * Estado para evento tipo Reunión Derivación
-     */
+ 
     public function reunionDerivacion(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -120,9 +106,6 @@ class EventoFactory extends Factory
         ]);
     }
 
-    /**
-     * Estado para evento tipo Cita Familiar
-     */
     public function citaFamiliar(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -131,9 +114,6 @@ class EventoFactory extends Factory
         ]);
     }
 
-    /**
-     * Estado para evento tipo Derivación Externa
-     */
     public function derivacionExterna(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -143,9 +123,6 @@ class EventoFactory extends Factory
         ]);
     }
 
-    /**
-     * Estado para evento en el pasado
-     */
     public function pasado(): static
     {
         return $this->state(fn (array $attributes) => [
@@ -154,9 +131,6 @@ class EventoFactory extends Factory
         ]);
     }
 
-    /**
-     * Estado para evento futuro
-     */
     public function futuro(): static
     {
         return $this->state(fn (array $attributes) => [
