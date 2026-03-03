@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
         contentHeight: 260,
         aspectRatio: 1.35,
         navLinks: false,
-        editable: true,
+        editable: false,
         selectable: true,
         selectMirror: true,
         dayMaxEvents: 3,
@@ -104,68 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }));
         },
 
-        // Arrastrar y soltar eventos
-        eventDrop: function (info) {
-            const evento = info.event;
-            const nuevaFecha = evento.start.toISOString();
-
-            // TODO: Actualizar evento en el servidor
-            console.log(`Evento ${evento.id} movido a ${nuevaFecha}`);
-
-            // if (!confirm(`¿Mover "${evento.title}" a ${nuevaFecha}?`)) {
-            //     info.revert();
-            // } else {
-            //     actualizarEvento(evento.id, { fecha_hora: nuevaFecha });
-            // }
-        }
     });
 
     calendar.render();
-
-    // Función helper para crear evento  (Hacer)
-    function crearEvento(fecha, titulo) {
-        fetch('/eventos', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({
-                fecha_hora: fecha,
-                tipo_evento: 'general',
-                lugar: '',
-                notas: titulo
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                calendar.refetchEvents();
-                alert('Evento creado correctamente');
-            })
-            .catch(error => {
-                console.error('Error creando evento:', error);
-                alert('Error al crear el evento');
-            });
-    }
-
-    // Función helper para actualizar evento (hacer...)
-    function actualizarEvento(id, data) {
-        fetch(`/eventos/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json())
-            .then(data => {
-                calendar.refetchEvents();
-            })
-            .catch(error => {
-                console.error('Error actualizando evento:', error);
-            });
-    }
 });
