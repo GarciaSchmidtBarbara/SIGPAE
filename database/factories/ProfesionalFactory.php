@@ -28,8 +28,16 @@ class ProfesionalFactory extends Factory
             'email' => $usuarioSimulado . '@' . $this->faker->unique()->domainWord() . '.gob.ar',
             'siglas' => $siglaAleatoria,
             'profesion' => $siglaAleatoria->label(),
-            'contrasenia' => 'password', 
+            'contrasenia' => 'password',
+            'activo' => true,
         ];
+    }
+
+    public function inactivo(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'activo' => false,
+        ]);
     }
   
 }

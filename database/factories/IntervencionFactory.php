@@ -30,7 +30,7 @@ class IntervencionFactory extends Factory
             'tipo_intervencion' => $tipo,
             'fk_id_profesional_generador' => Profesional::inRandomOrder()->first()->id_profesional,
             'fk_id_plan_de_accion' => $tipo === 'PROGRAMADA'
-                ? PlanDeAccion::inRandomOrder()->first()->id_plan_de_accion
+                ? (PlanDeAccion::inRandomOrder()->first()?->id_plan_de_accion ?? PlanDeAccion::factory()->create()->id_plan_de_accion)
                 : null,
             'fk_id_evaluacion_intervencion_espontanea' => null,
         ];

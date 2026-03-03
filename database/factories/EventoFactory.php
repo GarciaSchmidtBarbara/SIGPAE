@@ -38,7 +38,7 @@ class EventoFactory extends Factory
             'notas' => $notas,
             'profesional_tratante' => $this->faker->optional(0.3)->name(),
             'periodo_recordatorio' => $this->faker->optional(0.5)->randomElement([1, 3, 7, 15]),
-            'fk_id_profesional_creador' => Profesional::inRandomOrder()->first()->id_profesional,
+            'fk_id_profesional_creador' => Profesional::inRandomOrder()->first()?->id_profesional ?? Profesional::factory()->create()->id_profesional,
         ];
     }
 

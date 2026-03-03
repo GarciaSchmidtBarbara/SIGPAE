@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use App\Models\Evento;
 use App\Models\Profesional;
 use App\Models\Persona;
@@ -16,25 +17,23 @@ class EventoTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected Profesional $profesional;
-    protected Persona $persona;
-
     protected function setUp(): void
     {
         parent::setUp();
+        $this->artisan('migrate:fresh');
         
         // Crear aulas primero (necesario para alumnos)
         Aula::factory()->count(3)->create();
         
         // Crear un profesional para autenticación
-        $this->persona = Persona::factory()->create();
+        $persona = Persona::factory()->create();
         $this->profesional = Profesional::factory()->create([
-            'fk_id_persona' => $this->persona->id_persona,
+            'fk_id_persona' => $persona->id_persona,
             'contrasenia' => Hash::make('password123'),
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function usuario_autenticado_puede_ver_lista_de_eventos()
     {
         // Crear algunos eventos
@@ -49,7 +48,7 @@ class EventoTest extends TestCase
         $response->assertViewIs('eventos.principal');
     }
 
-    /** @test */
+    #[Test]
     public function usuario_no_autenticado_no_puede_acceder_a_eventos()
     {
         $response = $this->get(route('eventos.principal'));
@@ -57,7 +56,7 @@ class EventoTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    /** @test */
+    #[Test]
     public function puede_crear_evento_banda()
     {
         $aula = Aula::inRandomOrder()->first();
@@ -93,7 +92,7 @@ class EventoTest extends TestCase
         $this->assertCount(1, $evento->aulas);
     }
 
-    /** @test */
+    #[Test]
     public function puede_crear_evento_derivacion_externa_sin_profesionales()
     {
         $aula = Aula::inRandomOrder()->first();
@@ -118,7 +117,7 @@ class EventoTest extends TestCase
         $this->assertStringContainsString('Dr. Juan Pérez', $evento->notas);
     }
 
-    /** @test */
+    #[Test]
     public function puede_actualizar_evento_existente()
     {
         $evento = Evento::factory()->create([
@@ -145,7 +144,7 @@ class EventoTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function puede_ver_detalle_de_evento()
     {
         $evento = Evento::factory()->create([
@@ -160,7 +159,7 @@ class EventoTest extends TestCase
         $response->assertViewHas('evento');
     }
 
-    /** @test */
+    #[Test]
     public function puede_actualizar_confirmacion_de_asistencia()
     {
         $evento = Evento::factory()->create([
@@ -185,7 +184,7 @@ class EventoTest extends TestCase
         $this->assertEquals(1, $invitacion->confirmacion);
     }
 
-    /** @test */
+    #[Test]
     public function calendario_devuelve_eventos_en_formato_correcto()
     {
         Evento::factory()->count(5)->create([
@@ -207,7 +206,7 @@ class EventoTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function no_puede_crear_evento_sin_fecha()
     {
         $datosEvento = [
@@ -221,7 +220,7 @@ class EventoTest extends TestCase
         $response->assertSessionHasErrors(['fecha_hora']);
     }
 
-    /** @test */
+    #[Test]
     public function no_puede_crear_evento_sin_tipo()
     {
         $datosEvento = [
@@ -235,7 +234,7 @@ class EventoTest extends TestCase
         $response->assertSessionHasErrors(['tipo_evento']);
     }
 
-    /** @test */
+    #[Test]
     public function puede_crear_evento_reunion_gabinete()
     {
         $aula = Aula::inRandomOrder()->first();
@@ -259,7 +258,7 @@ class EventoTest extends TestCase
         $this->assertCount(1, $evento->aulas);
     }
 
-    /** @test */
+    #[Test]
     public function puede_crear_evento_cita_familiar()
     {
         $aula = Aula::inRandomOrder()->first();
@@ -282,7 +281,7 @@ class EventoTest extends TestCase
         $this->assertCount(1, $evento->alumnos);
     }
 
-    /** @test */
+    #[Test]
     public function evento_pasado_no_permite_modificar_fecha()
     {
         $evento = Evento::factory()->pasado()->create([
@@ -297,7 +296,7 @@ class EventoTest extends TestCase
         $response->assertViewHas('evento');
     }
 
-    /** @test */
+    #[Test]
     public function puede_agregar_multiples_profesionales_a_evento()
     {
         $profesionales = Profesional::factory()->count(3)->create();
@@ -321,7 +320,7 @@ class EventoTest extends TestCase
         $this->assertCount(3, $evento->esInvitadoA);
     }
 
-    /** @test */
+    #[Test]
     public function puede_agregar_multiples_alumnos_a_evento()
     {
         $aula = Aula::inRandomOrder()->first();
@@ -344,7 +343,7 @@ class EventoTest extends TestCase
         $this->assertCount(5, $evento->alumnos);
     }
 
-    /** @test */
+    #[Test]
     public function evento_con_recordatorio_se_guarda_correctamente()
     {
         $datosEvento = [
