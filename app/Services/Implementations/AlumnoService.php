@@ -157,9 +157,15 @@ class AlumnoService implements AlumnoServiceInterface
         ];
 
         // Unificar familiares puros con hermanos alumnos (en ambas direcciones)
-        $coleccionUnificada = $alumno->familiares
-            ->merge($alumno->esHermanoDe)
-            ->merge($alumno->hermanos);
+        // 1. Unificamos los hermanos entre sí primero. 
+        // El merge de Eloquent aquí es perfecto porque limpia la recursividad 
+        // (Alumno A con Alumno B) usando sus IDs de Alumno.
+        $hermanosUnificados = $alumno->esHermanoDe->merge($alumno->hermanos);
+
+        // 2. Ahora usamos concat para unir los dos "bloques" distintos.
+        // Convertimos a base para que el ID de Familiar 2 no choque con el ID de Alumno 2.
+        $coleccionUnificada = $alumno->familiares->toBase()
+            ->concat($hermanosUnificados->toBase());
 
         $familiares = $coleccionUnificada->map(function ($item) {
             $data = $item->toArray();

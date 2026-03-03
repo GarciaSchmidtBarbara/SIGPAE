@@ -215,17 +215,39 @@ class FamiliarController extends Controller
             // Usamos array_merge para conservar cualquier dato del array original 
             // que no este en el formulario, y sobreescribimos con los nuevos datos.
             $familiares[$indice] = array_merge($familiares[$indice], $datosFamiliar);
+            $accion = 'actualizar';
         } else {
             // MODO CREAR:
-            // Simplemente agregamos el nuevo familiar al final del array.
-            $familiares[] = $datosFamiliar;
+            // Caso B: El usuario viene de usar vincular un nuevo familair
+            $dniNuevo = $datosFamiliar['dni'];
+            $indiceExistente = null;
+
+            // Buscamos si este DNI ya estaba en la sesión (para no duplicar hermanos o familiares ya cargados)
+            foreach ($familiares as $key => $f) {
+                if (isset($f['dni']) && $f['dni'] == $dniNuevo) {
+                    $indiceExistente = $key;
+                    break;
+                }
+            }
+
+            if ($indiceExistente !== null) {
+                // Si ya existía por DNI, lo actualizamos en su lugar
+                $familiares[$indiceExistente] = array_merge($familiares[$indiceExistente], $datosFamiliar);
+                $accion = 'actualizar';
+            } else {
+                // Si es realmente nuevo, lo agregamos
+                $familiares[] = $datosFamiliar;
+                $accion = 'vincular';
+            }
         }
 
         // 5. Actualizamos la sesión
         session(['asistente.familiares' => $familiares]);
 
         // 6. Volvemos al Hub (Vista 1) usando la ruta de retorno seguro
-        return redirect()->route('alumnos.continuar');
+        $mensaje = "Familiar listo para {$accion}.\n\nRecuerde guardar los cambios del alumno.";
+        return redirect()->route('alumnos.continuar')
+                         ->with('success', $mensaje);
     }
 
     public function validarDniAjax(Request $request): JsonResponse
