@@ -6,7 +6,7 @@
 <div x-data="eventoForm({{ isset($evento) ? 'true' : 'false' }}, {{ isset($evento) && $evento->fecha_hora->isPast() ? 'true' : 'false' }})" class="space-y-6">
     <form method="POST" 
           action="{{ isset($evento) ? route('eventos.actualizar', $evento->id_evento) : route('eventos.guardar') }}"
-          @submit.prevent="validarYGuardar">
+          @submit.prevent="validarYGuardar" class="space-y-6">
         @csrf
         @if(isset($evento))
             @method('PUT')
@@ -23,8 +23,8 @@
         </template>
 
         <!-- Información del Evento -->
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-            <h3 class="text-lg font-semibold text-primary border-b pb-2">Información del evento</h3>
+        <div class="space-y-4 mb-6">
+            <h3 class="separador">Información del evento</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Tipo de evento -->
@@ -71,8 +71,8 @@
         </div>
 
         <!-- Profesionales -->
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-            <h3 class="text-lg font-semibold text-primary border-b pb-2">Profesionales</h3>
+        <div class="space-y-4 mb-6">
+            <h3 class="separador">Profesionales</h3>
             
             <div class="space-y-2">
                 <template x-for="(prof, index) in profesionales" :key="index">
@@ -130,8 +130,8 @@
         </div>
 
         <!-- Participantes (Cursos y Alumnos) -->
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-            <h3 class="text-lg font-semibold text-primary border-b pb-2">Participantes</h3>
+        <div class="space-y-4 mb-6">
+            <h3 class="separador">Participantes</h3>
             
             <!-- Cursos -->
             <div>
@@ -237,8 +237,8 @@
         </div>
 
         <!-- Notas -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-primary border-b pb-2 mb-4">Notas</h3>
+        <div class="space-y-4 mb-6">
+            <h3 class="separador">Notas</h3>
             <textarea name="notas" 
                       x-model="formData.notas"
                       :disabled="esEventoFinalizado"
@@ -252,7 +252,7 @@
             <button type="submit" class="btn-aceptar">
                 <span x-text="esEventoFinalizado ? 'Guardar cambios' : 'Guardar'"></span>
             </button>
-            <a href="{{ url()->previous() }}" class="btn-volver">Volver</a>
+            <a href="{{ route('eventos.principal') }}" class="btn-volver">Volver</a>
         </div>
     </form>
 </div>

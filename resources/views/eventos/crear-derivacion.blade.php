@@ -6,15 +6,15 @@
 <div x-data="derivacionForm()" x-init="init()" class="space-y-6">
     <form method="POST"
           action="{{ isset($evento) ? route('eventos.actualizar-derivacion', $evento->id_evento) : route('eventos.guardar-derivacion') }}"
-          @submit.prevent="validarYGuardar">
+          @submit.prevent="validarYGuardar" class="space-y-6">
         @csrf
         @if(isset($evento))
             @method('PUT')
         @endif
 
         <!-- Detalles de la derivación externa -->
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-            <h3 class="text-lg font-semibold text-primary border-b pb-2">Detalles de la derivación externa</h3>
+        <div class="space-y-4 mb-6">
+            <h3 class="separador">Detalles de la Derivación Externa</h3>
             
             <div>
                 <x-campo-requerido text="Descripción externa" required />
@@ -29,8 +29,8 @@
         </div>
 
         <!-- Agendar recordatorio -->
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-            <h3 class="text-lg font-semibold text-primary border-b pb-2">Agendar recordatorio</h3>
+        <div class="space-y-4 mb-6">
+            <h3 class="separador">Agendar recordatorio</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -75,8 +75,8 @@
         </div>
 
         <!-- Participantes -->
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-            <h3 class="text-lg font-semibold text-primary border-b pb-2">Participantes</h3>
+        <div class="space-y-4 mb-6">
+            <h3 class="separador">Participantes</h3>
             
             <!-- Buscador de alumnos -->
             <div class="flex items-end gap-3">
@@ -141,8 +141,8 @@
         </div>
 
         <!-- Notas -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-semibold text-primary border-b pb-2 mb-4">Notas</h3>
+        <div class="space-y-4 mb-6">
+            <h3 class="separador">Notas</h3>
             <textarea name="notas" 
                       x-model="formData.notas"
                       rows="4"
@@ -166,7 +166,7 @@ function derivacionForm() {
             fecha: '{{ old('fecha', isset($evento) ? ($evento->fecha_hora?->format('Y-m-d') ?? '') : '') }}',
             lugar: '{{ old('lugar', $evento->lugar ?? '') }}',
             profesional_tratante: '{{ old('profesional_tratante', $evento->profesional_tratante ?? '') }}',
-            periodo_recordatorio: {{ old('periodo_recordatorio', $evento->periodo_recordatorio ?? '') }},
+            periodo_recordatorio: '{{ old('periodo_recordatorio', $evento->periodo_recordatorio ?? '') }}',
             notas: '{{ old('notas', '') }}'
         },
         alumnosSeleccionados: @json(old('alumnos', $alumnosEvento ?? [])),
