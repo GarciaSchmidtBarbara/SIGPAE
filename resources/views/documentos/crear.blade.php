@@ -36,6 +36,9 @@
         archivoError: false,
         MAX_SIZE: {{ \App\Models\Documento::MAX_SIZE_BYTES }},
         FORMATOS_OK: ['pdf','doc','docx','xls','xlsx','jpg','jpeg','png'],
+        errors: { nombre: '', archivo: '', entidad: '' },
+
+        limpiarError(campo) { this.errors[campo] = ''; },
 
         get necesitaEntidad() {
             return this.contexto !== 'institucional';
@@ -53,13 +56,36 @@
                 return;
             }
             this.archivoError = false;
+            this.errors.archivo = '';
             this.archivoNombre = file.name;
             this.archivoTamanio = file.size >= 1048576
                 ? (file.size / 1048576).toFixed(2) + ' MB'
                 : Math.round(file.size / 1024) + ' KB';
         },
 
-        guardar() { this.$refs.formDocumento.submit(); },
+        guardar() {
+            this.errors = { nombre: '', archivo: '', entidad: '' };
+            let hayError = false;
+
+            const nombre = this.$refs.formDocumento.querySelector('[name=nombre]')?.value?.trim();
+            if (!nombre) {
+                this.errors.nombre = 'Debe ingresar el nombre del documento'; hayError = true;
+            }
+
+            if (!this.archivoNombre) {
+                this.errors.archivo = 'Debe seleccionar un archivo'; hayError = true;
+            }
+
+            if (this.necesitaEntidad) {
+                const selects = this.$refs.formDocumento.querySelectorAll('[name=fk_id_entidad]');
+                const activo = Array.from(selects).find(s => !s.disabled);
+                if (!activo?.value) {
+                    this.errors.entidad = 'Debe seleccionar una entidad asociada'; hayError = true;
+                }
+            }
+
+            if (!hayError) this.$refs.formDocumento.submit();
+        },
      }">
 
     <form id="form-documento"
@@ -69,7 +95,7 @@
           enctype="multipart/form-data">
         @csrf
 
-        {{-- ── Nombre ─────────────────────────────────────────────── --}}
+        {{-- Nombre --}}
         <div class="mb-5">
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 Nombre del documento <span class="text-red-500">*</span>
@@ -77,13 +103,14 @@
             <input type="text"
                    name="nombre"
                    value="{{ old('nombre') }}"
-                   required
                    maxlength="255"
+                   @input="limpiarError('nombre')"
                    class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
                    placeholder="Ej: Autorización familiar - Juan Pérez">
+            <div x-show="errors.nombre" x-text="errors.nombre" class="text-xs text-red-600 mt-1"></div>
         </div>
 
-        {{-- ── Contexto ────────────────────────────────────────────── --}}
+        {{-- Contexto --}}
         <fieldset class="mb-5 border border-indigo-300 rounded-lg p-4">
             <legend class="text-sm font-semibold text-indigo-700 px-2">Contexto</legend>
             <div class="flex flex-wrap gap-6">
@@ -105,7 +132,7 @@
             </div>
         </fieldset>
 
-        {{-- ── Entidad asociada (Alumno / Plan / Intervención) ─────── --}}
+        {{-- Entidad asociada (Alumno / Plan / Intervención) --}}
         <div x-show="necesitaEntidad" x-cloak
              x-transition
              class="mb-5 border border-indigo-300 rounded-lg p-4">
@@ -159,9 +186,10 @@
                     </option>
                 @endforeach
             </select>
+            <div x-show="errors.entidad" x-text="errors.entidad" class="text-xs text-red-600 mt-1"></div>
         </div>
 
-        {{-- ── Disponibilidad ──────────────────────────────────────── --}}
+        {{--Disponibilidad --}}
         <fieldset class="mb-5 border border-indigo-300 rounded-lg p-4">
             <legend class="text-sm font-semibold text-indigo-700 px-2">Disponibilidad del Documento</legend>
             <div class="flex gap-8">
@@ -184,7 +212,7 @@
             </div>
         </fieldset>
 
-        {{-- ── Insertar documento ──────────────────────────────────── --}}
+        {{-- Insertar documento --}}
         <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-1">
                 Insertar Documento <span class="text-red-500">*</span>
@@ -195,7 +223,6 @@
                     Examinar
                     <input type="file"
                            name="archivo"
-                           required
                            class="hidden"
                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                            @change="onArchivoChange($event)">
@@ -209,13 +236,14 @@
                class="mt-1 text-xs text-red-600">
                 Formato o tamaño no válido. Use: PDF, DOC, DOCX, XLS, XLSX, JPG o PNG (máx. 10 MB).
             </p>
+            <p x-show="errors.archivo && !archivoError" x-text="errors.archivo" class="mt-1 text-xs text-red-600"></p>
 
             <p class="mt-1 text-xs text-gray-400">
                 Solo archivos en formato PDF, DOC, DOCX, XLS, XLSX, JPG, PNG · Tamaño máximo: 10 MB
             </p>
         </div>
 
-        {{-- ── Botones ─────────────────────────────────────────────── --}}
+        {{--Botones --}}
         <div class="fila-botones">
             <button type="button"
                     class="btn-aceptar"
