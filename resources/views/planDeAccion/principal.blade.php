@@ -1,3 +1,5 @@
+use Illuminate\Support\Str;
+
 @extends('layouts.base')
 
 @section('encabezado', 'Planes de acción')
@@ -5,11 +7,11 @@
 
 @section('contenido')
 
-<div class="p-6">
+<div class="px-4 py-6 md:p-6">
     <form id="form-plan" method="GET" action="{{ route('planDeAccion.principal') }}" 
-        class="flex gap-2 mb-6 flex-nowrap items-center justify-between">    
+        class="flex flex-col md:flex-row md:flex-wrap gap-3 mb-6">    
 
-        <div class="flex gap-3 items-center">
+        <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
             <a class="btn-aceptar" href="{{ route('planDeAccion.iniciar-creacion') }}">Crear Plan de Acción</a>
 
             <a href="{{ route('planDeAccion.papelera') }}"
@@ -21,10 +23,17 @@
                     Ver Papelera
             </a>
         </div>
+        
+        {{-- Separador para móviles --}}
+        <div class="border-t pt-4 mt-2 md:hidden"> 
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Buscar planes
+            </p>
+        </div>
 
-        <input name="alumno" placeholder="Alumno (Nombre/DNI)" class="border px-2 py-1 rounded w-1/5" value="{{ request('alumno') }}">
+        <input name="alumno" placeholder="Alumno (Nombre/DNI)" class="form-input w-full md:w-1/5" value="{{ request('alumno') }}">
 
-        <select name="tipo" class="border px-2 py-1 rounded">
+        <select name="tipo" class="form-input w-full md:w-auto">
             <option value="" {{ request('tipo') === null ? 'selected' : '' }}>Todos los Tipos</option>
             @foreach($tipos as $tipo)
                 <option value="{{ $tipo }}" {{ request('tipo') === $tipo ? 'selected' : '' }}>
@@ -33,14 +42,14 @@
             @endforeach
         </select>
 
-        <select name="estado" class="border px-2 py-1 rounded w-1/5">
+        <select name="estado" class="form-input w-full md:w-1/5">
             <option value="" {{ request('estado') === null ? 'selected' : '' }}>Todos</option>
             <option value="activos" {{ request('estado') === 'activos' ? 'selected' : '' }}>Abiertos</option>
             <option value="inactivos" {{ request('estado') === 'inactivos' ? 'selected' : '' }}>Cerrados</option>
         </select>
 
 
-        <select name="curso" class="border px-2 py-1 rounded w-1/5">
+        <select name="curso" class="form-input w-full md:w-1/5">
             <option value="">Todos los cursos</option>
             @foreach($aulas as $aula)
                 <option value="{{ $aula->id }}" {{ (int)request('curso') === $aula->id ? 'selected' : '' }}>
@@ -48,7 +57,6 @@
                 </option>
             @endforeach
         </select>
-        
 
         <button type="submit" class="btn-aceptar">Filtrar</button>
         <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}" >Limpiar</a>
@@ -85,7 +93,13 @@
                         $destinatarios->push(...$plan->aulas->map(fn($aula) => 'Aula: ' . $aula->descripcion));
                     }
 
-                    return $destinatarios->isNotEmpty() ? $destinatarios->implode(', ') : '—';
+                    $texto = $destinatarios->isNotEmpty()
+                        ? $destinatarios->implode(', ')
+                        : '—';
+
+                    $corto = \Illuminate\Support\Str::limit($texto, 30, '...');
+
+                    return '<span title="'.e($texto).'">'.$corto.'</span>';
                 }
             ],
             [
@@ -113,7 +127,7 @@
         ]
     @endphp
     {{-- Lógica de la Tabla Dinámica --}}
-<div class="data-table-to-print">
+<div class="data-table-to-print bg-white rounded-xl shadow-sm">
     <x-tabla-dinamica 
         
         :filas="$planesDeAccion"

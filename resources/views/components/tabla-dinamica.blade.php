@@ -8,14 +8,20 @@
 ])
 {{-- TABLA MOBILE GENÉRICA --}}
 <div class="md:hidden overflow-x-auto">
-    <table class="min-w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+    <table class="min-w-max text-sm border border-gray-200 rounded-lg">
         <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
             <tr>
-                @foreach(array_slice($columnas, 0, 3) as $col)
+                @foreach($columnas as $col)
                     <th class="px-3 py-2 text-left">
                         {{ is_array($col) ? $col['label'] : ucfirst($col) }}
                     </th>
                 @endforeach
+
+                @if (is_callable($acciones))
+                    <th class="px-3 py-2 text-left">
+                        Acciones
+                    </th>
+                @endif
             </tr>
         </thead>
 
@@ -27,7 +33,7 @@
                 @else
                     class="hover:bg-gray-50"
                 @endif>
-                    @foreach(array_slice($columnas, 0, 3) as $col)
+                    @foreach($columnas as $col)
 
                         @php
                             $key = is_array($col) ? $col['key'] : $col;
@@ -52,10 +58,15 @@
                         </td>
 
                     @endforeach
+                    @if (is_callable($acciones))
+                        <td class="px-3 py-2 whitespace-nowrap">
+                            {!! $acciones($fila) !!}
+                        </td>
+                    @endif
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3" class="px-3 py-4 text-center text-gray-500">
+                    <td colspan="{{ count($columnas) + (is_callable($acciones) ? 1 : 0) }}" class="px-3 py-4 text-center text-gray-500">
                         No hay registros disponibles.
                     </td>
                 </tr>
@@ -66,7 +77,7 @@
 
 {{--desktop, tabla tradicional--}}
 <div class="hidden md:block overflow-x-auto">
-    <table  class="modern-table text-sm">
+    <table  class="modern-table text-sm min-w-max">
         <thead class="bg-gray-100">
             <tr>
                 @foreach ($columnas as $col)
