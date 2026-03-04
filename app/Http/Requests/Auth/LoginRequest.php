@@ -23,6 +23,7 @@ class LoginRequest extends FormRequest
         return [
             'usuario' => ['required', 'string'],
             'contrasenia' => ['required', 'string'],
+            'remember' => ['nullable', 'boolean'],
         ];
     }
 
@@ -52,7 +53,7 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        Auth::guard('web')->login($prof);
+        Auth::guard('web')->login($prof, $this->boolean('remember'));
 
         $this->session()->regenerate();
 

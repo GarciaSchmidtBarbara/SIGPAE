@@ -26,6 +26,11 @@
                     <input type="password" name="contrasenia" required class="input-form-login w-full">
                 </div>
 
+                <div class="mb-4 flex items-center">
+                    <input type="checkbox" name="remember" id="remember" class="mr-2">
+                    <label for="remember" class="text-sm">Recordarme</label>
+                </div>
+
                 @if ($errors->any())
                     <div class="text-red-500 mt-2">
                         <ul>
