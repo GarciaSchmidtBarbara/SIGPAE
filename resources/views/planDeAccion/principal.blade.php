@@ -6,32 +6,25 @@
 @section('contenido')
 
 <div class="px-4 py-6 md:p-6">
-    <form id="form-plan" method="GET" action="{{ route('planDeAccion.principal') }}" 
-        class="flex flex-col md:flex-row md:flex-wrap gap-3 mb-6">    
+    <form id="form-plan" x-ref="filtroForm" method="GET" action="{{ route('planDeAccion.principal') }}" 
+        class="flex flex-wrap items-center gap-3 mb-6">    
 
-        <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
-            <a class="btn-aceptar" href="{{ route('planDeAccion.iniciar-creacion') }}">Crear Plan de Acción</a>
+        <a class="btn-aceptar shrink-0" href="{{ route('planDeAccion.iniciar-creacion') }}">Crear Plan de Acción</a>
 
-            <a href="{{ route('planDeAccion.papelera') }}"
-                class="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1 ml-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Ver Papelera
-            </a>
-        </div>
-        
-        {{-- Separador para móviles --}}
-        <div class="border-t pt-4 mt-2 md:hidden"> 
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Buscar planes
-            </p>
-        </div>
+        <a href="{{ route('planDeAccion.papelera') }}"
+            class="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Ver Papelera
+        </a>
 
-        <input name="alumno" placeholder="Alumno (Nombre/DNI)" class="form-input w-full md:w-1/5" value="{{ request('alumno') }}">
+        <input name="alumno" placeholder="Alumno (Nombre/DNI)" class="form-input w-44" value="{{ request('alumno') }}"
+            @input.debounce.700ms="$refs.filtroForm.submit()">
 
-        <select name="tipo" class="form-input w-full md:w-auto">
+        <select name="tipo" class="form-input w-auto"
+            @change="$refs.filtroForm.submit()">
             <option value="" {{ request('tipo') === null ? 'selected' : '' }}>Todos los Tipos</option>
             @foreach($tipos as $tipo)
                 <option value="{{ $tipo }}" {{ request('tipo') === $tipo ? 'selected' : '' }}>
@@ -40,14 +33,15 @@
             @endforeach
         </select>
 
-        <select name="estado" class="form-input w-full md:w-1/5">
+        <select name="estado" class="form-input w-auto"
+            @change="$refs.filtroForm.submit()">
             <option value="" {{ request('estado') === null ? 'selected' : '' }}>Todos</option>
             <option value="activos" {{ request('estado') === 'activos' ? 'selected' : '' }}>Abiertos</option>
             <option value="inactivos" {{ request('estado') === 'inactivos' ? 'selected' : '' }}>Cerrados</option>
         </select>
 
-
-        <select name="curso" class="form-input w-full md:w-1/5">
+        <select name="curso" class="form-input w-auto"
+            @change="$refs.filtroForm.submit()">
             <option value="">Todos los cursos</option>
             @foreach($aulas as $aula)
                 <option value="{{ $aula->id }}" {{ (int)request('curso') === $aula->id ? 'selected' : '' }}>
@@ -56,8 +50,7 @@
             @endforeach
         </select>
 
-        <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('planDeAccion.principal') }}" >Limpiar</a>
+        <a class="btn-aceptar shrink-0" href="{{ route('planDeAccion.principal') }}">Limpiar</a>
     </form>
 
     @php

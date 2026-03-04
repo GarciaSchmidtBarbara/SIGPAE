@@ -6,45 +6,46 @@
 @section('contenido')
 
 <div class="px-4 py-6 md:p-6">    
-    <form id="form-intervencion" method="GET" action="{{ route('intervenciones.principal') }}" class="flex flex-col md:flex-row md:flex-wrap gap-3 mb-6">    
-        
-        <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
-            <a class="btn-aceptar" href="{{ route('intervenciones.crear') }}">Crear Intervención</a>
-            
+    <form id="form-intervencion" x-ref="filtroForm" method="GET" action="{{ route('intervenciones.principal') }}" class="flex flex-wrap items-center gap-3 mb-6">    
+
+        <a class="btn-aceptar shrink-0" href="{{ route('intervenciones.crear') }}">Crear Intervención</a>
+
+        <select name="tipo_intervencion" class="form-input w-auto"
+            @change="$refs.filtroForm.submit()">
+            <option value="">Todos los tipos</option>
+            @foreach($tiposIntervencion as $tipo)
+                <option value="{{ $tipo }}" {{ request('tipo_intervencion') === $tipo ? 'selected' : '' }}>
+                    {{ $tipo }}
+                </option>
+            @endforeach
+        </select>
+
+        <input name="nombre" value="{{ request('nombre') }}" placeholder="Nombre/DNI" class="form-input w-36"
+            @input.debounce.700ms="$refs.filtroForm.submit()">
+
+        <select name="aula" class="form-input w-auto"
+            @change="$refs.filtroForm.submit()">
+            <option value="">Todos los cursos</option>
+            @foreach($aulas as $curso)
+                <option value="{{ $curso->id_aula }}" {{ request('aula') == $curso->id_aula ? 'selected' : '' }}>
+                    {{ $curso->descripcion }}
+                </option>
+            @endforeach
+        </select>
+
+        <div class="flex items-center gap-1 shrink-0">
+            <span class="text-sm text-gray-600 whitespace-nowrap">Desde</span>
+            <input type="date" name="fecha_desde" class="form-input w-auto" value="{{ request('fecha_desde') }}"
+                @change="$refs.filtroForm.submit()">
         </div>
-        {{-- Separador para móviles --}}
-        <div class="border-t pt-4 mt-2 md:hidden"> 
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                Buscar intervenciones
-            </p>
+
+        <div class="flex items-center gap-1 shrink-0">
+            <span class="text-sm text-gray-600 whitespace-nowrap">Hasta</span>
+            <input type="date" name="fecha_hasta" class="form-input w-auto" value="{{ request('fecha_hasta') }}"
+                @change="$refs.filtroForm.submit()">
         </div>
-            <select name="tipo_intervencion" class="form-input w-full md:w-auto">
-                <option value="">Todos los tipos</option>
-                @foreach($tiposIntervencion as $tipo)
-                    <option value="{{ $tipo }}" {{ request('tipo_intervencion') === $tipo ? 'selected' : '' }}>
-                        {{ $tipo }}
-                    </option>
-                @endforeach
-            </select>
 
-            <input name="nombre" value="{{ request('nombre') }}" placeholder="Nombre/DNI" class="form-input w-full md:w-1/5">
-
-            <select name="aula" class="form-input w-full md:w-1/5">
-                <option value="">Todos los cursos</option>
-                @foreach($aulas as $curso)
-                    <option value="{{ $curso->id }}" {{ request('aula') == $curso->id ? 'selected' : '' }}>
-                        {{ $curso->descripcion }}
-                    </option>
-                @endforeach
-            </select>
-
-            <p>Desde</p>
-            <input type="date" name="fecha_desde" class="form-input w-full md:w-1/5" value="{{ request('fecha_desde') }}">
-            <p>Hasta</p>
-            <input type="date" name="fecha_hasta" class="form-input w-full md:w-1/5" value="{{ request('fecha_hasta') }}">
-
-            <button type="submit" class="btn-aceptar">Filtrar</button>
-            <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>   
+        <a class="btn-aceptar shrink-0" href="{{ route('intervenciones.principal') }}">Limpiar</a>
     </form>
 
     {{--ENVOLVER LA TABLA A IMPRIMIR--}}
