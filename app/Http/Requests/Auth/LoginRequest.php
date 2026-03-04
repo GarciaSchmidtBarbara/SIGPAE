@@ -23,7 +23,7 @@ class LoginRequest extends FormRequest
         return [
             'usuario' => ['required', 'string'],
             'contrasenia' => ['required', 'string'],
-            'remember' => ['nullable', 'boolean'],
+            'remember' => ['sometimes', 'boolean'],
         ];
     }
 

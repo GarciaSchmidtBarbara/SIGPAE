@@ -241,19 +241,7 @@ class EventoService implements EventoServiceInterface
         $profesional = auth()->user();
         if (!$profesional) return [];
 
-        // Eventos creados por el usuario (pasados y futuros)
-        $eventosCreados = $this->repo->getEventosByDateRange('2000-01-01', $end)
-            ->where('fk_id_profesional_creador', $profesional->id_profesional);
-
-        // Eventos donde es invitado (pasados y futuros)
-        $eventosInvitado = $this->repo->getEventosByDateRange('2000-01-01', $end)
-            ->filter(function ($evento) use ($profesional) {
-                return $evento->esInvitadoA->contains(function ($inv) use ($profesional) {
-                    return $inv->fk_id_profesional == $profesional->id_profesional;
-                });
-            });
-
-        $eventos = $eventosCreados->merge($eventosInvitado)->unique('id_evento')->sortBy('fecha_hora');
+        $eventos = $this->repo->getEventosParaProfesional($profesional->id_profesional, $start, $end);
 
         return $eventos->map(function ($evento) {
             return [

@@ -78,8 +78,7 @@ class EventoRepository implements EventoRepositoryInterface
 
     public function syncProfesionales(Evento $evento, array $profesionalIds): void
     {
-        // Esta lógica se maneja en el Service usando EsInvitadoA
-        // Este método puede quedar vacío o implementarse según necesidad
+        // La lógica se maneja en el Service usando EsInvitadoA directamente
     }
 
     public function syncAlumnos(Evento $evento, array $alumnoIds): void
@@ -91,6 +90,21 @@ class EventoRepository implements EventoRepositoryInterface
     {
         return Evento::whereBetween('fecha_hora', [$start, $end])
             ->with(['profesionalCreador.persona', 'esInvitadoA'])
+            ->orderBy('fecha_hora', 'asc')
+            ->get();
+    }
+
+    public function getEventosParaProfesional(int $profesionalId, string $start, string $end): Collection
+    {
+        return Evento::whereBetween('fecha_hora', [$start, $end])
+            ->where(function ($q) use ($profesionalId) {
+                $q->where('fk_id_profesional_creador', $profesionalId)
+                  ->orWhereHas('esInvitadoA', fn($q2) => $q2->where('fk_id_profesional', $profesionalId));
+            })
+            ->with([
+                'profesionalCreador.persona',
+                'esInvitadoA' => fn($q) => $q->where('fk_id_profesional', $profesionalId),
+            ])
             ->orderBy('fecha_hora', 'asc')
             ->get();
     }
