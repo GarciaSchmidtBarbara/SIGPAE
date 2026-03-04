@@ -109,15 +109,16 @@
     </div>
 
     {{-- Alpine para controlar secciones por tipo --}}
-    <form method="POST"
-        action="{{ $esEdicion 
-            ? route('intervenciones.actualizar', $intervencion->id_intervencion)
-            : route('intervenciones.guardar') 
-         }}" 
-        
-        @csrf
+    <div x-data="intervencionForm('{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}', {{ $alumnosJson->toJson() }})">
 
-        @if($esEdicion)
+        <form method="POST" action="{{ $esEdicion 
+                ? route('intervenciones.actualizar', $intervencion->id_intervencion)
+                : route('intervenciones.guardar') 
+            }}" @submit.prevent="validarYGuardar($event)">
+            @csrf
+
+            {{-- Cuando se edita: método PUT --}}
+            @if($esEdicion)
                 @method('PUT')
         @endif
 
@@ -139,17 +140,20 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 px-0">
                         <div class="flex flex-col">
                             <x-campo-requerido text="Fecha" required />
-                            <input type="date" name="fecha_hora_intervencion" value="{{ old('fecha_hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('Y-m-d') : '') }}" class="w-full border px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="date" name="fecha_hora_intervencion" value="{{ old('fecha_hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('Y-m-d') : '') }}" @change="limpiarError('fecha')" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <div x-show="errors.fecha" x-text="errors.fecha" class="text-xs text-red-600 mt-1"></div>
                         </div>
 
                         <div class="flex flex-col">
                             <x-campo-requerido text="Hora" required />
-                            <input type="time" name="hora_intervencion" value="{{ old('hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('H:i') : '') }}" class="w-full border px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input type="time" name="hora_intervencion" value="{{ old('hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('H:i') : '') }}" @change="limpiarError('hora')" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <div x-show="errors.hora" x-text="errors.hora" class="text-xs text-red-600 mt-1"></div>
                         </div>
 
                         <div class="flex flex-col md:col-span-2">
                             <x-campo-requerido text="Lugar" required />
-                            <input name="lugar" value="{{ old('lugar', $esEdicion ? $intervencion->lugar : '') }}" placeholder="Lugar" class="w-full border px-2 py-1 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <input name="lugar" value="{{ old('lugar', $esEdicion ? $intervencion->lugar : '') }}" placeholder="Lugar" @input="limpiarError('lugar')" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <div x-show="errors.lugar" x-text="errors.lugar" class="text-xs text-red-600 mt-1"></div>
                         </div>
                     </div>
 
@@ -182,6 +186,7 @@
                                 :seleccionTipo="$seleccionTipo"
                                 x-model="tipoSeleccionado"
                             />
+                            <div x-show="errors.tipo_intervencion" x-text="errors.tipo_intervencion" class="text-xs text-red-600 mt-1"></div>
                         @endif
                     </div>
                 </div>
@@ -380,6 +385,7 @@
                                 </template>
                             </div>
                         </div>
+                        <div x-show="errors.modalidad" x-text="errors.modalidad" class="text-xs text-red-600 mt-1"></div>
                     @endif
                 </div>
 
@@ -390,13 +396,17 @@
                     <div class="block text-sm font-medium text-gray-700">
                         <x-campo-requerido text="Objetivos" required />
                         <textarea name="temas_tratados" rows="3"
+                                  @input="limpiarError('objetivos')"
                                   class="w-full p-2 border border-gray-300 rounded-md">{{ old('temas_tratados', $esEdicion ? ($intervencion->temas_tratados ?? '') : '') }}</textarea>
+                        <div x-show="errors.objetivos" x-text="errors.objetivos" class="text-xs text-red-600 mt-1"></div>
                     </div>
 
                     <div class="block text-sm font-medium text-gray-700">
                         <x-campo-requerido text="Compromisos asumidos" required />
                         <textarea name="compromisos" rows="3"
+                                  @input="limpiarError('compromisos')"
                                   class="w-full p-2 border border-gray-300 rounded-md">{{ old('compromisos', $esEdicion ? ($intervencion->compromisos ?? '') : '') }}</textarea>
+                        <div x-show="errors.compromisos" x-text="errors.compromisos" class="text-xs text-red-600 mt-1"></div>
                     </div>
 
                     <div class="block text-sm font-medium text-gray-700">
@@ -527,6 +537,52 @@
 </div>
 
 <script>
+    function intervencionForm(tipoInicial, alumnoData) {
+        return {
+            tipoSeleccionado: tipoInicial,
+            alumnoData: alumnoData,
+            errors: { fecha: '', hora: '', lugar: '', tipo_intervencion: '', modalidad: '', objetivos: '', compromisos: '' },
+
+            limpiarError(campo) {
+                this.errors[campo] = '';
+            },
+
+            validarYGuardar(event) {
+                this.errors = { fecha: '', hora: '', lugar: '', tipo_intervencion: '', modalidad: '', objetivos: '', compromisos: '' };
+                let hayError = false;
+                const form = event.target;
+
+                if (!form.querySelector('[name=fecha_hora_intervencion]')?.value) {
+                    this.errors.fecha = 'Debe ingresar la fecha'; hayError = true;
+                }
+                if (!form.querySelector('[name=hora_intervencion]')?.value) {
+                    this.errors.hora = 'Debe ingresar la hora'; hayError = true;
+                }
+                if (!form.querySelector('[name=lugar]')?.value?.trim()) {
+                    this.errors.lugar = 'Debe ingresar el lugar'; hayError = true;
+                }
+                const tipoChecked = form.querySelector('input[name=tipo_intervencion]:checked');
+                const tipoHidden  = form.querySelector('input[type=hidden][name=tipo_intervencion]');
+                if (!tipoChecked?.value && !tipoHidden?.value && !this.tipoSeleccionado) {
+                    this.errors.tipo_intervencion = 'Debe seleccionar el tipo de intervención'; hayError = true;
+                }
+                const modalidadChecked = form.querySelector('input[name=modalidad]:checked');
+                const modalidadHidden  = form.querySelector('input[type=hidden][name=modalidad]');
+                if (!modalidadChecked?.value && !modalidadHidden?.value) {
+                    this.errors.modalidad = 'Debe seleccionar la modalidad'; hayError = true;
+                }
+                if (!form.querySelector('[name=compromisos]')?.value?.trim()) {
+                    this.errors.compromisos = 'Debe ingresar los compromisos'; hayError = true;
+                }
+                if (!form.querySelector('[name=temas_tratados]')?.value?.trim()) {
+                    this.errors.objetivos = 'Debe ingresar los objetivos'; hayError = true;
+                }
+
+                if (!hayError) form.submit();
+            }
+        };
+    }
+
     function datosPersonas({ alumnoData = {}, alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
         return {
             // Alumnos

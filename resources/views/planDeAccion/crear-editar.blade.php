@@ -77,14 +77,12 @@
     </div>
 
     {{-- Alpine para controlar secciones por tipo --}}
-    <div x-data="{
-        tipoPlanSeleccionado: '{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}'
-    }">
+    <div x-data="planDeAccionForm('{{ old('tipo_plan', $esEdicion ? ($planDeAccion->tipo_plan->value ?? '') : '') }}')">
 
         <form method="POST" action="{{ $esEdicion 
                 ? route('planDeAccion.actualizar', $planDeAccion->id_plan_de_accion)
                 : route('planDeAccion.store') 
-            }}">
+            }}" @submit.prevent="validarYGuardar($event)">
             @csrf
 
             {{-- Cuando se edita: método PUT --}}
@@ -119,6 +117,7 @@
                             :seleccion="$seleccion"
                             x-model="tipoPlanSeleccionado"
                         />
+                        <div x-show="errors.tipo_plan" x-text="errors.tipo_plan" class="text-xs text-red-600 mt-1"></div>
                     @endif
                 </div>
 
@@ -193,6 +192,7 @@
                                     <input type="hidden" name="alumnos[]" :value="alumnoSeleccionadoId">
                                 </template>
                     </div>
+                <div x-show="errors.alumno_individual" x-text="errors.alumno_individual" class="text-xs text-red-600 mt-1 mb-4"></div>
                 </div>
 
                 {{-- DESTINATARIO - Grupal --}}
@@ -280,6 +280,7 @@
 
                     </div>
                 </div>
+                <div x-show="errors.alumno_grupal" x-text="errors.alumno_grupal" class="text-xs text-red-600 mt-1 mb-4"></div>
 
                 {{-- CAMPOS COMUNES: Objetivos / Acciones / Observaciones --}}
                 <div class="space-y-6 mb-8">
@@ -288,13 +289,17 @@
                     <div class="block text-sm font-medium text-gray-700">
                         <x-campo-requerido text="Objetivos" required />
                         <textarea name="objetivos" rows="3"
+                                  @input="limpiarError('objetivos')"
                                   class="w-full p-2 border border-gray-300 rounded-md">{{ old('objetivos', $esEdicion ? ($planDeAccion->objetivos ?? '') : '') }}</textarea>
+                        <div x-show="errors.objetivos" x-text="errors.objetivos" class="text-xs text-red-600 mt-1"></div>
                     </div>
 
                     <div class="block text-sm font-medium text-gray-700">
                         <x-campo-requerido text="Acciones a realizar" required />
                         <textarea name="acciones" rows="3"
+                                  @input="limpiarError('acciones')"
                                   class="w-full p-2 border border-gray-300 rounded-md">{{ old('acciones', $esEdicion ? ($planDeAccion->acciones ?? '') : '') }}</textarea>
+                        <div x-show="errors.acciones" x-text="errors.acciones" class="text-xs text-red-600 mt-1"></div>
                     </div>
 
                     <div class="block text-sm font-medium text-gray-700">
@@ -494,9 +499,9 @@
 
                 </div>
 
-               {{-- BLOQUE EVALUACIONES --}}
-               @if($esEdicion)
-                <div class="space-y-6 mb-8">
+               {{-- BLOQUE EVALUACIONES (solo en edición) --}}
+                @isset($planDeAccion)
+                <div class="space-y-6 mt-10">
 
                     <p class="separador">Evaluaciones</p>
 
@@ -561,6 +566,7 @@
                 @endif
 
 </div>
+                @endisset
 
             </fieldset>
 
@@ -589,6 +595,58 @@
 </div>
 
 <script>
+    function planDeAccionForm(tipoPlanInicial) {
+        return {
+            tipoPlanSeleccionado: tipoPlanInicial,
+            errors: {
+                tipo_plan: '',
+                alumno_individual: '',
+                alumno_grupal: '',
+                objetivos: '',
+                acciones: ''
+            },
+
+            limpiarError(campo) {
+                this.errors[campo] = '';
+            },
+
+            validarYGuardar(event) {
+                this.errors = { tipo_plan: '', alumno_individual: '', alumno_grupal: '', objetivos: '', acciones: '' };
+                let hayError = false;
+                const form = event.target;
+
+                // Tipo de plan
+                const tipoChecked = form.querySelector('input[name=tipo_plan]:checked');
+                const tipoHidden  = form.querySelector('input[type=hidden][name=tipo_plan]');
+                const tipoValor   = tipoChecked?.value || tipoHidden?.value || this.tipoPlanSeleccionado;
+                if (!tipoValor) {
+                    this.errors.tipo_plan = 'Debe seleccionar el tipo de plan'; hayError = true;
+                }
+
+                // Al menos un alumno según tipo
+                const alumnos = form.querySelectorAll('input[name="alumnos[]"]');
+                if (tipoValor === 'INDIVIDUAL' && alumnos.length === 0) {
+                    this.errors.alumno_individual = 'Debe seleccionar un alumno'; hayError = true;
+                }
+                if (tipoValor === 'GRUPAL' && alumnos.length === 0) {
+                    this.errors.alumno_grupal = 'Debe agregar al menos un alumno'; hayError = true;
+                }
+
+                // Objetivos
+                if (!form.querySelector('[name=objetivos]')?.value?.trim()) {
+                    this.errors.objetivos = 'Debe ingresar los objetivos'; hayError = true;
+                }
+
+                // Acciones
+                if (!form.querySelector('[name=acciones]')?.value?.trim()) {
+                    this.errors.acciones = 'Debe ingresar las acciones'; hayError = true;
+                }
+
+                if (!hayError) form.submit();
+            }
+        };
+    }
+
     function planGrupal({ alumnosIniciales = [], profesionalesData = {}, profesionalesIniciales = [] } = {}) {
         return {
             // Alumnos
