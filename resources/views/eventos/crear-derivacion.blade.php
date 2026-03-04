@@ -17,7 +17,7 @@
             <h3 class="separador">Detalles de la Derivación Externa</h3>
             
             <div>
-                <x-campo-requerido text="Descripción externa" required />
+                <x-campo-requerido text="Descripción" required />
                 <textarea name="descripcion_externa" 
                           x-model="formData.descripcion"
                           rows="3"
@@ -34,20 +34,24 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                    <x-campo-requerido text="Fecha" required />
                     <input type="date" 
                            name="fecha"
                            x-model="formData.fecha"
+                           @change="limpiarError('fecha')"
                            class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.fecha" x-text="errors.fecha" class="text-xs text-red-600 mt-1"></div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Lugar</label>
+                    <x-campo-requerido text="Lugar" required />
                     <input type="text" 
                            name="lugar"
                            x-model="formData.lugar"
                            placeholder="Ubicación"
+                           @input="limpiarError('lugar')"
                            class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div x-show="errors.lugar" x-text="errors.lugar" class="text-xs text-red-600 mt-1"></div>
                 </div>
             </div>
 
@@ -69,14 +73,14 @@
                            min="0"
                            placeholder="1"
                            class="w-24 border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <span>semana(s) <span class="text-xs text-gray-400">(0 = sin recordatorio)</span></span>
+                    <span>semana(s) <span class="text-xs text-gray-400">(dejar vacío para sin recordatorio)</span></span>
                 </div>
             </div>
         </div>
 
         <!-- Participantes -->
         <div class="space-y-4 mb-6">
-            <h3 class="separador">Participantes</h3>
+            <h3 class="separador">Participantes <span class="text-red-500">*</span></h3>
             
             <!-- Buscador de alumnos -->
             <div class="flex items-end gap-3">
@@ -103,6 +107,7 @@
                 </div>
                 <button type="button" class="btn-aceptar" @click="buscarAlumnos()">Buscar</button>
             </div>
+            <div x-show="errors.alumnos" x-text="errors.alumnos" class="text-xs text-red-600 mt-1"></div>
 
             <!-- Tabla de alumnos seleccionados -->
             <div x-show="alumnosSeleccionados.length > 0" class="border rounded">
@@ -173,7 +178,10 @@ function derivacionForm() {
         searchQuery: '',
         resultadosAlumnos: [],
         errors: {
-            descripcion: ''
+            descripcion: '',
+            lugar: '',
+            fecha: '',
+            alumnos: ''
         },
 
         init() {
@@ -225,11 +233,26 @@ function derivacionForm() {
         },
 
         validarYGuardar(event) {
-            this.errors = { descripcion: '' };
+            this.errors = { descripcion: '', lugar: '', fecha: '', alumnos: '' };
             let hayError = false;
 
             if (!this.formData.descripcion || this.formData.descripcion.trim() === '') {
                 this.errors.descripcion = 'Debe ingresar una descripción';
+                hayError = true;
+            }
+
+            if (!this.formData.lugar || this.formData.lugar.trim() === '') {
+                this.errors.lugar = 'Debe ingresar el lugar';
+                hayError = true;
+            }
+
+            if (!this.formData.fecha || this.formData.fecha.trim() === '') {
+                this.errors.fecha = 'Debe ingresar la fecha';
+                hayError = true;
+            }
+
+            if (!this.alumnosSeleccionados || this.alumnosSeleccionados.length === 0) {
+                this.errors.alumnos = 'Debe agregar al menos un participante';
                 hayError = true;
             }
 
