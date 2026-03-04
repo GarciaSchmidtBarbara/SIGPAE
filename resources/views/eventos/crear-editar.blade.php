@@ -265,7 +265,7 @@ function eventoForm(esEdicion = false, esFinalizado = false) {
         esEventoFinalizado: esFinalizado,
         formData: {
             tipo_evento: '{{ old('tipo_evento', $evento->tipo_evento?->value ?? '') }}',
-            fecha_hora: '{{ old('fecha_hora', isset($evento) ? $evento->fecha_hora->format('Y-m-d\TH:i') : '') }}',
+            fecha_hora: '{{ old('fecha_hora', isset($evento) ? $evento->fecha_hora->format('Y-m-d\TH:i') : (request('fecha') ? request('fecha').'T00:00' : '')) }}',
             lugar: '{{ old('lugar', $evento->lugar ?? '') }}',
             notas: '{{ old('notas', $evento->notas ?? '') }}'
         },
