@@ -1,48 +1,54 @@
 @extends('layouts.base')
 
 @section('encabezado', 'Todas las Intervenciones')
-
-{{--ESTE H2 COLOCA EL TITULO AL DOCUMENTO--}}
 <h2 class="page-title-print" style="display: none;">@yield('encabezado') </h2>
 
 @section('contenido')
 
-<div class="p-6">    
-    <form id="form-intervencion" method="GET" action="{{ route('intervenciones.principal') }}" class="flex gap-2 mb-6 flex-nowrap items-center">    
+<div class="px-4 py-6 md:p-6">    
+    <form id="form-intervencion" method="GET" action="{{ route('intervenciones.principal') }}" class="flex flex-col md:flex-row md:flex-wrap gap-3 mb-6">    
         
-        <a class="btn-aceptar" href="{{ route('intervenciones.crear') }}">Crear Intervención</a>
-        
-        <select name="tipo_intervencion" class="border px-2 py-1 rounded w-1/5">
-            <option value="">Todos los tipos</option>
-            @foreach($tiposIntervencion as $tipo)
-                <option value="{{ $tipo }}" {{ request('tipo_intervencion') === $tipo ? 'selected' : '' }}>
-                    {{ $tipo }}
-                </option>
-            @endforeach
-        </select>
+        <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+            <a class="btn-aceptar" href="{{ route('intervenciones.crear') }}">Crear Intervención</a>
+            
+        </div>
+        {{-- Separador para móviles --}}
+        <div class="border-t pt-4 mt-2 md:hidden"> 
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                Buscar intervenciones
+            </p>
+        </div>
+            <select name="tipo_intervencion" class="form-input w-full md:w-auto">
+                <option value="">Todos los tipos</option>
+                @foreach($tiposIntervencion as $tipo)
+                    <option value="{{ $tipo }}" {{ request('tipo_intervencion') === $tipo ? 'selected' : '' }}>
+                        {{ $tipo }}
+                    </option>
+                @endforeach
+            </select>
 
-        <input name="nombre" value="{{ request('nombre') }}" placeholder="Nombre/DNI" class="border px-2 py-1 rounded w-1/5">
+            <input name="nombre" value="{{ request('nombre') }}" placeholder="Nombre/DNI" class="form-input w-full md:w-1/5">
 
-        <select name="aula" class="border px-2 py-1 rounded w-1/5">
-            <option value="">Todos los cursos</option>
-            @foreach($aulas as $curso)
-                <option value="{{ $curso->id }}" {{ request('aula') == $curso->id ? 'selected' : '' }}>
-                    {{ $curso->descripcion }}
-                </option>
-            @endforeach
-        </select>
+            <select name="aula" class="form-input w-full md:w-1/5">
+                <option value="">Todos los cursos</option>
+                @foreach($aulas as $curso)
+                    <option value="{{ $curso->id }}" {{ request('aula') == $curso->id ? 'selected' : '' }}>
+                        {{ $curso->descripcion }}
+                    </option>
+                @endforeach
+            </select>
 
-        <p>Desde</p>
-        <input type="date" name="fecha_desde" class="border px-2 py-1 rounded" value="{{ request('fecha_desde') }}">
-        <p>Hasta</p>
-        <input type="date" name="fecha_hasta" class="border px-2 py-1 rounded" value="{{ request('fecha_hasta') }}">
+            <p>Desde</p>
+            <input type="date" name="fecha_desde" class="form-input w-full md:w-1/5" value="{{ request('fecha_desde') }}">
+            <p>Hasta</p>
+            <input type="date" name="fecha_hasta" class="form-input w-full md:w-1/5" value="{{ request('fecha_hasta') }}">
 
-        <button type="submit" class="btn-aceptar">Filtrar</button>
-        <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>   
+            <button type="submit" class="btn-aceptar">Filtrar</button>
+            <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}" >Limpiar</a>   
     </form>
 
     {{--ENVOLVER LA TABLA A IMPRIMIR--}}
-    <div class="data-table-to-print">
+    <div class="data-table-to-print bg-white rounded-xl shadow-sm">
         @php
             $columnasIntervenciones = [
                 ['key' => 'tipo_intervencion', 'label' => 'Tipo', 'formatter' => function($v) {
@@ -85,7 +91,6 @@
     </div>
 
     <div class="fila-botones mt-8">
-        {{--ESTE BOTON BUSCA LA TABLA A IMPRIMIR--}}
         <button type="button" class="btn-aceptar btn-print-table no-print">Imprimir listado</button> 
         <a class="btn-volver" href="{{ url()->previous() }}" >Volver</a>
     </div>

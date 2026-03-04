@@ -1,11 +1,13 @@
 @props([
     'text' => '',
     'required' => false,
+    'for' => null,
 ])
 
-<p class="text-sm font-medium text-gray-700 mb-1">
+<label @if($for) for="{{ $for }}" @endif 
+class="text-sm font-medium text-gray-700 mb-1">
     {{ $text }}
     @if ($required)
         <span class="text-red-500">*</span>
     @endif
-</p>
+</label>

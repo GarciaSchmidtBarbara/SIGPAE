@@ -83,16 +83,16 @@
 @endphp
 
 
-<div class="p-6">
-    <div class="mt-4 my-4 flex justify-between items-center">
+<div class="px-4 py-6 md:p-6">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div class="text-sm text-red-600 min-h-[1.5rem]">
             @if($esEdicion && $cerrado)
                 <p>Esta intervención está cerrada. No se permiten modificaciones.</p>
             @endif
         </div>
 
-        <div class="flex justify-end space-x-4">
-            @if($esEdicion)
+        @if($esEdicion)
+            <div class="flex flex-col sm:flex-row flex-wrap gap-3">
                 <x-boton-estado 
                     :activo="$intervencion->activo" 
                     :route="route('intervenciones.cambiarActivo', $intervencion->id_intervencion)"
@@ -104,10 +104,8 @@
                         Ver Plan Vinculado
                     </a>
                 @endif
-            @endif
-            <a class="btn-volver" href="{{ url()->previous() }}">Volver</a>
-            
-        </div>
+            </div>
+        @endif            
     </div>
 
     {{-- Alpine para controlar secciones por tipo --}}
@@ -122,7 +120,12 @@
             {{-- Cuando se edita: método PUT --}}
             @if($esEdicion)
                 @method('PUT')
-            @endif
+        @endif
+
+        <div x-data="{
+            tipoSeleccionado: @json(old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') ),
+            alumnoData: @json($alumnosJson->toJson()) },
+         }">
 
             {{-- Asegurar que el generador queda presente (fallback al usuario autenticado) --}}
             <input type="hidden" name="fk_id_profesional_generador" 
@@ -130,33 +133,33 @@
 
             <fieldset {{ $cerrado ? 'disabled' : '' }}>
                 {{-- DATOS DE LA INTERVENCION --}}
-                <div class="space-y-6 mb-6">
+                <div class="px-4 py-6 md:p-6">
                     <p class="separador">Datos de la intervención</p>
                     
                     {{-- Fecha, hora y lugar --}}
-                    <div class="flex space-x-4">
-                        <div class="flex flex-col w-1/4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 px-0">
+                        <div class="flex flex-col">
                             <x-campo-requerido text="Fecha" required />
                             <input type="date" name="fecha_hora_intervencion" value="{{ old('fecha_hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('Y-m-d') : '') }}" @change="limpiarError('fecha')" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <div x-show="errors.fecha" x-text="errors.fecha" class="text-xs text-red-600 mt-1"></div>
                         </div>
 
-                        <div class="flex flex-col w-1/4">
+                        <div class="flex flex-col">
                             <x-campo-requerido text="Hora" required />
                             <input type="time" name="hora_intervencion" value="{{ old('hora_intervencion', $esEdicion ? optional($intervencion->fecha_hora_intervencion)->format('H:i') : '') }}" @change="limpiarError('hora')" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <div x-show="errors.hora" x-text="errors.hora" class="text-xs text-red-600 mt-1"></div>
                         </div>
 
-                        <div class="flex flex-col w-1/3">
+                        <div class="flex flex-col md:col-span-2">
                             <x-campo-requerido text="Lugar" required />
                             <input name="lugar" value="{{ old('lugar', $esEdicion ? $intervencion->lugar : '') }}" placeholder="Lugar" @input="limpiarError('lugar')" class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <div x-show="errors.lugar" x-text="errors.lugar" class="text-xs text-red-600 mt-1"></div>
                         </div>
                     </div>
 
-                    <div class="flex space-x-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {{-- Selector de plan--}}
-                        <div class="selector-box" style="width: 50%;">
+                        <div class="selector-box w-full md:w-2/5">
                             <label class="text-sm font-medium">Seleccionar Plan de Acción</label>
                             <select name="fk_id_plan_de_accion" x-model="planSeleccionado" @change="seleccionarPlan()" class="border px-2 py-1 rounded w-full">
                                 <option value="">-- Seleccionar plan --</option>
@@ -173,7 +176,7 @@
                         @endphp
 
                         @if($esEdicion)
-                            <p class="font-semibold text-gray-700">{{ $seleccionTipo }}</p>
+                            <p class="font-semibold text-gray-700 self-center">{{ $seleccionTipo }}</p>
                             <input type="hidden" name="tipo_intervencion" value="{{ $seleccionTipo }}">
                         @else
                             <x-opcion-unica
@@ -196,7 +199,7 @@
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
                             {{-- Selector de alumno--}}
-                            <div class="selector-box" style="width: 35%;">
+                            <div class="selector-box w-full md:w-2/5">
                                 <label class="text-sm font-medium">Seleccionar alumno</label>
                                 <select x-model="alumnoSeleccionado" @change="agregarAlumno()">
                                     <option value="">-- Seleccionar alumno --</option>
@@ -209,7 +212,7 @@
                             </div>
 
                             {{-- Selección de aula --}}
-                            <div class="selector-box" style="width: 20%;">
+                            <div class="selector-box w-full md:w-1/4">
                                 <label class="text-sm font-medium">Aula</label>
                                 <select x-model="aulaSeleccionada" @change="agregarAula()">
                                     <option value="">-- Seleccionar aula --</option>
@@ -223,9 +226,9 @@
                         </div>
 
                         {{-- TABLA DINÁMICA DE ALUMNOS SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
-                        <div class="mt-6">
+                        <div class="mt-6 overflow-x-auto rounded-lg">
                             <h3 class="font-medium text-base text-gray-700 mb-2">Alumnos Seleccionados</h3>
-                            <table class="modern-table">
+                            <table class="modern-table min-w-full">
                                 <thead>
                                     <tr>
                                         <th>NOMBRE</th>
@@ -243,7 +246,7 @@
                                             <td x-text="al.dni"></td>
                                             <td x-text="al.curso"></td>
                                             <td>
-                                                <button type="button" @click="eliminarAlumno(al.id)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                                <button type="button" @click="eliminarAlumno(al.id)" class="text-gray-400 hover:text-red-600 focus:outline-none">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd"
                                                             d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -285,9 +288,9 @@
                         @endif
 
                         <h3 class="font-medium text-base text-gray-700 mb-2">Otros profesionales participantes</h3>
-                        <div class="selectors-row">
+                        <div class="flex flex-col md:flex-row gap-3">
                             {{-- Selector de profesional--}}
-                            <div class="selector-box" style="width: 35%;">
+                            <div class="selector-box w-full md:w-2/5">
                                 <select x-model="profesionalSeleccionado" @change="agregarProfesional()">
                                     <option value="">Agregar profesional</option>
                                     @foreach($profesionales as $prof)
@@ -300,8 +303,8 @@
                         </div>
 
                         {{-- TABLA DINÁMICA DE PROFESIONALES SELECCIONADOS (Reemplaza a x-tabla-dinamica) --}}
-                        <div class="mt-6">    
-                            <table class="modern-table">
+                        <div class="mt-6 overflow-x-auto rounded-lg">    
+                            <table class="modern-table min-w-full">
                                 <thead>
                                     <tr>
                                         <th>NOMBRE</th>
@@ -317,7 +320,7 @@
                                             <td x-text="prof.apellido"></td>
                                             <td x-text="prof.profesion"></td>
                                             <td>
-                                                <button type="button" @click="eliminarProfesional(prof.id)" type="button" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                                <button type="button" @click="eliminarProfesional(prof.id)" class="text-gray-400 hover:text-red-600 focus:outline-none">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd"
                                                             d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -377,7 +380,7 @@
                                         name="otra_modalidad"
                                         value="{{ old('otra_modalidad') }}"
                                         placeholder="Especificar"
-                                        class="border px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 w-1/3"
+                                        class="w-full sm:w-auto sm:flex-1 border px-2 py-1 rounded"
                                     >
                                 </template>
                             </div>
@@ -513,15 +516,23 @@
                     <a class="btn-aceptar" href="{{ route('intervenciones.principal') }}">Cancelar</a>
                 @endif
             </div>
-        </form>
+    </form>        
+        
+    {{-- FORMULARIO DE ELIMINACIÓN (Solo en edición) --}}
+    @if($esEdicion)
+        <form action="{{ route('intervenciones.eliminar', $intervencion->id_intervencion) }}"
+            method="POST"
+            class="mt-4"
+            onsubmit="return confirm('¿Seguro que querés eliminar esta intervención?');">
 
-            @if($esEdicion)
-                <form action="{{ route('intervenciones.eliminar', $intervencion->id_intervencion) }}" method="POST" class="inline-block mt-2" onsubmit="return confirm('¿Seguro que querés eliminar esta intervención?');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn-eliminar">Eliminar Intervención</button>
-                </form>
-            @endif
+            @csrf
+            @method('DELETE')
+
+            <button type="submit" class="btn-eliminar">
+                Eliminar Intervención
+            </button>
+        </form>
+    @endif
     </div>
 </div>
 

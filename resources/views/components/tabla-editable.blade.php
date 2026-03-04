@@ -23,7 +23,7 @@
     {{-- 1. Vista Móvil: Cada fila es una tarjeta--}}
     <div class="md:hidden space-y-4">
         <template x-for="(fila, index) in filas" :key="index">
-            <div class="border rounded-lg p-4 shadow-sm bg-white space-y-3">
+            <div class="border rounded-t-lg p-4 shadow-sm bg-white space-y-3">
 
                 <div>
                     <label class="text-xs font-semibold text-gray-500 uppercase">Nombre</label>
