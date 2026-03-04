@@ -12,6 +12,7 @@ use App\Models\Aula;
 use App\Enums\TipoEvento;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use App\Services\Interfaces\NotificacionServiceInterface;
 
 class EventoTest extends TestCase
 {
@@ -20,8 +21,10 @@ class EventoTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->artisan('migrate:fresh');
-        
+
+        // Evitar que los observers hagan trabajo real de DB (transacciones anidadas en PG)
+        $this->mock(NotificacionServiceInterface::class);
+
         // Crear aulas primero (necesario para alumnos)
         Aula::factory()->count(3)->create();
         
@@ -192,7 +195,10 @@ class EventoTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->profesional)
-            ->get(route('eventos.calendario'));
+            ->get(route('eventos.calendario', [
+                'start' => now()->subMonths(2)->format('Y-m-d'),
+                'end'   => now()->addMonths(3)->format('Y-m-d'),
+            ]));
 
         $response->assertStatus(200);
         $response->assertJsonCount(5);
