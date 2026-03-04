@@ -39,6 +39,9 @@ interface EventoRepositoryInterface
     //Obtiene eventos en un rango de fechas para el calendario
     public function getEventosByDateRange(string $start, string $end): Collection;
 
+    //Obtiene eventos de un profesional (creados o invitado) en un rango de fechas
+    public function getEventosParaProfesional(int $profesionalId, string $start, string $end): Collection;
+
     //Obtiene evento con todas sus relaciones cargadas
     public function findWithRelations(int $eventoId): ?Evento;
 
