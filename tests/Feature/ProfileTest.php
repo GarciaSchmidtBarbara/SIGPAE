@@ -2,98 +2,85 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
+use App\Models\Aula;
+use App\Models\Persona;
+use App\Models\Profesional;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
+use Illuminate\Support\Facades\Hash;
+use App\Services\Interfaces\NotificacionServiceInterface;
 
 class ProfileTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTruncation;
 
-    public function test_profile_page_is_displayed(): void
+    protected Profesional $profesional;
+
+    protected function setUp(): void
     {
-        $user = User::factory()->create();
+        parent::setUp();
 
-        $response = $this
-            ->actingAs($user)
-            ->get('/profile');
+        $this->mock(NotificacionServiceInterface::class, function ($mock) {
+            $mock->shouldReceive('crear')->andReturn();
+        });
 
-        $response->assertOk();
+        Aula::factory()->create();
+        Aula::factory()->create();
+        Aula::factory()->create();
+
+        $persona = Persona::factory()->create();
+        $this->profesional = Profesional::factory()->create([
+            'fk_id_persona' => $persona->id_persona,
+            'contrasenia'   => Hash::make('password123'),
+            'activo'        => true,
+        ]);
     }
 
-    public function test_profile_information_can_be_updated(): void
+
+    #[Test]
+    public function usuario_puede_desactivar_su_propia_cuenta()
     {
-        $user = User::factory()->create();
+        $response = $this->actingAs($this->profesional)
+            ->patch(route('perfil.desactivar'));
 
-        $response = $this
-            ->actingAs($user)
-            ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => 'test@example.com',
-            ]);
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHas('success');
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
-
-        $user->refresh();
-
-        $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
+        $this->profesional->persona->refresh();
+        $this->assertFalse((bool) $this->profesional->persona->activo);
     }
 
-    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
+    #[Test]
+    public function usuario_queda_deslogueado_al_desactivar_cuenta()
     {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->patch('/profile', [
-                'name' => 'Test User',
-                'email' => $user->email,
-            ]);
-
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/profile');
-
-        $this->assertNotNull($user->refresh()->email_verified_at);
-    }
-
-    public function test_user_can_delete_their_account(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this
-            ->actingAs($user)
-            ->delete('/profile', [
-                'password' => 'password',
-            ]);
-
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
+        $this->actingAs($this->profesional)
+            ->patch(route('perfil.desactivar'));
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
     }
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
+    #[Test]
+    public function usuario_no_autenticado_no_puede_desactivar_cuenta()
     {
-        $user = User::factory()->create();
+        $response = $this->patch(route('perfil.desactivar'));
 
-        $response = $this
-            ->actingAs($user)
-            ->from('/profile')
-            ->delete('/profile', [
-                'password' => 'wrong-password',
-            ]);
+        $response->assertRedirect(route('login'));
+    }
 
-        $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
+    #[Test]
+    public function usuario_desactivado_no_puede_iniciar_sesion()
+    {
+        // Primero desactivamos
+        $this->actingAs($this->profesional)
+            ->patch(route('perfil.desactivar'));
 
-        $this->assertNotNull($user->fresh());
+        // Intentamos login
+        $response = $this->post(route('login'), [
+            'usuario' => $this->profesional->usuario,
+            'password' => 'password123',
+        ]);
+
+        $this->assertGuest();
     }
 }

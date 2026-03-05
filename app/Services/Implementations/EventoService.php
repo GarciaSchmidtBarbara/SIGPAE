@@ -59,6 +59,7 @@ class EventoService implements EventoServiceInterface
                 'fecha_hora' => $data['fecha_hora'],
                 'lugar' => $data['lugar'] ?? null,
                 'notas' => $data['notas'] ?? null,
+                'periodo_recordatorio' => $data['periodo_recordatorio'] ?? null,
                 'fk_id_profesional_creador' => $profesionalId,
             ];
 
@@ -108,6 +109,7 @@ class EventoService implements EventoServiceInterface
                 'fecha_hora' => $data['fecha_hora'],
                 'lugar' => $data['lugar'] ?? null,
                 'notas' => $data['notas'] ?? null,
+                'periodo_recordatorio' => $data['periodo_recordatorio'] ?? null,
             ];
 
             $actualizado = $this->repo->update($id, $eventoData);
@@ -169,7 +171,7 @@ class EventoService implements EventoServiceInterface
                 'tipo_evento' => 'DERIVACION_EXTERNA',
                 'fecha_hora' => $data['fecha'] ?? now(),
                 'lugar' => $data['lugar'] ?? null,
-                'notas' => $data['descripcion_externa'],
+                'notas' => $data['notas'] ?? null,
                 'profesional_tratante' => $data['profesional_tratante'] ?? null,
                 'periodo_recordatorio' => $data['periodo_recordatorio'] ?? null,
                 'fk_id_profesional_creador' => $profesionalId,
@@ -196,7 +198,7 @@ class EventoService implements EventoServiceInterface
             $eventoData = [
                 'fecha_hora' => $data['fecha'] ?? now(),
                 'lugar' => $data['lugar'] ?? null,
-                'notas' => $data['descripcion_externa'],
+                'notas' => $data['notas'] ?? null,
                 'profesional_tratante' => $data['profesional_tratante'] ?? null,
                 'periodo_recordatorio' => $data['periodo_recordatorio'] ?? null,
             ];
@@ -241,19 +243,7 @@ class EventoService implements EventoServiceInterface
         $profesional = auth()->user();
         if (!$profesional) return [];
 
-        // Eventos creados por el usuario (pasados y futuros)
-        $eventosCreados = $this->repo->getEventosByDateRange('2000-01-01', $end)
-            ->where('fk_id_profesional_creador', $profesional->id_profesional);
-
-        // Eventos donde es invitado (pasados y futuros)
-        $eventosInvitado = $this->repo->getEventosByDateRange('2000-01-01', $end)
-            ->filter(function ($evento) use ($profesional) {
-                return $evento->esInvitadoA->contains(function ($inv) use ($profesional) {
-                    return $inv->fk_id_profesional == $profesional->id_profesional;
-                });
-            });
-
-        $eventos = $eventosCreados->merge($eventosInvitado)->unique('id_evento')->sortBy('fecha_hora');
+        $eventos = $this->repo->getEventosParaProfesional($profesional->id_profesional, $start, $end);
 
         return $eventos->map(function ($evento) {
             return [
