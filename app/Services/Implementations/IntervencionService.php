@@ -150,8 +150,8 @@ class IntervencionService implements IntervencionServiceInterface
         $aulas = $this->repository->obtenerAulas();
         $aulasSeleccionadas = $intervencion?->aulas->pluck('id_aula')->toArray() ?? [];
 
-        // Planes de acción
-        $planes = $this->servicePlan->obtenerTodos();
+        // Planes de acción - Solo planes abiertos
+        $planes = $this->servicePlan->obtenerAbiertos();
 
         // Otros asistentes
         $otrosAsistentes = $intervencion?->otros_asistentes_i->map(fn($as) => [

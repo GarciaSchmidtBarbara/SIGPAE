@@ -109,7 +109,7 @@
     </div>
 
     {{-- Alpine para controlar secciones por tipo --}}
-    <div x-data="intervencionForm('{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}', {{ $alumnosJson->toJson() }})">
+    <div x-data="intervencionForm('{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}', {{ $alumnosJson->toJson() }}, '{{ old('fk_id_plan_de_accion', $esEdicion ? ($intervencion->fk_id_plan_de_accion ?? '') : '') }}')">
 
         <form method="POST" action="{{ $esEdicion 
                 ? route('intervenciones.actualizar', $intervencion->id_intervencion)
@@ -133,7 +133,7 @@
 
             <fieldset {{ $cerrado ? 'disabled' : '' }}>
                 {{-- DATOS DE LA INTERVENCION --}}
-                <div class="px-4 py-6 md:p-6">
+                <div>
                     <p class="separador">Datos de la intervención</p>
                     
                     {{-- Fecha, hora y lugar --}}
@@ -169,6 +169,8 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <p x-show="mensajePlan" x-text="mensajePlan" class="text-xs text-blue-600 mt-2"></p>
+                            <div x-show="errors.plan_de_accion" x-text="errors.plan_de_accion" class="text-xs text-red-600 mt-1"></div>
                         </div>
                         @php
                             $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
@@ -194,7 +196,8 @@
 
                 {{-- DESTINATARIOS --}}
                 <div id="destinatarios" 
-                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })"> 
+                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" 
+                x-init="init()">
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
@@ -246,7 +249,11 @@
                                             <td x-text="al.dni"></td>
                                             <td x-text="al.curso"></td>
                                             <td>
-                                                <button type="button" @click="eliminarAlumno(al.id)" class="text-gray-400 hover:text-red-600 focus:outline-none">
+                                                <button type="button" @click="eliminarAlumno(al.id)" 
+                                                    :class="al.desdePlan ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-red-600'"
+                                                    :disabled="al.desdePlan"
+                                                    class="focus:outline-none"
+                                                    :title="al.desdePlan ? 'Alumno del plan de acción' : 'Eliminar'">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fill-rule="evenodd"
                                                             d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -537,18 +544,53 @@
 </div>
 
 <script>
-    function intervencionForm(tipoInicial, alumnoData) {
+    function intervencionForm(tipoInicial, alumnoData, planInicial = '') {
         return {
             tipoSeleccionado: tipoInicial,
             alumnoData: alumnoData,
-            errors: { fecha: '', hora: '', lugar: '', tipo_intervencion: '', modalidad: '', objetivos: '', compromisos: '' },
+            planSeleccionado: planInicial,
+            mensajePlan: '',
+            errors: { fecha: '', hora: '', lugar: '', tipo_intervencion: '', plan_de_accion: '', modalidad: '', objetivos: '', compromisos: '' },
 
             limpiarError(campo) {
                 this.errors[campo] = '';
             },
 
+            async seleccionarPlan() {
+                if (!this.planSeleccionado) {
+                    this.mensajePlan = '';
+                    window.dispatchEvent(new CustomEvent('quitar-alumnos-plan'));
+                    return;
+                }
+
+                this.mensajePlan = 'Cargando alumnos...';
+
+                try {
+                    const response = await fetch(`/api/planes-de-accion/${this.planSeleccionado}/alumnos-intervencion`, {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Error al cargar los alumnos');
+                    }
+
+                    const alumnos = await response.json();
+                    
+                    // Despachar evento personalizado con los alumnos cargados
+                    window.dispatchEvent(new CustomEvent('cargar-alumnos-plan', {
+                        detail: { alumnos: alumnos }
+                    }));
+                    
+                    this.mensajePlan = `✓ Se cargaron ${alumnos.length} alumno(s)`;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.mensajePlan = '✗ Error al cargar los alumnos';
+                }
+            },
+
             validarYGuardar(event) {
-                this.errors = { fecha: '', hora: '', lugar: '', tipo_intervencion: '', modalidad: '', objetivos: '', compromisos: '' };
+                this.errors = { fecha: '', hora: '', lugar: '', tipo_intervencion: '', plan_de_accion: '', modalidad: '', objetivos: '', compromisos: '' };
                 let hayError = false;
                 const form = event.target;
 
@@ -563,9 +605,16 @@
                 }
                 const tipoChecked = form.querySelector('input[name=tipo_intervencion]:checked');
                 const tipoHidden  = form.querySelector('input[type=hidden][name=tipo_intervencion]');
-                if (!tipoChecked?.value && !tipoHidden?.value && !this.tipoSeleccionado) {
+                const tipoValor = tipoChecked?.value || tipoHidden?.value || this.tipoSeleccionado;
+                if (!tipoValor) {
                     this.errors.tipo_intervencion = 'Debe seleccionar el tipo de intervención'; hayError = true;
                 }
+                
+                // Validar que si es PROGRAMADA, debe seleccionar un plan
+                if (tipoValor === 'PROGRAMADA' && !this.planSeleccionado) {
+                    this.errors.plan_de_accion = 'Debe seleccionar un plan de acción para intervenciones programadas'; hayError = true;
+                }
+                
                 const modalidadChecked = form.querySelector('input[name=modalidad]:checked');
                 const modalidadHidden  = form.querySelector('input[type=hidden][name=modalidad]');
                 if (!modalidadChecked?.value && !modalidadHidden?.value) {
@@ -595,6 +644,28 @@
             profesionalSeleccionado: "",
             profesionalesData: profesionalesData || {},
             profesionalesSeleccionados: Array.isArray(profesionalesIniciales) ? profesionalesIniciales : [],
+
+            init() {
+                // Escuchar evento de carga de alumnos desde el plan
+                window.addEventListener('cargar-alumnos-plan', (event) => {
+                    if (event.detail && event.detail.alumnos) {
+                        // Quitar alumnos previos que venían de un plan anterior
+                        this.alumnosSeleccionados = this.alumnosSeleccionados.filter(a => !a.desdePlan);
+                        // Marcar los nuevos como provenientes del plan
+                        const alumnosPlan = event.detail.alumnos.map(a => ({ ...a, desdePlan: true }));
+                        alumnosPlan.forEach(a => {
+                            if (!this.alumnosSeleccionados.find(x => x.id === a.id)) {
+                                this.alumnosSeleccionados.push(a);
+                            }
+                        });
+                    }
+                });
+
+                // Escuchar cuando se quita el plan
+                window.addEventListener('quitar-alumnos-plan', () => {
+                    this.alumnosSeleccionados = this.alumnosSeleccionados.filter(a => !a.desdePlan);
+                });
+            },
 
             agregarAlumno() {
                 if (!this.alumnoSeleccionado || this.alumnoSeleccionado === "") return;
@@ -626,6 +697,8 @@
             },
 
             eliminarAlumno(id) {
+                const alumno = this.alumnosSeleccionados.find(a => a.id === id);
+                if (alumno && alumno.desdePlan) return;
                 this.alumnosSeleccionados = this.alumnosSeleccionados.filter(a => a.id !== id);
             },
 

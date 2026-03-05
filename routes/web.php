@@ -179,6 +179,9 @@ Route::prefix('intervenciones')->name('intervenciones.')->group(function () {
     Route::post('/{id}/evaluacion/guardar', [IntervencionController::class, 'guardarEvaluacion'])->name('intervenciones.evaluacion.store');
 });
 
+// API endpoint para obtener alumnos de un plan (usado en intervenciones)
+Route::get('/api/planes-de-accion/{id}/alumnos-intervencion', [IntervencionController::class, 'obtenerAlumnosDePlan'])->name('intervenciones.api.alumnos-plan')->middleware('auth');
+
 //Rutas Eventos (Calendario)
 use App\Http\Controllers\EventoController;
 Route::prefix('eventos')->middleware('auth')->name('eventos.')->group(function () {

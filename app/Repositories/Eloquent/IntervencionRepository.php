@@ -111,8 +111,8 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         // 2. ASOCIACIONES SEGÚN TIPO DE INTERVENCIÓN
 
         //Si es programada tiene un plan de accion asociado
-        if ($tipo === 'PROGRAMADA' && !empty($data['plan_de_accion'])) {
-            $intervencion->fk_id_plan_de_accion = (int) $data['plan_de_accion'];
+        if ($tipo === 'PROGRAMADA' && !empty($data['fk_id_plan_de_accion'])) {
+            $intervencion->fk_id_plan_de_accion = (int) $data['fk_id_plan_de_accion'];
             $intervencion->save();
         }
 

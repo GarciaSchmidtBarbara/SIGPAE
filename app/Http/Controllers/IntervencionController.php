@@ -57,7 +57,8 @@ class IntervencionController extends Controller
             'fk_id_profesional_generador' => auth()->user()->id_profesional ?? auth()->id(),
         ]);
 
-        $data = $request->validate([
+        // Validación condicional para el plan de acción
+        $rules = [
             'fecha_hora_intervencion' => 'required|date',
             'lugar' => 'required|string|max:255',
             'modalidad' => 'required|string',
@@ -70,8 +71,15 @@ class IntervencionController extends Controller
             'alumnos' => 'nullable|array',
             'alumnos.*' => 'integer|exists:alumnos,id_alumno',
             'fk_id_profesional_generador' => 'required|integer|exists:profesionales,id_profesional',
-            'plan_de_accion' => 'nullable|integer|exists:planes_de_accion,id_plan_de_accion',
-        ]);
+            'fk_id_plan_de_accion' => 'nullable|integer|exists:planes_de_accion,id_plan_de_accion',
+        ];
+        
+        // Si es intervención PROGRAMADA, el plan de acción es requerido
+        if ($request->input('tipo_intervencion') === 'PROGRAMADA') {
+            $rules['fk_id_plan_de_accion'] = 'required|integer|exists:planes_de_accion,id_plan_de_accion';
+        }
+
+        $data = $request->validate($rules);
         $data['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
 
         try {
@@ -148,7 +156,8 @@ class IntervencionController extends Controller
 
     public function editar(Request $request, int $id): RedirectResponse
     {
-        $data = $request->validate([
+        // Validación condicional para el plan de acción
+        $rules = [
             'fecha_hora_intervencion' => 'required|date',
             'hora_intervencion' => 'required',
             'lugar' => 'required|string|max:255',
@@ -165,7 +174,16 @@ class IntervencionController extends Controller
             'profesionales.*' => 'integer|exists:profesionales,id_profesional',
             'docs_a_eliminar'   => 'nullable|array',
             'docs_a_eliminar.*' => 'integer',
-        ]);
+            'fk_id_plan_de_accion' => 'nullable|integer|exists:planes_de_accion,id_plan_de_accion',
+        ];
+        
+        // Si es intervención PROGRAMADA, el plan de acción es requerido
+        $intervencion = \App\Models\Intervencion::find($id);
+        if ($intervencion && $intervencion->tipo_intervencion === 'PROGRAMADA') {
+            $rules['fk_id_plan_de_accion'] = 'required|integer|exists:planes_de_accion,id_plan_de_accion';
+        }
+
+        $data = $request->validate($rules);
         $data['fecha_hora_intervencion'] = $request->input('fecha_hora_intervencion') . ' ' . $request->input('hora_intervencion');
 
         try {
@@ -202,5 +220,30 @@ class IntervencionController extends Controller
 
         return redirect()->route('intervenciones.principal')
                         ->with($ok ? 'success' : 'error', $ok ? 'Intervención actualizada.' : 'No se pudo actualizar.');
+    }
+
+    /**
+     * API endpoint para obtener alumnos de un plan de acción
+     */
+    public function obtenerAlumnosDePlan(int $id): JsonResponse
+    {
+        $plan = \App\Models\PlanDeAccion::find($id);
+
+        if (!$plan) {
+            return response()->json(['error' => 'Plan no encontrado'], 404);
+        }
+
+        $alumnos = $plan->alumnos->map(function ($al) {
+            return [
+                'id'       => $al->id_alumno,
+                'nombre'   => $al->persona->nombre,
+                'apellido' => $al->persona->apellido,
+                'dni'      => $al->persona->dni,
+                'curso'    => $al->aula?->descripcion,
+                'aula_id'  => $al->fk_id_aula,
+            ];
+        });
+
+        return response()->json($alumnos);
     }
 }

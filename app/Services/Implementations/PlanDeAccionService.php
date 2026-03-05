@@ -48,6 +48,14 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
     {
         return $this->repository->obtenerTodos();
     }
+    
+    public function obtenerAbiertos(): Collection
+    {
+        return $this->repository->obtenerTodos()->filter(function ($plan) {
+            return $plan->estado_plan->value === 'ABIERTO' && $plan->activo === true;
+        });
+    }
+    
     public function obtenerTodosConRelaciones(): Collection
     {
         return $this->repository->obtenerTodosConRelaciones();

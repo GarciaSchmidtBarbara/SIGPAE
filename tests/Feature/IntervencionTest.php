@@ -76,7 +76,7 @@ class IntervencionTest extends TestCase
             'temas_tratados'          => 'Dificultades de atención',
             'compromisos'             => 'Ninguno',
             'tipo_intervencion'       => TipoIntervencion::PROGRAMADA->value,
-            'plan_de_accion'          => $plan->id_plan_de_accion,
+            'fk_id_plan_de_accion'    => $plan->id_plan_de_accion,
             'fk_id_profesional_generador' => $this->profesional->id_profesional,
             'alumnos'                 => [$alumno->id_alumno],
             'profesionales'           => [$this->profesional->id_profesional],
@@ -111,6 +111,8 @@ class IntervencionTest extends TestCase
         $intervencion = Intervencion::factory()->create([
             'fk_id_profesional_generador' => $this->profesional->id_profesional,
             'lugar' => 'Lugar original',
+            'tipo_intervencion' => 'ESPONTANEA',
+            'fk_id_plan_de_accion' => null,
         ]);
 
         $response = $this->actingAs($this->profesional)

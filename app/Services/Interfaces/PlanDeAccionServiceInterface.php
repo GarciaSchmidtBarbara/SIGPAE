@@ -17,6 +17,7 @@ interface PlanDeAccionServiceInterface
     public function buscarPorId(int $id): ?PlanDeAccion;
     public function filtrar(Request $request): Collection;
     public function obtenerTodos(): Collection;
+    public function obtenerAbiertos(): Collection;  
     public function obtenerTodosConRelaciones(): Collection;
     public function obtenerAulas(): Collection;
     public function obtenerTipos(): Collection;
