@@ -12,19 +12,23 @@ use App\Models\PlanDeAccion;
 use App\Models\Profesional;
 use App\Enums\Modalidad;
 use App\Enums\TipoIntervencion;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\Hash;
+use App\Services\Interfaces\NotificacionServiceInterface;
 
 class IntervencionTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTruncation;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->artisan('migrate:fresh');
 
-        Aula::factory()->count(3)->create();
+        $this->mock(NotificacionServiceInterface::class);
+
+        Aula::factory()->create();
+        Aula::factory()->create();
+        Aula::factory()->create();
 
         $persona = Persona::factory()->create();
         $this->profesional = Profesional::factory()->create([
@@ -115,6 +119,7 @@ class IntervencionTest extends TestCase
                 'hora_intervencion'       => $intervencion->fecha_hora_intervencion->format('H:i:s'),
                 'lugar'                   => 'Lugar actualizado',
                 'modalidad'               => $intervencion->modalidad->value,
+                'temas_tratados'          => 'Temas de prueba',
                 'compromisos'             => 'Sin compromisos',
                 'fk_id_profesional_generador' => $this->profesional->id_profesional,
             ]);
