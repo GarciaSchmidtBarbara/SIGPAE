@@ -80,7 +80,7 @@ class ProfesionalController extends Controller {
             ]);
         });
 
-        return back()->with('success', 'usuario creado y correo de activación enviado');
+        return redirect()->route('usuarios.principal')->with('success', 'usuario creado y correo de activación enviado');
     }
 
     public function crearEditar() {
