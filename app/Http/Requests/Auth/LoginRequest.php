@@ -90,4 +90,11 @@ class LoginRequest extends FormRequest
     {
         return Str::transliterate(Str::lower($this->string('usuario')).'|'.$this->ip());
     }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'remember' => $this->has('remember'),
+        ]);
+    }
 }
