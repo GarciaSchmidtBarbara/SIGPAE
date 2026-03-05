@@ -170,6 +170,7 @@
                                 @endforeach
                             </select>
                             <p x-show="mensajePlan" x-text="mensajePlan" class="text-xs text-blue-600 mt-2"></p>
+                            <div x-show="errors.plan_de_accion" x-text="errors.plan_de_accion" class="text-xs text-red-600 mt-1"></div>
                         </div>
                         @php
                             $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
@@ -545,7 +546,7 @@
             alumnoData: alumnoData,
             planSeleccionado: planInicial,
             mensajePlan: '',
-            errors: { fecha: '', hora: '', lugar: '', tipo_intervencion: '', modalidad: '', objetivos: '', compromisos: '' },
+            errors: { fecha: '', hora: '', lugar: '', tipo_intervencion: '', plan_de_accion: '', modalidad: '', objetivos: '', compromisos: '' },
 
             limpiarError(campo) {
                 this.errors[campo] = '';
@@ -584,7 +585,7 @@
             },
 
             validarYGuardar(event) {
-                this.errors = { fecha: '', hora: '', lugar: '', tipo_intervencion: '', modalidad: '', objetivos: '', compromisos: '' };
+                this.errors = { fecha: '', hora: '', lugar: '', tipo_intervencion: '', plan_de_accion: '', modalidad: '', objetivos: '', compromisos: '' };
                 let hayError = false;
                 const form = event.target;
 
@@ -599,9 +600,16 @@
                 }
                 const tipoChecked = form.querySelector('input[name=tipo_intervencion]:checked');
                 const tipoHidden  = form.querySelector('input[type=hidden][name=tipo_intervencion]');
-                if (!tipoChecked?.value && !tipoHidden?.value && !this.tipoSeleccionado) {
+                const tipoValor = tipoChecked?.value || tipoHidden?.value || this.tipoSeleccionado;
+                if (!tipoValor) {
                     this.errors.tipo_intervencion = 'Debe seleccionar el tipo de intervención'; hayError = true;
                 }
+                
+                // Validar que si es PROGRAMADA, debe seleccionar un plan
+                if (tipoValor === 'PROGRAMADA' && !this.planSeleccionado) {
+                    this.errors.plan_de_accion = 'Debe seleccionar un plan de acción para intervenciones programadas'; hayError = true;
+                }
+                
                 const modalidadChecked = form.querySelector('input[name=modalidad]:checked');
                 const modalidadHidden  = form.querySelector('input[type=hidden][name=modalidad]');
                 if (!modalidadChecked?.value && !modalidadHidden?.value) {
