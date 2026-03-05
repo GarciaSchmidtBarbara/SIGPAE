@@ -203,4 +203,29 @@ class IntervencionController extends Controller
         return redirect()->route('intervenciones.principal')
                         ->with($ok ? 'success' : 'error', $ok ? 'Intervención actualizada.' : 'No se pudo actualizar.');
     }
+
+    /**
+     * API endpoint para obtener alumnos de un plan de acción
+     */
+    public function obtenerAlumnosDePlan(int $id): JsonResponse
+    {
+        $plan = \App\Models\PlanDeAccion::find($id);
+
+        if (!$plan) {
+            return response()->json(['error' => 'Plan no encontrado'], 404);
+        }
+
+        $alumnos = $plan->alumnos->map(function ($al) {
+            return [
+                'id'       => $al->id_alumno,
+                'nombre'   => $al->persona->nombre,
+                'apellido' => $al->persona->apellido,
+                'dni'      => $al->persona->dni,
+                'curso'    => $al->aula?->descripcion,
+                'aula_id'  => $al->fk_id_aula,
+            ];
+        });
+
+        return response()->json($alumnos);
+    }
 }

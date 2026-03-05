@@ -109,7 +109,7 @@
     </div>
 
     {{-- Alpine para controlar secciones por tipo --}}
-    <div x-data="intervencionForm('{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}', {{ $alumnosJson->toJson() }})">
+    <div x-data="intervencionForm('{{ old('tipo_intervencion', $esEdicion ? ($intervencion->tipo_intervencion ?? '') : '') }}', {{ $alumnosJson->toJson() }}, '{{ old('fk_id_plan_de_accion', $esEdicion ? ($intervencion->fk_id_plan_de_accion ?? '') : '') }}')">>
 
         <form method="POST" action="{{ $esEdicion 
                 ? route('intervenciones.actualizar', $intervencion->id_intervencion)
@@ -169,6 +169,7 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <p x-show="mensajePlan" x-text="mensajePlan" class="text-xs text-blue-600 mt-2"></p>
                         </div>
                         @php
                             $tipoItems = array_map(fn($t) => $t->value, \App\Enums\TipoIntervencion::cases());
@@ -194,7 +195,8 @@
 
                 {{-- DESTINATARIOS --}}
                 <div id="destinatarios" 
-                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })"> 
+                x-data="datosPersonas({ alumnoData: @js($alumnosJson), alumnosIniciales: @js($alumnosSeleccionados ?? []) })" 
+                x-init="init()">> 
                     <div class="space-y-6 mb-6">
                         <p class="separador">Destinatarios</p>
                         <div class="selectors-row">
@@ -537,14 +539,48 @@
 </div>
 
 <script>
-    function intervencionForm(tipoInicial, alumnoData) {
+    function intervencionForm(tipoInicial, alumnoData, planInicial = '') {
         return {
             tipoSeleccionado: tipoInicial,
             alumnoData: alumnoData,
+            planSeleccionado: planInicial,
+            mensajePlan: '',
             errors: { fecha: '', hora: '', lugar: '', tipo_intervencion: '', modalidad: '', objetivos: '', compromisos: '' },
 
             limpiarError(campo) {
                 this.errors[campo] = '';
+            },
+
+            async seleccionarPlan() {
+                if (!this.planSeleccionado) {
+                    this.mensajePlan = '';
+                    return;
+                }
+
+                this.mensajePlan = 'Cargando alumnos...';
+
+                try {
+                    const response = await fetch(`/api/planes-de-accion/${this.planSeleccionado}/alumnos-intervencion`, {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Error al cargar los alumnos');
+                    }
+
+                    const alumnos = await response.json();
+                    
+                    // Despachar evento personalizado con los alumnos cargados
+                    window.dispatchEvent(new CustomEvent('cargar-alumnos-plan', {
+                        detail: { alumnos: alumnos }
+                    }));
+                    
+                    this.mensajePlan = `✓ Se cargaron ${alumnos.length} alumno(s)`;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    this.mensajePlan = '✗ Error al cargar los alumnos';
+                }
             },
 
             validarYGuardar(event) {
@@ -595,6 +631,15 @@
             profesionalSeleccionado: "",
             profesionalesData: profesionalesData || {},
             profesionalesSeleccionados: Array.isArray(profesionalesIniciales) ? profesionalesIniciales : [],
+
+            init() {
+                // Escuchar evento de carga de alumnos desde el plan
+                window.addEventListener('cargar-alumnos-plan', (event) => {
+                    if (event.detail && event.detail.alumnos) {
+                        this.alumnosSeleccionados = event.detail.alumnos;
+                    }
+                });
+            },
 
             agregarAlumno() {
                 if (!this.alumnoSeleccionado || this.alumnoSeleccionado === "") return;
