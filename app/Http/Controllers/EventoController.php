@@ -113,21 +113,22 @@ class EventoController extends Controller
 
     public function guardar(Request $request): RedirectResponse
     {
-        try {
-            $validated = $request->validate([
-                'tipo_evento' => 'required|string',
-                'fecha_hora' => 'required|date',
-                'lugar' => 'required|string|max:255',
-                'notas' => 'nullable|string',
-                'profesionales' => 'nullable|array',
-                'cursos' => 'nullable|array',
-                'alumnos' => 'nullable|array',
-            ], [
-                'tipo_evento.required' => 'Debe seleccionar un tipo de evento',
-                'fecha_hora.required' => 'Debe ingresar fecha y hora',
-                'lugar.required' => 'Debe ingresar el lugar',
-            ]);
+        $validated = $request->validate([
+            'tipo_evento' => 'required|string',
+            'fecha_hora' => 'required|date',
+            'lugar' => 'required|string|max:255',
+            'notas' => 'nullable|string',
+            'periodo_recordatorio' => 'nullable|integer|min:1',
+            'profesionales' => 'nullable|array',
+            'cursos' => 'nullable|array',
+            'alumnos' => 'nullable|array',
+        ], [
+            'tipo_evento.required' => 'Debe seleccionar un tipo de evento',
+            'fecha_hora.required' => 'Debe ingresar fecha y hora',
+            'lugar.required' => 'Debe ingresar el lugar',
+        ]);
 
+        try {
             $evento = $this->eventoService->crearConParticipantes($validated);
 
             return redirect()->route('eventos.principal')
@@ -141,21 +142,22 @@ class EventoController extends Controller
 
     public function actualizar(Request $request, int $id): RedirectResponse
     {
-        try {
-            $validated = $request->validate([
-                'tipo_evento' => 'required|string',
-                'fecha_hora' => 'required|date',
-                'lugar' => 'required|string|max:255',
-                'notas' => 'nullable|string',
-                'profesionales' => 'nullable|array',
-                'cursos' => 'nullable|array',
-                'alumnos' => 'nullable|array',
-            ], [
-                'tipo_evento.required' => 'Debe seleccionar un tipo de evento',
-                'fecha_hora.required' => 'Debe ingresar fecha y hora',
-                'lugar.required' => 'Debe ingresar el lugar',
-            ]);
+        $validated = $request->validate([
+            'tipo_evento' => 'required|string',
+            'fecha_hora' => 'required|date',
+            'lugar' => 'required|string|max:255',
+            'notas' => 'nullable|string',
+            'periodo_recordatorio' => 'nullable|integer|min:1',
+            'profesionales' => 'nullable|array',
+            'cursos' => 'nullable|array',
+            'alumnos' => 'nullable|array',
+        ], [
+            'tipo_evento.required' => 'Debe seleccionar un tipo de evento',
+            'fecha_hora.required' => 'Debe ingresar fecha y hora',
+            'lugar.required' => 'Debe ingresar el lugar',
+        ]);
 
+        try {
             $this->eventoService->actualizarConParticipantes($id, $validated);
 
             return redirect()->route('eventos.principal')
@@ -176,7 +178,6 @@ class EventoController extends Controller
     {
         try {
             $validated = $request->validate([
-                'descripcion_externa' => 'required|string',
                 'fecha' => 'required|date',
                 'lugar' => 'required|string|max:255',
                 'profesional_tratante' => 'nullable|string|max:255',
@@ -184,7 +185,6 @@ class EventoController extends Controller
                 'notas' => 'nullable|string',
                 'alumnos' => 'required|array|min:1',
             ], [
-                'descripcion_externa.required' => 'Debe ingresar una descripción',
                 'lugar.required' => 'Debe ingresar el lugar',
                 'fecha.required' => 'Debe ingresar la fecha',
                 'alumnos.required' => 'Debe agregar al menos un participante',
@@ -220,7 +220,6 @@ class EventoController extends Controller
     {
         try {
             $validated = $request->validate([
-                'descripcion_externa' => 'required|string',
                 'fecha' => 'required|date',
                 'lugar' => 'required|string|max:255',
                 'profesional_tratante' => 'nullable|string|max:255',
@@ -228,7 +227,6 @@ class EventoController extends Controller
                 'notas' => 'nullable|string',
                 'alumnos' => 'required|array|min:1',
             ], [
-                'descripcion_externa.required' => 'Debe ingresar una descripción',
                 'lugar.required' => 'Debe ingresar el lugar',
                 'fecha.required' => 'Debe ingresar la fecha',
                 'alumnos.required' => 'Debe agregar al menos un participante',

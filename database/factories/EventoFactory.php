@@ -17,10 +17,6 @@ class EventoFactory extends Factory
     {
         $tipoEvento = $this->faker->randomElement(TipoEvento::cases());
         
-        $notas = $tipoEvento === TipoEvento::DERIVACION_EXTERNA 
-            ? 'Profesional externo: ' . $this->faker->name() 
-            : $this->faker->optional(0.6)->sentence(8); 
-
         return [
             'fecha_hora' => $this->faker->dateTimeBetween('-1 month', '+2 months')
                 ->setTime(fake()->numberBetween(8, 18), fake()->randomElement([0, 15, 30, 45])),
@@ -35,7 +31,7 @@ class EventoFactory extends Factory
                 'Consultorio externo'
             ]),
             'tipo_evento' => $tipoEvento,
-            'notas' => $notas,
+            'notas' => $this->faker->optional(0.6)->sentence(8),
             'profesional_tratante' => $this->faker->optional(0.3)->name(),
             'periodo_recordatorio' => $this->faker->optional(0.5)->randomElement([1, 3, 7, 15]),
             'fk_id_profesional_creador' => Profesional::inRandomOrder()->first()?->id_profesional ?? Profesional::factory()->create()->id_profesional,
@@ -119,7 +115,7 @@ class EventoFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'tipo_evento' => TipoEvento::DERIVACION_EXTERNA,
             'lugar' => 'Consultorio externo',
-            'notas' => 'Profesional externo: ' . fake()->name(),
+            'notas' => fake()->optional(0.5)->sentence(8),
         ]);
     }
 

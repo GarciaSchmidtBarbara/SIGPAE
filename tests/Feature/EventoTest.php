@@ -10,20 +10,26 @@ use App\Models\Persona;
 use App\Models\Alumno;
 use App\Models\Aula;
 use App\Enums\TipoEvento;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\Hash;
+use App\Services\Interfaces\NotificacionServiceInterface;
 
 class EventoTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTruncation;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->artisan('migrate:fresh');
-        
-        // Crear aulas primero (necesario para alumnos)
-        Aula::factory()->count(3)->create();
+
+        // Evitar que los observers hagan trabajo real de DB (transacciones anidadas en PG)
+        $this->mock(NotificacionServiceInterface::class);
+
+        //Crear aulas una por una (count(3) usado antes evalúuaba todas las definiciones
+        //antes de guardar, lo que puede generar duplicados en la constraint unique)
+        Aula::factory()->create();
+        Aula::factory()->create();
+        Aula::factory()->create();
         
         // Crear un profesional para autenticación
         $persona = Persona::factory()->create();
@@ -166,6 +172,10 @@ class EventoTest extends TestCase
             'fk_id_profesional_creador' => $this->profesional->id_profesional,
         ]);
 
+        // Eliminar invitaciones creadas por el afterCreating del factory
+        // para evitar duplicados con la invitación de prueba
+        $evento->esInvitadoA()->delete();
+
         $invitacion = $evento->esInvitadoA()->create([
             'fk_id_profesional' => $this->profesional->id_profesional,
             'confirmacion' => false,
@@ -181,7 +191,7 @@ class EventoTest extends TestCase
         $response->assertJson(['success' => true]);
 
         $invitacion->refresh();
-        $this->assertEquals(1, $invitacion->confirmacion);
+        $this->assertTrue($invitacion->confirmacion);
     }
 
     #[Test]
@@ -192,7 +202,10 @@ class EventoTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->profesional)
-            ->get(route('eventos.calendario'));
+            ->get(route('eventos.calendario', [
+                'start' => now()->subMonths(2)->format('Y-m-d'),
+                'end'   => now()->addMonths(3)->format('Y-m-d'),
+            ]));
 
         $response->assertStatus(200);
         $response->assertJsonCount(5);

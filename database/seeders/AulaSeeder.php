@@ -9,6 +9,9 @@ class AulaSeeder extends Seeder
 {
     public function run(): void
     {
-        Aula::factory()->count(10)->create();
+       //Se crea una por una por la validacion de combinación única
+        for ($i = 0; $i < 10; $i++) {
+            Aula::factory()->create();
+        }
     }
 }

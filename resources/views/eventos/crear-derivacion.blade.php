@@ -12,22 +12,6 @@
             @method('PUT')
         @endif
 
-        <!-- Detalles de la derivación externa -->
-        <div class="space-y-4 mb-6">
-            <h3 class="separador">Detalles de la Derivación Externa</h3>
-            
-            <div>
-                <x-campo-requerido text="Descripción" required />
-                <textarea name="descripcion_externa" 
-                          x-model="formData.descripcion"
-                          rows="3"
-                          placeholder="Detalles de la derivación..."
-                          class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                          @input="limpiarError('descripcion')"></textarea>
-                <div x-show="errors.descripcion" x-text="errors.descripcion" class="text-xs text-red-600 mt-1"></div>
-            </div>
-        </div>
-
         <!-- Agendar recordatorio -->
         <div class="space-y-4 mb-6">
             <h3 class="separador">Agendar recordatorio</h3>
@@ -167,18 +151,16 @@
 function derivacionForm() {
     return {
         formData: {
-            descripcion: '{{ old('descripcion_externa', $evento->notas ?? '') }}',
             fecha: '{{ old('fecha', isset($evento) ? ($evento->fecha_hora?->format('Y-m-d') ?? '') : '') }}',
             lugar: '{{ old('lugar', $evento->lugar ?? '') }}',
             profesional_tratante: '{{ old('profesional_tratante', $evento->profesional_tratante ?? '') }}',
             periodo_recordatorio: '{{ old('periodo_recordatorio', $evento->periodo_recordatorio ?? '') }}',
-            notas: '{{ old('notas', '') }}'
+            notas: '{{ old('notas', $evento->notas ?? '') }}'
         },
         alumnosSeleccionados: @json(old('alumnos', $alumnosEvento ?? [])),
         searchQuery: '',
         resultadosAlumnos: [],
         errors: {
-            descripcion: '',
             lugar: '',
             fecha: '',
             alumnos: ''
@@ -233,13 +215,8 @@ function derivacionForm() {
         },
 
         validarYGuardar(event) {
-            this.errors = { descripcion: '', lugar: '', fecha: '', alumnos: '' };
+            this.errors = { lugar: '', fecha: '', alumnos: '' };
             let hayError = false;
-
-            if (!this.formData.descripcion || this.formData.descripcion.trim() === '') {
-                this.errors.descripcion = 'Debe ingresar una descripción';
-                hayError = true;
-            }
 
             if (!this.formData.lugar || this.formData.lugar.trim() === '') {
                 this.errors.lugar = 'Debe ingresar el lugar';

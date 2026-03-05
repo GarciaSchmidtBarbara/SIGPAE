@@ -10,20 +10,14 @@ class AulaFactory extends Factory
 
     public function definition(): array
     {
-        static $combinaciones = [];
-
         do {
             $curso = $this->faker->numberBetween(1, 6);
             $division = $this->faker->randomElement(['A', 'B', 'C', 'D', 'E']);
-            $clave = "{$curso}-{$division}";
-        } while (in_array($clave, $combinaciones));
-
-        $combinaciones[] = $clave;
+        } while (Aula::where('curso', $curso)->where('division', $division)->exists());
 
         return [
             'curso' => $curso,
             'division' => $division,
         ];
     }
-
 }
