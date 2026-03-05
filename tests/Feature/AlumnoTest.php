@@ -238,7 +238,10 @@ class AlumnoTest extends TestCase
     public function busqueda_para_plan_por_aula_devuelve_alumnos()
     {
         $aula = Aula::first();
-        Alumno::factory()->count(3)->create(['fk_id_aula' => $aula->id_aula]);
+        Alumno::factory()->count(3)->create([
+            'fk_id_aula' => $aula->id_aula,
+            'fk_id_persona' => Persona::factory()->state(['activo' => true]),
+        ]);
 
         $response = $this->actingAs($this->profesional)
             ->get(route('alumnos.buscar-para-plan', ['aula_id' => $aula->id_aula]));
