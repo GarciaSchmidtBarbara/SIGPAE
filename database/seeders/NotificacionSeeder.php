@@ -10,6 +10,7 @@ use App\Models\Notificacion;
 use App\Models\PlanDeAccion;
 use App\Models\Profesional;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Cache;
 
 class NotificacionSeeder extends Seeder
 {
@@ -140,5 +141,8 @@ class NotificacionSeeder extends Seeder
                 'updated_at'                     => $n['offset'],
             ]);
         }
+
+        // Invalidar cache de conteo de no leídas (el seeder bypasea el repositorio)
+        Cache::forget("notif_no_leidas_{$destPrincipal->id_profesional}");
     }
 }

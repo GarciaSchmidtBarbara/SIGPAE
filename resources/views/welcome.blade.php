@@ -316,9 +316,17 @@ function modalEventoData() {
 }
 let _noLeidasHome = {{ $noLeidas }};
 let _homeReady = false;
-document.addEventListener('mousemove', () => { _homeReady = true; }, { once: true });
 
-async function marcarLeidaHome(id, li) {
+
+function _activarHome() {
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => { _homeReady = true; });
+    });
+}
+if (document.readyState === 'complete') _activarHome();
+else window.addEventListener('load', _activarHome, { once: true });
+
+function marcarLeidaHome(id, li) {
     if (!_homeReady || !li.classList.contains('bg-indigo-50')) return;
 
     // Actualizar UI de forma síncrona para evitar re-entradas por layout shifts
