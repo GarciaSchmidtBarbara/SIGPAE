@@ -314,9 +314,34 @@ function modalEventoData() {
         },
     };
 }
+let _noLeidasHome = {{ $noLeidas }};
+let _homeReady = false;
+document.addEventListener('mousemove', () => { _homeReady = true; }, { once: true });
+
 async function marcarLeidaHome(id, li) {
-    if (!li.classList.contains('bg-indigo-50')) return;
-    await fetch(`/notificaciones/${id}/leer`, {
+    if (!_homeReady || !li.classList.contains('bg-indigo-50')) return;
+
+    // Actualizar UI de forma síncrona para evitar re-entradas por layout shifts
+    li.classList.remove('bg-indigo-50');
+    li.classList.add('bg-white');
+    const dot = li.querySelector('.bg-indigo-500.rounded-full');
+    if (dot) dot.remove();
+
+    _noLeidasHome = Math.max(0, _noLeidasHome - 1);
+    const badge = document.getElementById('home-no-leidas-badge');
+    if (badge) {
+        if (_noLeidasHome === 0) {
+            badge.style.display = 'none';
+            const btn = document.getElementById('home-marcar-todas-btn');
+            if (btn) btn.style.display = 'none';
+        } else {
+            badge.textContent = _noLeidasHome > 99 ? '99+' : _noLeidasHome;
+        }
+    }
+
+    window.dispatchEvent(new CustomEvent('notif-leida', { detail: { id } }));
+
+    fetch(`/notificaciones/${id}/leer`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
@@ -324,24 +349,6 @@ async function marcarLeidaHome(id, li) {
         },
         redirect: 'manual'
     });
-    li.classList.remove('bg-indigo-50');
-    li.classList.add('bg-white');
-    const dot = li.querySelector('.bg-indigo-500.rounded-full');
-    if (dot) dot.remove();
-    // Actualizar badge del home
-    const badge = document.getElementById('home-no-leidas-badge');
-    if (badge) {
-        const actual = parseInt(badge.textContent.trim()) || 0;
-        const nuevo = Math.max(0, actual - 1);
-        if (nuevo === 0) {
-            badge.style.display = 'none';
-            const btn = document.getElementById('home-marcar-todas-btn');
-            if (btn) btn.style.display = 'none';
-        } else {
-            badge.textContent = nuevo > 99 ? '99+' : nuevo;
-        }
-    }
-    window.dispatchEvent(new CustomEvent('notif-leida'));
 }
 async function dejarDeRecordar(eventoId, li) {
     await fetch(`/eventos/${eventoId}/dejar-de-recordar`, {

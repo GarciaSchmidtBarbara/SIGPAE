@@ -51,7 +51,11 @@
     }"
     x-init="cargar()"
     @click.outside="open = false"
-    @notif-leida.window="if (noLeidas > 0) noLeidas--"
+    @notif-leida.window="
+        const n = notificaciones.find(x => x.id == $event.detail?.id);
+        if (n && !n.leida) { n.leida = true; if (noLeidas > 0) noLeidas--; }
+        else if (notificaciones.length === 0 && noLeidas > 0) noLeidas--;
+    "
     class="relative"
 >
     {{-- ── Botón campana ──────────────────────────────────────────────── --}}
