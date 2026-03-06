@@ -69,6 +69,9 @@ use App\Observers\IntervencionObserver;
 use App\Observers\PlanDeAccionObserver;
 use App\Observers\EsInvitadoAObserver;
 use Illuminate\Database\Eloquent\Model;
+//Mail
+use App\Mail\BrevoTransport;
+use Illuminate\Support\Facades\Mail;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -132,5 +135,9 @@ class AppServiceProvider extends ServiceProvider
             \URL::forceScheme('https'); 
         }
         
+        // Configuración de mailer personalizado para Brevo
+        Mail::extend('brevo', function () {
+            return new BrevoTransport(config('services.brevo.api_key'));
+        });
     }
 }

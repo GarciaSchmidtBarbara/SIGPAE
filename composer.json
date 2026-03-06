@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "getbrevo/brevo-php": "^4.0",
         "google/apiclient": "^2.18",
         "laravel/framework": "^12.0",
         "laravel/socialite": "^5.23",
@@ -56,6 +57,9 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "pre-autoload-dump": [
+            "Google\\Task\\Composer::cleanup"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"
@@ -78,7 +82,11 @@
     "extra": {
         "laravel": {
             "dont-discover": []
-        }
+        },
+        "google/apiclient-services": [
+            "Drive",
+            "Calendar"
+        ]
     },
     "config": {
         "optimize-autoloader": true,
