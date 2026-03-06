@@ -7,29 +7,17 @@ use App\Models\Alumno;
 interface AlumnoServiceInterface
 {
     public function listar(): \Illuminate\Support\Collection;
-
     public function crearAlumno(array $data): Alumno;
-
     public function crearAlumnoConFamiliares(array $alumnoData, array $familiaresTemp): Alumno;
-
     public function eliminar(int $id): bool;
-
     public function obtener(int $id): ?Alumno;
-
     public function obtenerParaEditar(int $id): ?Alumno;
-
     public function cambiarActivo(int $id): bool;
-
     public function filtrar(\Illuminate\Http\Request $request): \Illuminate\Support\Collection;
-
     public function buscar(string $q): \Illuminate\Support\Collection;
-
     public function buscarPorAula(int $aulaId): \Illuminate\Support\Collection;
-
     public function actualizar(int $id, array $data, array $listaFamiliares, 
     array $familiaresAEliminar, array $hermanosAEliminar): bool;
-
     public function esAlumno(int $idPersona): bool;
-
     public function prepararDatosEdicion(Alumno $alumno): array;
 }

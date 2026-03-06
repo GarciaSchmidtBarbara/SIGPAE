@@ -110,8 +110,8 @@ class IntervencionRepository implements IntervencionRepositoryInterface
 
         // 2. ASOCIACIONES SEGÚN TIPO DE INTERVENCIÓN
 
-        //Si es programada tiene un plan de accion asociado
-        if ($tipo === 'PROGRAMADA' && !empty($data['fk_id_plan_de_accion'])) {
+        //Si tiene un plan de accion asociado (programada o espontánea)
+        if (!empty($data['fk_id_plan_de_accion'])) {
             $intervencion->fk_id_plan_de_accion = (int) $data['fk_id_plan_de_accion'];
             $intervencion->save();
         }
@@ -199,4 +199,19 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         return $intervencion->fresh('otros_asistentes_i');
     }
 
+    public function obtenerTodos(): Collection
+    {
+        return $this->model->newQuery()
+            ->orderByDesc('fecha_hora_intervencion')
+            ->get();
+    }
+
+    public function buscarPorTermino(string $termino, int $limite = 10): Collection
+    {
+        return Intervencion::with('alumnos.persona')
+            ->whereRaw('CAST(id_intervencion AS TEXT) LIKE ?', ["%{$termino}%"])
+            ->orWhereRaw('LOWER(tipo_intervencion::text) LIKE ?', ["%{$termino}%"])
+            ->limit($limite)
+            ->get();
+    }
 }

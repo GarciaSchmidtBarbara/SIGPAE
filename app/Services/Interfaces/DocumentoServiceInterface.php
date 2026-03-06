@@ -18,4 +18,5 @@ interface DocumentoServiceInterface
     public function eliminar(int $id): bool;
     public function eliminarVarios(array $ids): void;
     public function buscarEntidadPorContexto(string $contexto, string $termino): array;
+    public function datosParaFormulario(): array;
 }

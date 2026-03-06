@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Services\Interfaces\PlanDeAccionServiceInterface;
 use App\Services\Interfaces\DocumentoServiceInterface;
-use App\Models\EvaluacionDePlan;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -270,27 +269,19 @@ class PlanDeAccionController extends Controller
 
     public function editarEvaluacion($idEvaluacion)
     {
-        $evaluacion = EvaluacionDePlan::with('plan')
-            ->findOrFail($idEvaluacion);
+        $data = $this->planDeAccionService->obtenerEvaluacion($idEvaluacion);
 
-        return view('planDeAccion.evaluacion', [
-            'plan' => $evaluacion->plan,
-            'evaluacion' => $evaluacion,
-            'esEdicion' => true
-        ]);
+        return view('planDeAccion.evaluacion', $data);
     }
     public function actualizarEvaluacion(Request $request, $idEvaluacion)
     {
-        $evaluacion = EvaluacionDePlan::findOrFail($idEvaluacion);
-
-        $evaluacion->update($request->only([
-            'criterios',
-            'observaciones',
-            'conclusiones'
-        ]));
+        $idPlan = $this->planDeAccionService->actualizarEvaluacion(
+            $idEvaluacion,
+            $request->only(['criterios', 'observaciones', 'conclusiones'])
+        );
 
         return redirect()
-            ->route('planDeAccion.iniciar-edicion', $evaluacion->fk_id_plan_de_accion)
+            ->route('planDeAccion.iniciar-edicion', $idPlan)
             ->with('success', 'Evaluación actualizada correctamente');
     }
 }

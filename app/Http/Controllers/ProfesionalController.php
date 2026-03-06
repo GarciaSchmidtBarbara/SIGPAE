@@ -5,16 +5,10 @@ namespace App\Http\Controllers;
 use App\Services\Interfaces\ProfesionalServiceInterface;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Models\Persona;
-use App\Models\Profesional;
 use App\Enums\Siglas;
 
 
@@ -53,34 +47,17 @@ class ProfesionalController extends Controller {
             'email' => 'required|email|unique:profesionales,email',
         ]);
 
-        DB::transaction(function () use ($request) {
+        try {
+            $this->profesionalService->registrarConActivacion($request->only([
+                'nombre', 'apellido', 'dni', 'email',
+            ]));
 
-            $persona = Persona::create([
-                'nombre' => $request->nombre,
-                'apellido' => $request->apellido,
-                'dni' => $request->dni,
-            ]);
-
-            $usuarioGenerado = strtolower($request->nombre . '.' . $request->apellido);
-
-            if (Profesional::where('usuario', $usuarioGenerado)->exists()) {
-                $usuarioGenerado .= rand(1, 99);
-            }
-
-            $profesional = Profesional::create([
-                'fk_id_persona' => $persona->id_persona,
-                'email' => $request->email,
-                'usuario' => $usuarioGenerado,
-                'contrasenia' => Str::random(12), //temporal
-                'activo' => false,
-            ]);
-
-            Password::broker('profesionales')->sendResetLink([
-                'email' => $profesional->email,
-            ]);
-        });
-
-        return redirect()->route('usuarios.principal')->with('success', 'usuario creado y correo de activación enviado');
+            return redirect()->route('usuarios.principal')
+                ->with('success', 'usuario creado y correo de activación enviado');
+        } catch (\Throwable $e) {
+            return back()->withInput()
+                ->withErrors(['error' => $e->getMessage()]);
+        }
     }
 
     public function crearEditar() {
@@ -122,7 +99,7 @@ class ProfesionalController extends Controller {
 
     public function actualizarPerfil(Request $request)
     {
-        $prof = auth()->user()->load('persona');
+        $prof = auth()->user();
 
         $validator = Validator::make($request->all(), [
             'nombre'    => 'required|string|max:255',
@@ -143,25 +120,10 @@ class ProfesionalController extends Controller {
         $validated = $validator->validated();
 
         try {
-            // Actualizar persona
-            $prof->persona->update([
-                'nombre'   => $validated['nombre'],
-                'apellido' => $validated['apellido'],
-            ]);
-            // Actualizar profesional
-            $prof->update([
-                'profesion' => $validated['profesion'],
-                'siglas'    => $validated['siglas'],
-                'usuario'   => $validated['usuario'],
-                'email'     => $validated['email'],
-            ]);
-            // Si querés que responda con JSON (por ejemplo, si usás fetch/Axios)
-            // return response()->json(['message' => 'Perfil actualizado correctamente.']);
+            $this->profesionalService->actualizarPerfil($prof->id_profesional, $validated);
 
-            // O si lo usás con un form tradicional:
             return redirect()->back()->with('success', 'Perfil actualizado correctamente.');
         } catch (\Exception $e) {
-            \DB::rollBack();
             return redirect()->back()->with('error', 'Error al actualizar el perfil.');
         }
     }

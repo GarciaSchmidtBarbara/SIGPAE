@@ -24,6 +24,8 @@ interface PlanDeAccionServiceInterface
     public function datosParaFormulario(?int $id = null): array;
     public function obtenerParaEvaluacion(int $id): PlanDeAccion;
     public function guardarEvaluacion(int $id, array $data): void;
-
-
+    public function obtenerEvaluacion(int $idEvaluacion): array;
+    public function actualizarEvaluacion(int $idEvaluacion, array $data): int;
+    public function obtenerAlumnosDePlan(int $idPlan): Collection;
+    public function buscarPorTermino(string $termino, int $limite = 10): Collection;
 }

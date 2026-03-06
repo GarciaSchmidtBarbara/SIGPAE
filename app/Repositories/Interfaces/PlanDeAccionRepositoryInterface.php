@@ -24,6 +24,8 @@ interface PlanDeAccionRepositoryInterface
     public function crearEvaluacion(array $data);
     public function yaTieneEvaluacion($id);
     public function cambiarActivo(int $id): bool;
-
-
+    public function buscarEvaluacionPorId(int $id);
+    public function actualizarEvaluacion(int $id, array $data): int;
+    public function buscarPorTermino(string $termino, int $limite = 10): \Illuminate\Support\Collection;
+    public function actualizarEstado(int $id, \App\Enums\EstadoPlan $estado);
 }

@@ -156,6 +156,44 @@ class AlumnoRepository implements AlumnoRepositoryInterface
             ->get();
     }
 
+    public function actualizar(int $id, array $data): bool
+    {
+        $alumno = Alumno::find($id);
+        if (!$alumno) {
+            return false;
+        }
+        return $alumno->update($data);
+    }
+
+    public function desvincularHermanos(int $idAlumno, array $idsHermanos): void
+    {
+        $alumno = $this->buscarPorId($idAlumno);
+        if ($alumno) {
+            $alumno->hermanos()->detach($idsHermanos);
+            $alumno->esHermanoDe()->detach($idsHermanos);
+        }
+    }
+
+    public function desactivarFamiliares(int $idAlumno, array $idsFamiliares): void
+    {
+        $alumno = $this->buscarPorId($idAlumno);
+        if ($alumno) {
+            foreach ($idsFamiliares as $idFamiliar) {
+                $alumno->familiares()->updateExistingPivot($idFamiliar, ['activa' => false]);
+            }
+        }
+    }
+
+    public function vincularFamiliar(int $idAlumno, int $idFamiliar, array $pivotData): void
+    {
+        $alumno = $this->buscarPorId($idAlumno);
+        if ($alumno) {
+            $alumno->familiares()->syncWithoutDetaching([
+                $idFamiliar => $pivotData,
+            ]);
+        }
+    }
+
     public function filtrar(array $criterios): \Illuminate\Support\Collection
     {
         $query = Alumno::with('persona', 'aula');

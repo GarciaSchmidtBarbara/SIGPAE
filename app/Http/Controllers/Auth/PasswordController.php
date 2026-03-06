@@ -3,14 +3,21 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Interfaces\ProfesionalServiceInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 
 class PasswordController extends Controller
 {
+    protected ProfesionalServiceInterface $profesionalService;
+
+    public function __construct(ProfesionalServiceInterface $profesionalService)
+    {
+        $this->profesionalService = $profesionalService;
+    }
+
     public function update(Request $request): RedirectResponse
     {
         $request->validate([
@@ -29,8 +36,7 @@ class PasswordController extends Controller
             return back()->with('error', 'La contraseña actual no es correcta.')->withInput();
         }
 
-        $prof->contrasenia = Hash::make($request->password);
-        $prof->save();
+        $this->profesionalService->actualizarContrasenia($prof->id_profesional, $request->password);
 
         return back()->with('success', 'Tu contraseña fue cambiada correctamente.');
     }

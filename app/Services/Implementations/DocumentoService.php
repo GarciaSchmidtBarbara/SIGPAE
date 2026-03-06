@@ -2,12 +2,12 @@
 
 namespace App\Services\Implementations;
 
-use App\Models\Alumno;
 use App\Models\Documento;
-use App\Models\Intervencion;
-use App\Models\PlanDeAccion;
 use App\Repositories\Interfaces\DocumentoRepositoryInterface;
 use App\Services\Interfaces\DocumentoServiceInterface;
+use App\Services\Interfaces\AlumnoServiceInterface;
+use App\Services\Interfaces\PlanDeAccionServiceInterface;
+use App\Services\Interfaces\IntervencionServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
@@ -17,10 +17,12 @@ use Illuminate\Support\Str;
 class DocumentoService implements DocumentoServiceInterface
 {
     public function __construct(
-        protected DocumentoRepositoryInterface $repo
+        protected DocumentoRepositoryInterface $repo,
+        protected AlumnoServiceInterface $alumnoService,
+        protected PlanDeAccionServiceInterface $planDeAccionService,
+        protected IntervencionServiceInterface $intervencionService,
     ) {}
 
-    // ── Listado / filtrado ─────────────────────────────────────
 
     public function listar(Request $request): Collection
     {
@@ -38,26 +40,22 @@ class DocumentoService implements DocumentoServiceInterface
         ]);
     }
 
-    // ── Subida de archivo ──────────────────────────────────────
 
     public function subir(array $data, UploadedFile $archivo, int $idProfesional): Documento
     {
-        // Validar tamaño (10 MB)
         if ($archivo->getSize() > Documento::MAX_SIZE_BYTES) {
             throw new \RuntimeException('El archivo supera el tamaño máximo permitido (10 MB).');
         }
 
-        // Derivar extensión y validar formato
         $extension = strtolower($archivo->getClientOriginalExtension());
         if (!array_key_exists($extension, Documento::MIMES_PERMITIDOS)) {
             throw new \RuntimeException('Formato de archivo no permitido. Use: PDF, DOC, DOCX, XLS, XLSX, JPG o PNG.');
         }
 
-        // Guardar el archivo en storage/app/documentos
+        //Guardar el archivo en storage/app/documentos
         $nombreArchivo = Str::uuid() . '.' . $extension;
         $ruta = $archivo->storeAs('documentos', $nombreArchivo, 'local');
 
-        // Mapear extensión a enum TipoFormato
         $tipoFormato = match ($extension) {
             'jpg', 'jpeg' => 'JPG',
             'png'         => 'PNG',
@@ -79,7 +77,6 @@ class DocumentoService implements DocumentoServiceInterface
             'fk_id_profesional'     => $idProfesional,
         ];
 
-        // Asociar entidad según contexto
         match ($data['contexto']) {
             'perfil_alumno' => $payload['fk_id_alumno']        = $data['fk_id_entidad'] ?? null,
             'plan_accion'   => $payload['fk_id_plan_de_accion'] = $data['fk_id_entidad'] ?? null,
@@ -90,13 +87,11 @@ class DocumentoService implements DocumentoServiceInterface
         try {
             return $this->repo->crear($payload);
         } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
-            // Limpiar el archivo físico ya guardado antes de propagar el error
             Storage::disk('local')->delete($ruta);
             throw new \RuntimeException(
                 'Ya existe un documento con el nombre "' . $data['nombre'] . '". Por favor, elija un nombre diferente.'
             );
         } catch (\Illuminate\Database\QueryException $e) {
-            // Captura para DBs que lanzan QueryException con SQLSTATE 23505 (e.g. PostgreSQL < L10)
             if (str_contains($e->getCode(), '23505')) {
                 Storage::disk('local')->delete($ruta);
                 throw new \RuntimeException(
@@ -108,7 +103,6 @@ class DocumentoService implements DocumentoServiceInterface
         }
     }
 
-    // ── Descarga de archivo ────────────────────────────────────
 
     public function descargar(int $id): Documento
     {
@@ -122,7 +116,6 @@ class DocumentoService implements DocumentoServiceInterface
         return $doc;
     }
 
-    // ── Eliminación ────────────────────────────────────────────
 
     public function eliminar(int $id): bool
     {
@@ -130,7 +123,6 @@ class DocumentoService implements DocumentoServiceInterface
         if (!$doc) {
             return false;
         }
-        // Eliminar el archivo físico
         if ($doc->ruta_archivo && Storage::disk('local')->exists($doc->ruta_archivo)) {
             Storage::disk('local')->delete($doc->ruta_archivo);
         }
@@ -144,7 +136,6 @@ class DocumentoService implements DocumentoServiceInterface
         }
     }
 
-    // ── Listado por alumno ─────────────────────────────────────
 
     public function listarParaAlumno(int $idAlumno): array
     {
@@ -191,42 +182,29 @@ class DocumentoService implements DocumentoServiceInterface
             ->toArray();
     }
 
-    // ── Búsqueda de entidades asociadas ───────────────────────
 
     public function buscarEntidadPorContexto(string $contexto, string $termino): array
     {
         $termino = strtolower(trim($termino));
 
         return match ($contexto) {
-            'perfil_alumno' => Alumno::with('persona')
-                ->whereHas('persona', function ($q) use ($termino) {
-                    $q->whereRaw('LOWER(nombre) LIKE ?', ["%{$termino}%"])
-                      ->orWhereRaw('LOWER(apellido) LIKE ?', ["%{$termino}%"])
-                      ->orWhereRaw('CAST(dni AS TEXT) LIKE ?', ["%{$termino}%"]);
-                })
-                ->limit(10)
-                ->get()
+            'perfil_alumno' => $this->alumnoService->buscar($termino)
+                ->take(10)
                 ->map(fn ($a) => [
                     'id'          => $a->id_alumno,
                     'descripcion' => trim(($a->persona->apellido ?? '') . ', ' . ($a->persona->nombre ?? '')) . ' — DNI ' . ($a->persona->dni ?? ''),
                 ])
+                ->values()
                 ->toArray(),
 
-            'plan_accion' => PlanDeAccion::whereRaw('CAST(id_plan_de_accion AS TEXT) LIKE ?', ["%{$termino}%"])
-                ->orWhereRaw('LOWER(tipo_plan::text) LIKE ?', ["%{$termino}%"])
-                ->limit(10)
-                ->get()
+            'plan_accion' => $this->planDeAccionService->buscarPorTermino($termino)
                 ->map(fn ($p) => [
                     'id'          => $p->id_plan_de_accion,
                     'descripcion' => $p->descripcion,
                 ])
                 ->toArray(),
 
-            'intervencion' => Intervencion::with('alumnos.persona')
-                ->whereRaw('CAST(id_intervencion AS TEXT) LIKE ?', ["%{$termino}%"])
-                ->orWhereRaw('LOWER(tipo_intervencion::text) LIKE ?', ["%{$termino}%"])
-                ->limit(10)
-                ->get()
+            'intervencion' => $this->intervencionService->buscarPorTermino($termino)
                 ->map(fn ($i) => [
                     'id'          => $i->id_intervencion,
                     'descripcion' => 'Intervención N°' . $i->id_intervencion . ' — ' . $i->tipo_intervencion,
@@ -235,5 +213,14 @@ class DocumentoService implements DocumentoServiceInterface
 
             default => [],
         };
+    }
+
+    public function datosParaFormulario(): array
+    {
+        $alumnos = $this->alumnoService->listar();
+        $planes = $this->planDeAccionService->obtenerTodos();
+        $intervenciones = $this->intervencionService->obtenerTodos();
+
+        return compact('alumnos', 'planes', 'intervenciones');
     }
 }

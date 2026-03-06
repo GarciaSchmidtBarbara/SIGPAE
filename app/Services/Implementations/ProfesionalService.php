@@ -4,6 +4,7 @@ namespace App\Services\Implementations;
 // Imports
 // Profesional
 use App\Repositories\Interfaces\ProfesionalRepositoryInterface;
+use App\Repositories\Interfaces\PersonaRepositoryInterface;
 use App\Services\Interfaces\ProfesionalServiceInterface;
 use App\Models\Profesional;
 // Persona
@@ -22,10 +23,12 @@ use App\Enums\Siglas;
 class ProfesionalService implements ProfesionalServiceInterface
 {
     protected ProfesionalRepositoryInterface $repo;
+    protected PersonaRepositoryInterface $personaRepo;
     protected \App\Services\Interfaces\PersonaServiceInterface $personaService;
 
-    public function __construct(ProfesionalRepositoryInterface $repo, \App\Services\Interfaces\PersonaServiceInterface $personaService) {
+    public function __construct(ProfesionalRepositoryInterface $repo, PersonaRepositoryInterface $personaRepo, \App\Services\Interfaces\PersonaServiceInterface $personaService) {
         $this->repo = $repo;
+        $this->personaRepo = $personaRepo;
         $this->personaService = $personaService;
     }
 
@@ -46,33 +49,9 @@ class ProfesionalService implements ProfesionalServiceInterface
 
     // Lógica de búsqueda y filtrado
     public function filtrar(Request $request): LengthAwarePaginator
-{
-    $query = Profesional::with('persona');
-
-    if ($request->filled('buscar')) {
-
-        $buscar = strtolower($request->buscar);
-
-        $query->where(function ($q) use ($buscar) {
-
-            // Buscar en persona
-            $q->whereHas('persona', function ($sub) use ($buscar) {
-                $sub->whereRaw("LOWER(nombre) LIKE ?", ["%{$buscar}%"])
-                    ->orWhereRaw("LOWER(apellido) LIKE ?", ["%{$buscar}%"])
-                    ->orWhere("dni", 'like', "%{$buscar}%");
-            })
-
-            // Buscar en profesional
-            ->orWhereRaw("LOWER(siglas) LIKE ?", ["%{$buscar}%"])
-            ->orWhereRaw("LOWER(profesion) LIKE ?", ["%{$buscar}%"]);
-        });
+    {
+        return $this->repo->filtrar($request);
     }
-
-    return $query
-        ->orderBy('id_profesional', 'desc')
-        ->paginate(10)
-        ->withQueryString();
-}
 
     public function crearProfesional(array $data): Profesional {
         \DB::beginTransaction();
@@ -81,7 +60,7 @@ class ProfesionalService implements ProfesionalServiceInterface
             $fecha = \DateTime::createFromFormat($formato, $data['fecha_nacimiento']);
             $data['fecha_nacimiento'] = $fecha ? $fecha->format('Y-m-d') : null;
 
-            $persona = Persona::create([
+            $persona = $this->personaRepo->create([
                 'dni' => $data['dni'],
                 'nombre' => $data['nombre'],
                 'apellido' => $data['apellido'],
@@ -92,8 +71,8 @@ class ProfesionalService implements ProfesionalServiceInterface
             if (!$persona) {
                 throw new \Exception('Error al crear la persona asociada');
             }
-                        
-            $usuario = new Profesional([
+
+            $profesional = $this->repo->crear([
                 'fk_id_persona' => $persona->id_persona,
                 'usuario' => $data['usuario'],
                 'profesion' => $data['profesion'],
@@ -102,13 +81,8 @@ class ProfesionalService implements ProfesionalServiceInterface
                 'contrasenia' => bcrypt($data['contrasenia']),
             ]);
 
-            $usuario->save();
-            
-            if (!$usuario->exists) {
-                throw new \Exception('El usuario no se guardó correctamente');
-            }
             \DB::commit();
-            return $usuario->load(['persona']);
+            return $profesional->load(['persona']);
 
         } catch (\Throwable $e) {
             \DB::rollBack();
@@ -180,6 +154,136 @@ class ProfesionalService implements ProfesionalServiceInterface
     public function obtenerTodasLasSiglas(): ISupportCollection {
         // Devuelve una colección con todas las siglas posibles del enum
         return collect(Siglas::cases())->map(fn($sigla) => $sigla->value);
+    }
+
+    public function findByEmail(string $email): ?Profesional
+    {
+        return $this->repo->findByEmail($email);
+    }
+
+    public function registrarConActivacion(array $data): Profesional
+    {
+        return DB::transaction(function () use ($data) {
+            $persona = $this->personaRepo->create([
+                'nombre' => $data['nombre'],
+                'apellido' => $data['apellido'],
+                'dni' => $data['dni'],
+            ]);
+
+            $usuarioGenerado = strtolower($data['nombre'] . '.' . $data['apellido']);
+
+            if ($this->repo->existeUsuario($usuarioGenerado)) {
+                $usuarioGenerado .= rand(1, 99);
+            }
+
+            $profesional = $this->repo->crear([
+                'fk_id_persona' => $persona->id_persona,
+                'email' => $data['email'],
+                'usuario' => $usuarioGenerado,
+                'contrasenia' => \Str::random(12),
+                'activo' => false,
+            ]);
+
+            \Password::broker('profesionales')->sendResetLink([
+                'email' => $profesional->email,
+            ]);
+
+            return $profesional;
+        });
+    }
+
+    public function activarCuenta(string $email, string $token, array $data): Profesional
+    {
+        $prof = $this->repo->findByEmail($email);
+
+        if (!$prof) {
+            throw new InvalidArgumentException('No se encontró el correo.');
+        }
+
+        $record = $this->repo->buscarTokenReset($email);
+
+        if (!$record || !\Hash::check($token, $record->token)) {
+            throw new InvalidArgumentException('Token inválido o expirado.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Actualizar persona
+            $personaId = $prof->fk_id_persona;
+            $this->personaService->updatePersona($personaId, [
+                'fecha_nacimiento' => $data['fecha_nacimiento'],
+            ]);
+
+            // Actualizar profesional
+            $this->repo->update($prof->id_profesional, [
+                'contrasenia' => \Hash::make($data['password']),
+                'telefono' => $data['telefono'],
+                'profesion' => $data['profesion'],
+                'siglas' => $data['siglas'],
+            ]);
+
+            $this->repo->eliminarTokenReset($email);
+
+            DB::commit();
+            return $prof->fresh();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    public function desactivarCuenta(int $idProfesional): bool
+    {
+        return $this->repo->desactivar($idProfesional);
+    }
+
+    public function actualizarContrasenia(int $idProfesional, string $newPassword): bool
+    {
+        $prof = $this->repo->find($idProfesional);
+        if (!$prof) {
+            return false;
+        }
+        $this->repo->update($idProfesional, [
+            'contrasenia' => \Hash::make($newPassword),
+        ]);
+        return true;
+    }
+
+    public function resetContrasenia(string $email, string $token, string $newPassword): bool
+    {
+        $prof = $this->repo->findByEmail($email);
+
+        if (!$prof) {
+            throw new InvalidArgumentException('No se encontró el correo.');
+        }
+
+        $record = $this->repo->buscarTokenReset($email);
+
+        if (!$record || !\Hash::check($token, $record->token)) {
+            throw new InvalidArgumentException('Token inválido o expirado.');
+        }
+
+        $this->repo->update($prof->id_profesional, [
+            'contrasenia' => \Hash::make($newPassword),
+        ]);
+
+        $this->repo->eliminarTokenReset($email);
+
+        return true;
+    }
+
+    public function actualizarPerfil(int $idProfesional, array $data): Profesional
+    {
+        $personaFields = array_intersect_key($data, array_flip([
+            'nombre', 'apellido',
+        ]));
+
+        $profesionalFields = array_intersect_key($data, array_flip([
+            'profesion', 'siglas', 'usuario', 'email', 'telefono',
+            'hora_envio_resumen_diario', 'notification_anticipation_minutos',
+        ]));
+
+        return $this->updateProfesional($idProfesional, array_merge($personaFields, $profesionalFields));
     }
 
     private function normalizarTexto(string $texto): string {

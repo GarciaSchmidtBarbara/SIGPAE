@@ -101,6 +101,16 @@ class IntervencionService implements IntervencionServiceInterface
         return $this->repository->guardarOtrosAsistentes($intervencion, $filas);
     }
 
+    public function obtenerTodos(): Collection
+    {
+        return $this->repository->obtenerTodos();
+    }
+
+    public function buscarPorTermino(string $termino, int $limite = 10): Collection
+    {
+        return $this->repository->buscarPorTermino($termino, $limite);
+    }
+
     public function datosParaFormulario(?int $id = null): array
     {
         $intervencion = $id ? $this->repository->buscarPorIdConRelaciones($id) : null;
@@ -150,8 +160,15 @@ class IntervencionService implements IntervencionServiceInterface
         $aulas = $this->repository->obtenerAulas();
         $aulasSeleccionadas = $intervencion?->aulas->pluck('id_aula')->toArray() ?? [];
 
-        // Planes de acción - Solo planes abiertos
+        // Planes de acción - Solo planes abiertos + el plan vinculado (si existe y no está en la lista)
         $planes = $this->servicePlan->obtenerAbiertos();
+
+        if ($intervencion && $intervencion->fk_id_plan_de_accion && !$planes->contains('id_plan_de_accion', $intervencion->fk_id_plan_de_accion)) {
+            $planVinculado = $intervencion->planDeAccion;
+            if ($planVinculado) {
+                $planes->push($planVinculado);
+            }
+        }
 
         // Otros asistentes
         $otrosAsistentes = $intervencion?->otros_asistentes_i->map(fn($as) => [

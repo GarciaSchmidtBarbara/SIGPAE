@@ -40,4 +40,9 @@ class AulaService implements AulaServiceInterface
 
         return $aula->id_aula;
     }
+
+    public function obtenerTodas(): Collection
+    {
+        return $this->aulaRepository->obtenerTodas();
+    }
 }

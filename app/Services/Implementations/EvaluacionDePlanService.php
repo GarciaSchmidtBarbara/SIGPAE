@@ -1,35 +1,40 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Implementations;
 
-use App\Models\PlanDeAccion;
-use App\Repositories\EvaluacionDePlanRepository;
+use App\Repositories\Interfaces\EvaluacionDePlanRepositoryInterface;
+use App\Services\Interfaces\EvaluacionDePlanServiceInterface;
+use App\Services\Interfaces\PlanDeAccionServiceInterface;
+use App\Enums\EstadoPlan;
 use Exception;
 
-class EvaluacionDePlanService
+class EvaluacionDePlanService implements EvaluacionDePlanServiceInterface
 {
-    protected $repository;
+    protected EvaluacionDePlanRepositoryInterface $repository;
+    protected PlanDeAccionServiceInterface $planService;
 
-    public function __construct(EvaluacionDePlanRepository $repository)
+    public function __construct(EvaluacionDePlanRepositoryInterface $repository, PlanDeAccionServiceInterface $planService)
     {
         $this->repository = $repository;
+        $this->planService = $planService;
     }
 
     public function crear(array $data)
     {
-        $plan = PlanDeAccion::findOrFail($data['fk_id_plan_de_accion']);
+        $plan = $this->planService->buscarPorId($data['fk_id_plan_de_accion']);
 
-        // VALIDACIÓN: solo planes abiertos
-        if ($plan->estado !== 'abierto') {
+        if (!$plan) {
+            throw new Exception('Plan de acción no encontrado.');
+        }
+
+        if ($plan->estado_plan !== EstadoPlan::ABIERTO) {
             throw new Exception('No se puede evaluar un plan cerrado.');
         }
 
         $evaluacion = $this->repository->crear($data);
 
-        // Si es evaluación final cerramos plan
         if ($data['tipo'] === 'final') {
-            $plan->estado = 'cerrado';
-            $plan->save();
+            $this->planService->cambiarActivo($plan->id_plan_de_accion);
         }
 
         return $evaluacion;

@@ -21,4 +21,9 @@ class AulaRepository implements AulaRepositoryInterface
                    ->where('division', $division)
                    ->first();
     }
+
+    public function obtenerTodas(): Collection
+    {
+        return Aula::all();
+    }
 }

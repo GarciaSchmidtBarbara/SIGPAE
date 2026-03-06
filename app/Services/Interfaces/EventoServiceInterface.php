@@ -8,26 +8,19 @@ use Illuminate\Support\Collection;
 interface EventoServiceInterface
 {
     public function listarTodos(array $filters = []): Collection;
-    
     public function obtenerPorId(int $id): ?Evento;
-    
     public function crear(array $data): Evento;
-    
     public function actualizar(int $id, array $data): bool;
-    
     public function eliminar(int $id): bool;
-    
     public function crearConParticipantes(array $data): Evento;
-    
     public function actualizarConParticipantes(int $id, array $data): bool;
-    
     public function crearDerivacionExterna(array $data): Evento;
-
     public function actualizarDerivacionExterna(int $id, array $data): bool;
-
     public function dejarDeRecordar(int $id): bool;
-
     public function obtenerDerivacionesPendientesRecordatorio(): Collection;
-    
     public function obtenerEventosParaCalendario(string $start, string $end): array;
+    public function obtenerEventosDelDia(int $profesionalId): Collection;
+    public function obtenerProximosEventos(int $profesionalId, int $meses = 2, int $limite = 3): Collection;
+    public function actualizarConfirmacion(int $eventoId, int $profesionalId, bool $confirmado): bool;
+    public function obtenerDatosVistaEvento(int $eventoId): array;
 }

@@ -3,78 +3,36 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Profesional;
-use Carbon\Carbon;
+use App\Services\Interfaces\EventoServiceInterface;
 use App\Services\Interfaces\NotificacionServiceInterface;
 
 class HomeController extends Controller
 {
     public function __construct(
+        protected EventoServiceInterface $eventoService,
         protected NotificacionServiceInterface $notificacionService
     ) {}
 
     public function index()
     {
-        /** @var Profesional $profesional */
         $profesional = auth()->user();
 
         if (!$profesional) {
             abort(403, 'No autenticado.');
         }
 
-        $hoy = Carbon::today()->toDateString();
+        $eventosHoy = $this->eventoService->obtenerEventosDelDia($profesional->id_profesional);
+        $eventosProximos = $this->eventoService->obtenerProximosEventos($profesional->id_profesional);
 
-        $eventosCreadosHoy = $profesional->eventosCreados()
-            ->with('profesionalCreador.persona')
-            ->whereDate('fecha_hora', $hoy)
-            ->orderBy('fecha_hora')
-            ->get();
-
-        $eventosInvitadoHoy = $profesional->eventosInvitado()
-            ->with('profesionalCreador.persona')
-            ->whereDate('fecha_hora', $hoy)
-            ->orderBy('fecha_hora')
-            ->get();
-
-        $eventosHoy = $eventosCreadosHoy
-            ->merge($eventosInvitadoHoy)
-            ->sortBy('fecha_hora')
-            ->values();
-
-        $hoy = Carbon::today();
-        $fin = Carbon::now()->addMonths(2)->endOfDay();
-
-        // Próximos eventos: desde hoy hasta 2 meses después
-        $eventosCreadosProximos = $profesional->eventosCreados()
-            ->with('profesionalCreador.persona')
-            ->whereBetween('fecha_hora', [$hoy, $fin])
-            ->orderBy('fecha_hora')
-            ->get();
-
-        $eventosInvitadoProximos = $profesional->eventosInvitado()
-            ->with('profesionalCreador.persona')
-            ->whereBetween('fecha_hora', [$hoy, $fin])
-            ->orderBy('fecha_hora')
-            ->get();
-
-        $eventosProximos = $eventosCreadosProximos
-            ->merge($eventosInvitadoProximos)
-            ->sortBy('fecha_hora')
-            ->take(3)
-            ->values();
-            
         $notificaciones = $this->notificacionService->listarParaAuth()->take(10);
         $noLeidas       = $this->notificacionService->contarNoLeidas();
 
         return view('welcome', [
-            'profesional'             => $profesional,
-            'eventosHoy'              => $eventosHoy,
-            'eventosProximos'         => $eventosProximos,
-            'eventosCreadosProximos'  => $eventosCreadosProximos,
-            'eventosInvitadoProximos' => $eventosInvitadoProximos,
-            'notificaciones'          => $notificaciones,
-            'noLeidas'                => $noLeidas,
+            'profesional'     => $profesional,
+            'eventosHoy'      => $eventosHoy,
+            'eventosProximos' => $eventosProximos,
+            'notificaciones'  => $notificaciones,
+            'noLeidas'        => $noLeidas,
         ]);
-
     }
 }

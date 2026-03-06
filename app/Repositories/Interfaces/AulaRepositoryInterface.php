@@ -8,6 +8,6 @@ use Illuminate\Database\Eloquent\Collection;
 interface AulaRepositoryInterface
 {
     public function obtenerCursos(): Collection;
-    
     public function buscarPorCursoYDivision(string $curso, string $division): ?Aula;
+    public function obtenerTodas(): Collection;
 }

@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Evento;
+use App\Models\EsInvitadoA;
 use App\Enums\TipoEvento;
 use App\Repositories\Interfaces\EventoRepositoryInterface;
 use Illuminate\Support\Collection;
@@ -189,5 +190,125 @@ class EventoRepository implements EventoRepositoryInterface
     public function exists(int $eventoId): bool
     {
         return Evento::where('id_evento', $eventoId)->exists();
+    }
+
+    public function vincularInvitados(int $eventoId, array $invitados): void
+    {
+        foreach ($invitados as $prof) {
+            if (!empty($prof['id'])) {
+                EsInvitadoA::create([
+                    'fk_id_evento' => $eventoId,
+                    'fk_id_profesional' => $prof['id'],
+                    'confirmacion' => $prof['confirmado'] ?? false,
+                    'asistio' => $prof['asistio'] ?? false,
+                ]);
+            }
+        }
+    }
+
+    public function reemplazarInvitados(int $eventoId, array $invitados): void
+    {
+        EsInvitadoA::where('fk_id_evento', $eventoId)->delete();
+        $this->vincularInvitados($eventoId, $invitados);
+    }
+
+    public function sincronizarAulasEvento(int $eventoId, array $aulaIds): void
+    {
+        $evento = Evento::find($eventoId);
+        if ($evento) {
+            $evento->aulas()->sync($aulaIds);
+        }
+    }
+
+    public function vincularAlumnosEvento(int $eventoId, array $alumnoIds): void
+    {
+        $evento = Evento::find($eventoId);
+        if ($evento) {
+            $evento->alumnos()->attach($alumnoIds);
+        }
+    }
+
+    public function sincronizarAlumnosEvento(int $eventoId, array $alumnoIds): void
+    {
+        $evento = Evento::find($eventoId);
+        if ($evento) {
+            $evento->alumnos()->sync($alumnoIds);
+        }
+    }
+
+    public function obtenerEventosDelDiaPorProfesional(int $profesionalId, string $fecha): Collection
+    {
+        return Evento::with('profesionalCreador.persona')
+            ->where(function ($q) use ($profesionalId) {
+                $q->where('fk_id_profesional_creador', $profesionalId)
+                  ->orWhereHas('esInvitadoA', fn($q2) => $q2->where('fk_id_profesional', $profesionalId));
+            })
+            ->whereDate('fecha_hora', $fecha)
+            ->orderBy('fecha_hora')
+            ->get();
+    }
+
+    public function obtenerProximosEventosPorProfesional(int $profesionalId, string $desde, string $hasta, int $limite): Collection
+    {
+        return Evento::with('profesionalCreador.persona')
+            ->where(function ($q) use ($profesionalId) {
+                $q->where('fk_id_profesional_creador', $profesionalId)
+                  ->orWhereHas('esInvitadoA', fn($q2) => $q2->where('fk_id_profesional', $profesionalId));
+            })
+            ->whereBetween('fecha_hora', [$desde, $hasta])
+            ->orderBy('fecha_hora')
+            ->limit($limite)
+            ->get();
+    }
+
+    public function actualizarConfirmacionInvitado(int $eventoId, int $profesionalId, bool $confirmado): bool
+    {
+        $invitacion = EsInvitadoA::where('fk_id_evento', $eventoId)
+            ->where('fk_id_profesional', $profesionalId)
+            ->first();
+
+        if (!$invitacion) {
+            return false;
+        }
+
+        $invitacion->confirmacion = $confirmado;
+        return $invitacion->save();
+    }
+
+    public function obtenerDatosRelacionesEvento(int $eventoId): array
+    {
+        $evento = $this->find($eventoId);
+
+        if (!$evento) {
+            return [];
+        }
+
+        $profesionalesEvento = $evento->esInvitadoA()
+            ->with('profesional.persona')
+            ->get()
+            ->map(function ($inv) {
+                return [
+                    'id' => $inv->profesional->id_profesional,
+                    'invitado' => true,
+                    'confirmado' => $inv->confirmacion ?? false,
+                    'asistio' => $inv->asistio ?? false,
+                ];
+            })->toArray();
+
+        $alumnosEvento = $evento->alumnos()
+            ->with('persona', 'aula')
+            ->get()
+            ->toArray();
+
+        $cursosEvento = $evento->aulas()
+            ->pluck('id_aula')
+            ->toArray();
+
+        return [
+            'evento' => $evento,
+            'profesionalesEvento' => $profesionalesEvento,
+            'alumnosEvento' => $alumnosEvento,
+            'cursosEvento' => $cursosEvento,
+        ];
     }
 }

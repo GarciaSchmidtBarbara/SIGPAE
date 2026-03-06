@@ -74,4 +74,14 @@ interface EventoRepositoryInterface
 
     //Verifica si un evento existe
     public function exists(int $eventoId): bool;
+
+    public function vincularInvitados(int $eventoId, array $invitados): void;
+    public function reemplazarInvitados(int $eventoId, array $invitados): void;
+    public function sincronizarAulasEvento(int $eventoId, array $aulaIds): void;
+    public function vincularAlumnosEvento(int $eventoId, array $alumnoIds): void;
+    public function sincronizarAlumnosEvento(int $eventoId, array $alumnoIds): void;
+    public function obtenerEventosDelDiaPorProfesional(int $profesionalId, string $fecha): Collection;
+    public function obtenerProximosEventosPorProfesional(int $profesionalId, string $desde, string $hasta, int $limite): Collection;
+    public function actualizarConfirmacionInvitado(int $eventoId, int $profesionalId, bool $confirmado): bool;
+    public function obtenerDatosRelacionesEvento(int $eventoId): array;
 }
