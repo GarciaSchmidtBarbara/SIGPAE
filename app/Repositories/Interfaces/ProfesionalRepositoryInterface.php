@@ -16,4 +16,9 @@ interface ProfesionalRepositoryInterface
     public function findWithPersona(int $id): ?Profesional;
     public function allWithPersona(): Collection;
     public function findByMatricula(string $matricula): ?Profesional;
+    public function findByEmail(string $email): ?Profesional;
+    public function filtrar(\Illuminate\Http\Request $request): \Illuminate\Contracts\Pagination\LengthAwarePaginator;
+    public function existeUsuario(string $usuario): bool;
+    public function buscarTokenReset(string $email): ?object;
+    public function eliminarTokenReset(string $email): bool;
 }

@@ -19,4 +19,6 @@ interface IntervencionServiceInterface
     public function filtrar(Request $request): Collection;
     public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas);
     public function datosParaFormulario(?int $id = null): array;
+    public function obtenerTodos(): Collection;
+    public function buscarPorTermino(string $termino, int $limite = 10): Collection;
 }

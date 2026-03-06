@@ -17,4 +17,6 @@ interface IntervencionRepositoryInterface
     public function cambiarActivo (int $id): bool;
     public function obtenerAulas(): Collection;
     public function guardarOtrosAsistentes(Intervencion $intervencion, array $filas);
+    public function obtenerTodos(): Collection;
+    public function buscarPorTermino(string $termino, int $limite = 10): Collection;
 }

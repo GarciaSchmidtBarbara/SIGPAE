@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\Interfaces\IntervencionServiceInterface;
 use App\Services\Interfaces\DocumentoServiceInterface;
+use App\Services\Interfaces\PlanDeAccionServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -12,20 +13,21 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
 
-use App\Models\Intervencion;
-
 
 class IntervencionController extends Controller
 {
     protected IntervencionServiceInterface $intervencionService;
     protected DocumentoServiceInterface $documentoService;
+    protected PlanDeAccionServiceInterface $planDeAccionService;
 
     public function __construct(
         IntervencionServiceInterface $intervencionService,
-        DocumentoServiceInterface $documentoService
+        DocumentoServiceInterface $documentoService,
+        PlanDeAccionServiceInterface $planDeAccionService
     ) {
         $this->intervencionService = $intervencionService;
         $this->documentoService    = $documentoService;
+        $this->planDeAccionService = $planDeAccionService;
     }
 
     //vista intervenciones filtradas
@@ -178,7 +180,7 @@ class IntervencionController extends Controller
         ];
         
         // Si es intervención PROGRAMADA, el plan de acción es requerido
-        $intervencion = \App\Models\Intervencion::find($id);
+        $intervencion = $this->intervencionService->buscarPorId($id);
         if ($intervencion && $intervencion->tipo_intervencion === 'PROGRAMADA') {
             $rules['fk_id_plan_de_accion'] = 'required|integer|exists:planes_de_accion,id_plan_de_accion';
         }
@@ -227,22 +229,11 @@ class IntervencionController extends Controller
      */
     public function obtenerAlumnosDePlan(int $id): JsonResponse
     {
-        $plan = \App\Models\PlanDeAccion::find($id);
+        $alumnos = $this->planDeAccionService->obtenerAlumnosDePlan($id);
 
-        if (!$plan) {
-            return response()->json(['error' => 'Plan no encontrado'], 404);
+        if ($alumnos->isEmpty()) {
+            return response()->json(['error' => 'Plan no encontrado o sin alumnos'], 404);
         }
-
-        $alumnos = $plan->alumnos->map(function ($al) {
-            return [
-                'id'       => $al->id_alumno,
-                'nombre'   => $al->persona->nombre,
-                'apellido' => $al->persona->apellido,
-                'dni'      => $al->persona->dni,
-                'curso'    => $al->aula?->descripcion,
-                'aula_id'  => $al->fk_id_aula,
-            ];
-        });
 
         return response()->json($alumnos);
     }

@@ -7,8 +7,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use App\Services\Interfaces\EventoServiceInterface;
 use App\Services\Interfaces\ProfesionalServiceInterface;
-use App\Models\Aula;
-use App\Models\Alumno;
 use App\Enums\TipoEvento;
 
 class EventoController extends Controller
@@ -41,18 +39,10 @@ class EventoController extends Controller
                 'confirmado' => 'required|boolean',
             ]);
 
-            $evento = $this->eventoService->obtenerPorId($id);
-            if (!$evento) {
-                return response()->json(['message' => 'Evento no encontrado'], 404);
-            }
-
-            // Actualizar confirmación del profesional autenticado en este evento
             $profesionalId = auth()->user()->getAuthIdentifier();
-            $invitacion = $evento->esInvitadoA()->where('fk_id_profesional', $profesionalId)->first();
-            
-            if ($invitacion) {
-                $invitacion->confirmacion = $validated['confirmado'];
-                $invitacion->save();
+            $resultado = $this->eventoService->actualizarConfirmacion($id, $profesionalId, $validated['confirmado']);
+
+            if ($resultado) {
                 return response()->json(['success' => true, 'message' => 'Confirmación actualizada']);
             }
 
@@ -65,44 +55,31 @@ class EventoController extends Controller
     public function crear()
     {
         $profesionalesDisponibles = $this->profesionalService->getAllProfesionalesWithPersona();
-        $cursos = Aula::all();
+        $datos = $this->eventoService->obtenerDatosVistaEvento(0);
+        $cursos = $datos['cursos'] ?? collect();
         
         return view('eventos.crear-editar', compact('profesionalesDisponibles', 'cursos'));
     }
 
     public function ver(int $id)
     {
-        $evento = $this->eventoService->obtenerPorId($id);
+        $datos = $this->eventoService->obtenerDatosVistaEvento($id);
         
-        if (!$evento) {
+        if (empty($datos)) {
             return redirect()->route('eventos.principal')
                 ->with('error', 'Evento no encontrado');
         }
 
         $profesionalesDisponibles = $this->profesionalService->getAllProfesionalesWithPersona();
-        $cursos = Aula::all();
-        
-        // Cargar relaciones del evento
-        $profesionalesEvento = $evento->esInvitadoA()->with('profesional.persona')->get()->map(function($inv) {
-            return [
-                'id' => $inv->profesional->id_profesional,
-                'invitado' => true,
-                'confirmado' => $inv->confirmacion ?? false,
-                'asistio' => $inv->asistio ?? false
-            ];
-        })->toArray();
 
-        $alumnosEvento = $evento->alumnos()->with('persona', 'aula')->get()->toArray();
-        $cursosEvento = $evento->aulas()->pluck('id_aula')->toArray();
-
-        return view('eventos.crear-editar', compact(
-            'evento',
-            'profesionalesDisponibles',
-            'cursos',
-            'profesionalesEvento',
-            'alumnosEvento',
-            'cursosEvento'
-        ));
+        return view('eventos.crear-editar', [
+            'evento' => $datos['evento'],
+            'profesionalesDisponibles' => $profesionalesDisponibles,
+            'cursos' => $datos['cursos'],
+            'profesionalesEvento' => $datos['profesionalesEvento'],
+            'alumnosEvento' => $datos['alumnosEvento'],
+            'cursosEvento' => $datos['cursosEvento'],
+        ]);
     }
 
     public function editar(int $id)
@@ -211,7 +188,8 @@ class EventoController extends Controller
                 ->with('error', 'Derivación no encontrada');
         }
 
-        $alumnosEvento = $evento->alumnos()->with('persona', 'aula')->get()->toArray();
+        $datos = $this->eventoService->obtenerDatosVistaEvento($id);
+        $alumnosEvento = $datos['alumnosEvento'] ?? [];
 
         return view('eventos.crear-derivacion', compact('evento', 'alumnosEvento'));
     }

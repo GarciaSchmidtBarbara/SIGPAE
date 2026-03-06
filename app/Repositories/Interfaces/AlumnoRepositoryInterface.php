@@ -16,4 +16,8 @@ interface AlumnoRepositoryInterface
     public function buscarPorTermino(string $termino): \Illuminate\Support\Collection;
     public function filtrar(array $criterios): \Illuminate\Support\Collection;
     public function buscarPorAula(int $aulaId): \Illuminate\Support\Collection;
+    public function actualizar(int $id, array $data): bool;
+    public function desvincularHermanos(int $idAlumno, array $idsHermanos): void;
+    public function desactivarFamiliares(int $idAlumno, array $idsFamiliares): void;
+    public function vincularFamiliar(int $idAlumno, int $idFamiliar, array $pivotData): void;
 }

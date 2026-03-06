@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Alumno;
 use App\Models\Documento;
-use App\Models\Intervencion;
-use App\Models\PlanDeAccion;
 use App\Services\Interfaces\DocumentoServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +16,6 @@ class DocumentoController extends Controller
         protected DocumentoServiceInterface $service
     ) {}
 
-    // ── Listado principal ──────────────────────────────────────
 
     public function index(Request $request): View
     {
@@ -30,25 +26,14 @@ class DocumentoController extends Controller
         ]);
     }
 
-    // ── Formulario de creación ─────────────────────────────────
 
     public function create(): View
     {
-        $alumnos = Alumno::with('persona')
-            ->join('personas', 'alumnos.fk_id_persona', '=', 'personas.id_persona')
-            ->orderBy('personas.apellido')
-            ->orderBy('personas.nombre')
-            ->select('alumnos.*')
-            ->get();
+        $data = $this->service->datosParaFormulario();
 
-        $planes = PlanDeAccion::orderBy('id_plan_de_accion')->get();
-
-        $intervenciones = Intervencion::orderByDesc('fecha_hora_intervencion')->get();
-
-        return view('documentos.crear', compact('alumnos', 'planes', 'intervenciones'));
+        return view('documentos.crear', $data);
     }
 
-    // ── Guardar documento ──────────────────────────────────────
 
     public function store(Request $request): RedirectResponse
     {
@@ -62,7 +47,6 @@ class DocumentoController extends Controller
 
         $archivo = $request->file('archivo');
 
-        // Comprobar extensión antes de llamar al servicio
         $ext = strtolower($archivo->getClientOriginalExtension());
         if (!array_key_exists($ext, Documento::MIMES_PERMITIDOS)) {
             return back()
@@ -92,7 +76,6 @@ class DocumentoController extends Controller
         }
     }
 
-    // ── Descarga ───────────────────────────────────────────────
 
     public function download(int $id)
     {
@@ -105,7 +88,6 @@ class DocumentoController extends Controller
         }
     }
 
-    // ── Visualización online ───────────────────────────────────
 
     public function preview(int $id)
     {
@@ -125,7 +107,6 @@ class DocumentoController extends Controller
         }
     }
 
-    // ── Eliminación ────────────────────────────────────────────
 
     public function destroy(int $id): RedirectResponse
     {
@@ -135,7 +116,6 @@ class DocumentoController extends Controller
             ->with('success', 'Documento eliminado');
     }
 
-    // ── API: búsqueda de entidades asociadas (Ajax) ────────────
 
     public function buscarEntidad(Request $request): JsonResponse
     {

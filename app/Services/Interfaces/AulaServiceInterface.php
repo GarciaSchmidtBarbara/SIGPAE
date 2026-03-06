@@ -7,6 +7,6 @@ use Illuminate\Support\Collection;
 interface AulaServiceInterface
 {
     public function obtenerCursos(): Collection;
-
     public function buscarAulaPorDescripcion(string $descripcion): int;
+    public function obtenerTodas(): Collection;
 }

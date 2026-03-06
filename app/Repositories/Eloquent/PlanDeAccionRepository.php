@@ -291,4 +291,28 @@ class PlanDeAccionRepository implements PlanDeAccionRepositoryInterface
     {
         return EvaluacionDePlan::where('fk_id_plan_de_accion', $id)->exists();
     }
+
+    public function buscarEvaluacionPorId(int $id)
+    {
+        return EvaluacionDePlan::with('plan')->findOrFail($id);
+    }
+
+    public function actualizarEvaluacion(int $id, array $data): int
+    {
+        $evaluacion = EvaluacionDePlan::findOrFail($id);
+
+        $evaluacion->update(array_intersect_key($data, array_flip([
+            'criterios', 'observaciones', 'conclusiones',
+        ])));
+
+        return $evaluacion->fk_id_plan_de_accion;
+    }
+
+    public function buscarPorTermino(string $termino, int $limite = 10): \Illuminate\Support\Collection
+    {
+        return PlanDeAccion::whereRaw('CAST(id_plan_de_accion AS TEXT) LIKE ?', ["%{$termino}%"])
+            ->orWhereRaw('LOWER(tipo_plan::text) LIKE ?', ["%{$termino}%"])
+            ->limit($limite)
+            ->get();
+    }
 }

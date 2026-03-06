@@ -101,6 +101,16 @@ class IntervencionService implements IntervencionServiceInterface
         return $this->repository->guardarOtrosAsistentes($intervencion, $filas);
     }
 
+    public function obtenerTodos(): Collection
+    {
+        return $this->repository->obtenerTodos();
+    }
+
+    public function buscarPorTermino(string $termino, int $limite = 10): Collection
+    {
+        return $this->repository->buscarPorTermino($termino, $limite);
+    }
+
     public function datosParaFormulario(?int $id = null): array
     {
         $intervencion = $id ? $this->repository->buscarPorIdConRelaciones($id) : null;

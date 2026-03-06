@@ -9,8 +9,6 @@ use App\Services\Interfaces\FamiliarServiceInterface;
 use App\Services\Interfaces\AulaServiceInterface;
 // Models
 use App\Models\Alumno;
-use App\Models\Aula;
-use App\Models\Persona;
 use Illuminate\Http\Request;
 // Soportes
 use Illuminate\Support\Facades\DB;
@@ -266,9 +264,7 @@ class AlumnoService implements AlumnoServiceInterface
             }
 
             // 1. Actualizar Persona (Datos Personales)
-            // USAMOS '??' PARA EVITAR EL ERROR DE 'UNDEFINED INDEX'
-            // Si $data['dni'] no existe, usamos $alumno->persona->dni (el valor viejo)
-            $alumno->persona->update([
+            $this->personaService->updatePersona($alumno->fk_id_persona, [
                 'dni' => $data['dni'] ?? $alumno->persona->dni,
                 'nombre' => $data['nombre'] ?? $alumno->persona->nombre,
                 'apellido' => $data['apellido'] ?? $alumno->persona->apellido,
@@ -283,21 +279,13 @@ class AlumnoService implements AlumnoServiceInterface
                     throw new \Exception('Formato de aula inválido. Se espera "Curso°División".');
                 }
                 
-                [$curso, $division] = explode('°', $data['aula']);
-                
-                $aula = \App\Models\Aula::where('curso', $curso)
-                                        ->where('division', $division)
-                                        ->first();
-                
-                if (!$aula) {
-                    throw new \Exception("No se encontró el aula {$data['aula']}.");
-                }
-                
-                $alumno->fk_id_aula = $aula->id_aula;
+                $aulaId = $this->aulaService->buscarAulaPorDescripcion($data['aula']);
+                $data['fk_id_aula'] = $aulaId;
             }
 
             // 3. Actualizar Datos del Alumno (Con lógica segura)
-            $alumno->update([
+            $this->repo->actualizar($id, [
+                'fk_id_aula' => $data['fk_id_aula'] ?? $alumno->fk_id_aula,
                 'inasistencias' => $data['inasistencias'] ?? $alumno->inasistencias,
                 'cud' => ($data['cud'] ?? 'No') === 'Sí' ? 1 : 0,
                 'situacion_socioeconomica' => $data['situacion_socioeconomica'] ?? null,
@@ -311,16 +299,12 @@ class AlumnoService implements AlumnoServiceInterface
             ]);
 
                 // 3. Ejecutar Borrados Físicos (Hermanos Alumnos)
-                // Rompemos el lazo (detach) en ambas direcciones por seguridad
                 if (!empty($hermanosAEliminar)) {
-                    $alumno->hermanos()->detach($hermanosAEliminar);
-                    $alumno->esHermanoDe()->detach($hermanosAEliminar); 
+                    $this->repo->desvincularHermanos($id, $hermanosAEliminar);
                 }
 
                 if (!empty($familiaresAEliminar)) {
-                    foreach ($familiaresAEliminar as $idFamiliar) {
-                        $alumno->familiares()->updateExistingPivot($idFamiliar, ['activa' => false]);
-                    }
+                    $this->repo->desactivarFamiliares($id, $familiaresAEliminar);
                 }
                 
                 // 4. Procesar Upserts (Crear o Actualizar relaciones)
@@ -361,20 +345,17 @@ class AlumnoService implements AlumnoServiceInterface
                 // 1. Delegamos al FamiliarService la creación/update de Persona y Familiar
                 $familiarModel = $this->familiarService->crearOActualizarDesdeArray($datos);
 
-                // 2. Vinculamos en tabla 'tiene_familiar'
-                // Si ya existe, actualizamos 'activa' a true (reactivación) y la observación
-
-                // aca si utizo syncWithoutDetaching, porque sino requeriria logica adicional en el repo,
-                // y no vale la pena por ser un caso tan puntual
-                $alumno->familiares()->syncWithoutDetaching([
-                    $familiarModel->id_familiar => [
+                // 2. Vinculamos en tabla 'tiene_familiar' a través del repositorio
+                $this->repo->vincularFamiliar(
+                    $alumno->id_alumno,
+                    $familiarModel->id_familiar,
+                    [
                         'activa' => true,
                         'observaciones' => $observacionPivot,
-                        // Inyectamos los atributos de la relación que vienen en la sesión:
                         'parentesco' => isset($datos['parentesco']) ? strtoupper($datos['parentesco']) : null,
-                        'otro_parentesco' => $datos['otro_parentesco'] ?? null
+                        'otro_parentesco' => $datos['otro_parentesco'] ?? null,
                     ]
-                ]);
+                );
             }
         }
     }

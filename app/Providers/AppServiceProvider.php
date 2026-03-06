@@ -87,6 +87,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AulaRepositoryInterface::class, AulaRepository::class);
         $this->app->bind(NotificacionRepositoryInterface::class, NotificacionRepository::class);
         $this->app->bind(DocumentoRepositoryInterface::class, DocumentoRepository::class);
+        $this->app->bind(\App\Repositories\Interfaces\EvaluacionDePlanRepositoryInterface::class, \App\Repositories\Eloquent\EvaluacionDePlanRepository::class);
 
         // Services
         $this->app->bind(AlumnoServiceInterface::class, AlumnoService::class);
@@ -99,6 +100,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AulaServiceInterface::class, AulaService::class);
         $this->app->bind(NotificacionServiceInterface::class, NotificacionService::class);
         $this->app->bind(DocumentoServiceInterface::class, DocumentoService::class);
+        $this->app->bind(\App\Services\Interfaces\EvaluacionDePlanServiceInterface::class, \App\Services\Implementations\EvaluacionDePlanService::class);
     }
 
     /**

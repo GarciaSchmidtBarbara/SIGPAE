@@ -3,18 +3,21 @@
 namespace App\Services\Implementations;
 
 use App\Models\Evento;
-use App\Models\EsInvitadoA;
 use App\Repositories\Interfaces\EventoRepositoryInterface;
 use App\Services\Interfaces\EventoServiceInterface;
+use App\Services\Interfaces\AulaServiceInterface;
 use Illuminate\Support\Collection;
+use Carbon\Carbon;
 
 class EventoService implements EventoServiceInterface
 {
     protected EventoRepositoryInterface $repo;
+    protected AulaServiceInterface $aulaService;
 
-    public function __construct(EventoRepositoryInterface $repo)
+    public function __construct(EventoRepositoryInterface $repo, AulaServiceInterface $aulaService)
     {
         $this->repo = $repo;
+        $this->aulaService = $aulaService;
     }
 
     public function listarTodos(array $filters = []): Collection
@@ -46,14 +49,12 @@ class EventoService implements EventoServiceInterface
     {
         \DB::beginTransaction();
         try {
-            // Obtener el ID del profesional autenticado
             $profesionalId = auth()->check() ? auth()->user()->getAuthIdentifier() : null;
             
             if (!$profesionalId) {
                 throw new \Exception('Usuario no autenticado');
             }
             
-            // Crear evento básico
             $eventoData = [
                 'tipo_evento' => $data['tipo_evento'],
                 'fecha_hora' => $data['fecha_hora'],
@@ -65,31 +66,19 @@ class EventoService implements EventoServiceInterface
 
             $evento = $this->repo->create($eventoData);
 
-            // Vincular profesionales invitados
             if (!empty($data['profesionales'])) {
-                foreach ($data['profesionales'] as $prof) {
-                    if (!empty($prof['id'])) {
-                        EsInvitadoA::create([
-                            'fk_id_evento' => $evento->id_evento,
-                            'fk_id_profesional' => $prof['id'],
-                            'confirmacion' => $prof['confirmado'] ?? false,
-                            'asistio' => $prof['asistio'] ?? false,
-                        ]);
-                    }
-                }
+                $this->repo->vincularInvitados($evento->id_evento, $data['profesionales']);
             }
 
-            // Vincular cursos (aulas)
             if (!empty($data['cursos'])) {
-                $evento->aulas()->attach($data['cursos']);
+                $this->repo->sincronizarAulasEvento($evento->id_evento, $data['cursos']);
             }
 
-            // Vincular alumnos
             if (!empty($data['alumnos'])) {
                 $alumnoIds = array_map(function($a) {
                     return is_array($a) ? $a['id'] : $a;
                 }, $data['alumnos']);
-                $evento->alumnos()->attach($alumnoIds);
+                $this->repo->vincularAlumnosEvento($evento->id_evento, $alumnoIds);
             }
 
             \DB::commit();
@@ -118,35 +107,17 @@ class EventoService implements EventoServiceInterface
                 throw new \Exception('Evento no encontrado');
             }
 
-            // Cargar el evento para trabajar con las relaciones
-            $evento = $this->repo->find($id);
+            $this->repo->reemplazarInvitados($id, $data['profesionales'] ?? []);
 
-            // Actualizar profesionales invitados
-            EsInvitadoA::where('fk_id_evento', $id)->delete();
-            if (!empty($data['profesionales'])) {
-                foreach ($data['profesionales'] as $prof) {
-                    if (!empty($prof['id'])) {
-                        EsInvitadoA::create([
-                            'fk_id_evento' => $id,
-                            'fk_id_profesional' => $prof['id'],
-                            'confirmacion' => $prof['confirmado'] ?? false,
-                            'asistio' => $prof['asistio'] ?? false,
-                        ]);
-                    }
-                }
-            }
+            $this->repo->sincronizarAulasEvento($id, $data['cursos'] ?? []);
 
-            // Actualizar cursos
-            $evento->aulas()->sync($data['cursos'] ?? []);
-
-            // Actualizar alumnos
             if (!empty($data['alumnos'])) {
                 $alumnoIds = array_map(function($a) {
                     return is_array($a) ? $a['id'] : $a;
                 }, $data['alumnos']);
-                $evento->alumnos()->sync($alumnoIds);
+                $this->repo->sincronizarAlumnosEvento($id, $alumnoIds);
             } else {
-                $evento->alumnos()->sync([]);
+                $this->repo->sincronizarAlumnosEvento($id, []);
             }
 
             \DB::commit();
@@ -180,7 +151,7 @@ class EventoService implements EventoServiceInterface
             $evento = $this->repo->create($eventoData);
 
             if (!empty($data['alumnos'])) {
-                $evento->alumnos()->attach($data['alumnos']);
+                $this->repo->vincularAlumnosEvento($evento->id_evento, $data['alumnos']);
             }
 
             \DB::commit();
@@ -209,13 +180,7 @@ class EventoService implements EventoServiceInterface
                 throw new \Exception('Derivación no encontrada');
             }
 
-            $evento = $this->repo->find($id);
-
-            if (!empty($data['alumnos'])) {
-                $evento->alumnos()->sync($data['alumnos']);
-            } else {
-                $evento->alumnos()->sync([]);
-            }
+            $this->repo->sincronizarAlumnosEvento($id, $data['alumnos'] ?? []);
 
             \DB::commit();
             return true;
@@ -264,7 +229,6 @@ class EventoService implements EventoServiceInterface
 
     private function formatearTituloEvento(Evento $evento): string
     {
-        // Mapeo de tipos a nombres legibles
         $tipos = [
             'BANDA' => 'Banda',
             'RG' => 'Reunión Gabinete',
@@ -277,5 +241,48 @@ class EventoService implements EventoServiceInterface
         $tipo = $tipos[$tipoValue] ?? 'Evento';
         
         return $tipo;
+    }
+
+    public function obtenerEventosDelDia(int $profesionalId): Collection
+    {
+        $hoy = Carbon::today()->toDateString();
+        return $this->repo->obtenerEventosDelDiaPorProfesional($profesionalId, $hoy);
+    }
+
+    public function obtenerProximosEventos(int $profesionalId, int $meses = 2, int $limite = 3): Collection
+    {
+        $hoy = Carbon::today()->toDateString();
+        $fin = Carbon::now()->addMonths($meses)->endOfDay()->toDateTimeString();
+
+        return $this->repo->obtenerProximosEventosPorProfesional($profesionalId, $hoy, $fin, $limite);
+    }
+
+    public function actualizarConfirmacion(int $eventoId, int $profesionalId, bool $confirmado): bool
+    {
+        return $this->repo->actualizarConfirmacionInvitado($eventoId, $profesionalId, $confirmado);
+    }
+
+    public function obtenerDatosVistaEvento(int $eventoId): array
+    {
+        $cursos = $this->aulaService->obtenerTodas();
+
+        if ($eventoId <= 0) {
+            return [
+                'evento' => null,
+                'cursos' => $cursos,
+                'profesionalesEvento' => [],
+                'alumnosEvento' => [],
+                'cursosEvento' => [],
+            ];
+        }
+
+        $datos = $this->repo->obtenerDatosRelacionesEvento($eventoId);
+
+        if (empty($datos)) {
+            return [];
+        }
+
+        $datos['cursos'] = $cursos;
+        return $datos;
     }
 }

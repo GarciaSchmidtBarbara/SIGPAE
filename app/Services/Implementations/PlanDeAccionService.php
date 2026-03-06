@@ -11,9 +11,6 @@ use Illuminate\Support\Collection;
 use App\Models\PlanDeAccion;
 use App\Enums\TipoPlan;
 use App\Enums\EstadoPlan;
-use App\Models\Alumno;
-use App\Models\Aula;
-use App\Models\Profesional;
 
 
 class PlanDeAccionService implements PlanDeAccionServiceInterface
@@ -225,6 +222,47 @@ class PlanDeAccionService implements PlanDeAccionServiceInterface
         // Cerrar el plan 
         $this->repository->actualizarEstado( $plan->id_plan_de_accion, EstadoPlan::CERRADO );
 
+    }
+
+    public function obtenerEvaluacion(int $idEvaluacion): array
+    {
+        $evaluacion = $this->repository->buscarEvaluacionPorId($idEvaluacion);
+
+        return [
+            'plan' => $evaluacion->plan,
+            'evaluacion' => $evaluacion,
+            'esEdicion' => true,
+        ];
+    }
+
+    public function actualizarEvaluacion(int $idEvaluacion, array $data): int
+    {
+        return $this->repository->actualizarEvaluacion($idEvaluacion, $data);
+    }
+
+    public function obtenerAlumnosDePlan(int $idPlan): Collection
+    {
+        $plan = $this->repository->buscarPorId($idPlan);
+
+        if (!$plan) {
+            return collect();
+        }
+
+        return $plan->alumnos->map(function ($al) {
+            return [
+                'id'       => $al->id_alumno,
+                'nombre'   => $al->persona->nombre,
+                'apellido' => $al->persona->apellido,
+                'dni'      => $al->persona->dni,
+                'curso'    => $al->aula?->descripcion,
+                'aula_id'  => $al->fk_id_aula,
+            ];
+        });
+    }
+
+    public function buscarPorTermino(string $termino, int $limite = 10): Collection
+    {
+        return $this->repository->buscarPorTermino($termino, $limite);
     }
 
 }

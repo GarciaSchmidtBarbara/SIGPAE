@@ -22,7 +22,7 @@ class AuthenticationTest extends TestCase
     public function test_profesional_puede_autenticarse(): void
     {
         $profesional = Profesional::factory()->create([
-            'fk_id_persona' => Persona::factory()->create()->id_persona,
+            'fk_id_persona' => Persona::factory()->create(['activo' => true])->id_persona,
             'usuario'       => 'test.user',
             'contrasenia'   => Hash::make('password123'),
         ]);

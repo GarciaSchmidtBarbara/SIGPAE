@@ -199,4 +199,19 @@ class IntervencionRepository implements IntervencionRepositoryInterface
         return $intervencion->fresh('otros_asistentes_i');
     }
 
+    public function obtenerTodos(): Collection
+    {
+        return $this->model->newQuery()
+            ->orderByDesc('fecha_hora_intervencion')
+            ->get();
+    }
+
+    public function buscarPorTermino(string $termino, int $limite = 10): Collection
+    {
+        return Intervencion::with('alumnos.persona')
+            ->whereRaw('CAST(id_intervencion AS TEXT) LIKE ?', ["%{$termino}%"])
+            ->orWhereRaw('LOWER(tipo_intervencion::text) LIKE ?', ["%{$termino}%"])
+            ->limit($limite)
+            ->get();
+    }
 }

@@ -12,9 +12,12 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
+    protected $profesionalService;
+
+    public function __construct(ProfesionalServiceInterface $profesionalService) {
+        $this->profesionalService = $profesionalService;
+    }
+
     public function edit(Request $request): View
     {
         return view('profile.edit', [
@@ -22,9 +25,6 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $profesional = $request->user();
@@ -41,27 +41,18 @@ class ProfileController extends Controller
             'notification_anticipation_minutos' => 'nullable|integer|min:0',
         ]);
 
-        $profesional->persona->update([
-            'nombre' => $request->nombre,
-            'apellido' => $request->apellido,
-        ]);
+        try {
+            $this->profesionalService->actualizarPerfil($profesional->id_profesional, $request->only([
+                'nombre', 'apellido', 'profesion', 'usuario', 'email',
+                'siglas', 'telefono', 'hora_envio_resumen_diario', 'notification_anticipation_minutos',
+            ]));
 
-        $profesional->persona->update([
-            'profesion' => $request->profesion,
-            'usuario' => $request->usuario,
-            'email' => $request->email,
-            'siglas' => $request->siglas,
-            'telefono' => $request->telefono,
-            'hora_envio_resumen_diario' => $request->hora_envio_resumen_diario,
-            'notification_anticipation_minutos' => $request->notifiction_anticipation_minutos,
-        ]);
-
-        return back()->with('success', 'Perfil actualizado correctamente');
+            return back()->with('success', 'Perfil actualizado correctamente');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al actualizar el perfil.');
+        }
     }
 
-    /**
-     * Delete the user's account.
-     */
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [
@@ -72,7 +63,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        $this->profesionalService->deleteProfesional($user->id_profesional);
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -80,18 +71,12 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
 
-    protected $profesionalService;
-
-    public function __construct(ProfesionalServiceInterface $profesionalService) {
-        $this->profesionalService = $profesionalService;
-    }
-
     public function desactivar()
     {
         $usuario = Auth::user();
 
         $resultado = $this->profesionalService
-            ->cambiarActivo($usuario->id_profesional);
+            ->desactivarCuenta($usuario->id_profesional);
 
         if ($resultado) {
             Auth::logout();

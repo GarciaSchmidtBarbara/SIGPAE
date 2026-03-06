@@ -75,4 +75,62 @@ class ProfesionalRepository implements ProfesionalRepositoryInterface
     {
         return $this->model->where('matricula', $matricula)->first();
     }
+
+    public function findByEmail(string $email): ?Profesional
+    {
+        return $this->model->where('email', $email)->first();
+    }
+
+    public function desactivar(int $id): bool
+    {
+        $usuario = Profesional::with('persona')->find($id);
+        if ($usuario && $usuario->persona) {
+            $usuario->persona->activo = false;
+            return $usuario->persona->save();
+        }
+        return false;
+    }
+
+    public function filtrar(\Illuminate\Http\Request $request): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    {
+        $query = Profesional::with('persona');
+
+        if ($request->filled('buscar')) {
+            $buscar = strtolower($request->buscar);
+
+            $query->where(function ($q) use ($buscar) {
+                $q->whereHas('persona', function ($sub) use ($buscar) {
+                    $sub->whereRaw("LOWER(nombre) LIKE ?", ["%{$buscar}%"])
+                        ->orWhereRaw("LOWER(apellido) LIKE ?", ["%{$buscar}%"])
+                        ->orWhere("dni", 'like', "%{$buscar}%");
+                })
+                ->orWhereRaw("LOWER(siglas) LIKE ?", ["%{$buscar}%"])
+                ->orWhereRaw("LOWER(profesion) LIKE ?", ["%{$buscar}%"]);
+            });
+        }
+
+        return $query
+            ->orderBy('id_profesional', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+    }
+
+    public function existeUsuario(string $usuario): bool
+    {
+        return Profesional::where('usuario', $usuario)->exists();
+    }
+
+    public function buscarTokenReset(string $email): ?object
+    {
+        return \DB::table('password_resets')
+            ->where('email', $email)
+            ->first();
+    }
+
+    public function eliminarTokenReset(string $email): bool
+    {
+        return \DB::table('password_resets')
+            ->where('email', $email)
+            ->delete() > 0;
+    }
 }
