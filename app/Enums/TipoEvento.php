@@ -14,7 +14,7 @@ enum TipoEvento: string
     {
         return match ($this) {
             self::BANDA => 'Banda',
-            self::RG => 'RG (Reunión General)',
+            self::RG => 'RG (Reunión Gabinete)',
             self::RD => 'RD (Reunión de Derivación)',
             self::CITA_FAMILIAR => 'Cita Familiar',
             self::DERIVACION_EXTERNA => 'Derivación Externa',
