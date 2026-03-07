@@ -83,15 +83,41 @@
                                 </td>
 
                                 <td class="p-4 text-center">
-                                    <div class="flex justify-center gap-2">
-                                        {!! view('components.boton-estado', [
-                                            'activo' => $usuario->persona->activo,
-                                            'route' => route('usuarios.cambiarActivo', $usuario->id_profesional),
-                                            'text_activo' => 'Desactivar',
-                                            'text_inactivo' => 'Activar',
-                                            'message_activo' => '¿Desea desactivar este usuario?',
-                                            'message_inactivo' => '¿Desea activar este usuario?',
-                                        ])->render() !!}
+                                    <div class="flex justify-center gap-2 flex-wrap">
+                                        {{-- Botones para usuario sin profesión asignada --}}
+                                        @if(!$usuario->profesion)
+                                            {{-- Botón Reenviar Correo --}}
+                                            <form method="POST" action="{{ route('usuarios.reenviarActivacion', $usuario->id_profesional) }}" class="inline">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="px-3 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-700 border border-blue-300 hover:bg-blue-200 transition"
+                                                        title="Reenviar correo de activación">
+                                                    Reenviar
+                                                </button>
+                                            </form>
+
+                                            {{-- Botón Eliminar --}}
+                                            <form method="POST" action="{{ route('usuarios.eliminarSinProfesion', $usuario->id_profesional) }}" class="inline"
+                                                  onsubmit="return confirm('¿Desea eliminar este usuario? Esta acción no se puede deshacer.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        class="px-3 py-1 text-xs font-medium rounded-md bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 transition"
+                                                        title="Eliminar usuario">
+                                                    Eliminar
+                                                </button>
+                                            </form>
+                                        @else
+                                            {{-- Botón Cambiar Estado (solo para usuarios con profesión asignada) --}}
+                                            {!! view('components.boton-estado', [
+                                                'activo' => $usuario->persona->activo,
+                                                'route' => route('usuarios.cambiarActivo', $usuario->id_profesional),
+                                                'text_activo' => 'Desactivar',
+                                                'text_inactivo' => 'Activar',
+                                                'message_activo' => '¿Desea desactivar este usuario?',
+                                                'message_inactivo' => '¿Desea activar este usuario?',
+                                            ])->render() !!}
+                                        @endif
                                     </div>
                                 </td>
 

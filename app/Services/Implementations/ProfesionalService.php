@@ -168,6 +168,7 @@ class ProfesionalService implements ProfesionalServiceInterface
                 'nombre' => $data['nombre'],
                 'apellido' => $data['apellido'],
                 'dni' => $data['dni'],
+                'activo' => false,
             ]);
 
             $usuarioGenerado = strtolower($data['nombre'] . '.' . $data['apellido']);
@@ -208,10 +209,11 @@ class ProfesionalService implements ProfesionalServiceInterface
 
         DB::beginTransaction();
         try {
-            // Actualizar persona
+            // Actualizar persona con activo = true
             $personaId = $prof->fk_id_persona;
             $this->personaService->updatePersona($personaId, [
                 'fecha_nacimiento' => $data['fecha_nacimiento'],
+                'activo' => true,
             ]);
 
             // Actualizar profesional
@@ -284,6 +286,34 @@ class ProfesionalService implements ProfesionalServiceInterface
         ]));
 
         return $this->updateProfesional($idProfesional, array_merge($personaFields, $profesionalFields));
+    }
+
+    public function reenviarMailActivacion(int $idProfesional): bool
+    {
+        $profesional = $this->repo->find($idProfesional);
+
+        if (!$profesional) {
+            throw new InvalidArgumentException('Profesional no encontrado.');
+        }
+
+        // Verificar que la cuenta no esté activada
+        if ($profesional->persona->activo) {
+            throw new InvalidArgumentException('La cuenta ya está activada.');
+        }
+
+        // Eliminar token anterior si existe
+        $this->repo->eliminarTokenReset($profesional->email);
+
+        // Generar y enviar nuevo token de activación
+        try {
+            \Password::broker('profesionales')->sendResetLink([
+                'email' => $profesional->email,
+            ]);
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Error al reenviar correo de activación: ' . $e->getMessage());
+            throw new InvalidArgumentException('Error al reenviar el correo de activación.');
+        }
     }
 
     private function normalizarTexto(string $texto): string {
