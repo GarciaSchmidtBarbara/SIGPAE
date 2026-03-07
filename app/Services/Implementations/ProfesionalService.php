@@ -171,7 +171,10 @@ class ProfesionalService implements ProfesionalServiceInterface
                 'activo' => false,
             ]);
 
-            $usuarioGenerado = strtolower($data['nombre'] . '.' . $data['apellido']);
+            // Extraer primer nombre y primer apellido
+            $primerNombre = explode(' ', trim($data['nombre']))[0];
+            $primerApellido = explode(' ', trim($data['apellido']))[0];
+            $usuarioGenerado = strtolower($primerNombre . '.' . $primerApellido);
 
             if ($this->repo->existeUsuario($usuarioGenerado)) {
                 $usuarioGenerado .= rand(1, 99);
