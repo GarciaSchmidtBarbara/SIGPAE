@@ -28,4 +28,5 @@ interface ProfesionalServiceInterface
     public function actualizarContrasenia(int $idProfesional, string $newPassword): bool;
     public function resetContrasenia(string $email, string $token, string $newPassword): bool;
     public function actualizarPerfil(int $idProfesional, array $data): Profesional;
+    public function reenviarMailActivacion(int $idProfesional): bool;
 }

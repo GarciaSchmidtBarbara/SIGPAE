@@ -138,6 +138,49 @@ class ProfesionalController extends Controller {
         return redirect()->route('usuarios.principal')->with($mensaje);
     }
 
+    public function reenviarMailActivacion(int $id): RedirectResponse
+    {
+        try {
+            $this->profesionalService->reenviarMailActivacion($id);
+            return redirect()->route('usuarios.principal')
+                ->with('success', 'Correo de activación reenviado correctamente.');
+        } catch (\InvalidArgumentException $e) {
+            return redirect()->route('usuarios.principal')
+                ->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            return redirect()->route('usuarios.principal')
+                ->with('error', 'Error al reenviar el correo de activación.');
+        }
+    }
+
+    public function eliminarSinProfesion(int $id): RedirectResponse
+    {
+        try {
+            $profesional = $this->profesionalService->getProfesionalById($id);
+            
+            if (!$profesional) {
+                return redirect()->route('usuarios.principal')
+                    ->with('error', 'Usuario no encontrado.');
+            }
+
+            if ($profesional->profesion) {
+                return redirect()->route('usuarios.principal')
+                    ->with('error', 'Solo se pueden eliminar usuarios sin profesión asignada.');
+            }
+
+            if ($this->profesionalService->deleteProfesional($id)) {
+                return redirect()->route('usuarios.principal')
+                    ->with('success', 'Usuario eliminado correctamente.');
+            }
+
+            return redirect()->route('usuarios.principal')
+                ->with('error', 'No se pudo eliminar el usuario.');
+        } catch (\Exception $e) {
+            return redirect()->route('usuarios.principal')
+                ->with('error', 'Error al eliminar el usuario.');
+        }
+    }
+
     /*
     public function editar(int $id)
     {
