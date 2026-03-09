@@ -15,7 +15,7 @@ Para activar su cuenta y definir su contraseña, haga clic en el siguiente botó
 Activar cuenta
 </x-mail::button>
 
-Este enlace expirará en **{{ config('auth.passwords.profesionales.expire') }} minutos**.
+Este enlace expirará en **3 días**.
 
 Una vez creada su contraseña, deberá completar sus datos personales antes de acceder al sistema.
 

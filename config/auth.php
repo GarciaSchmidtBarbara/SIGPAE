@@ -55,7 +55,7 @@ return [
         'profesionales' => [ // CORREGIDO: Nuevo nombre del broker de contraseñas
             'provider' => 'profesionales',
             'table' => 'password_resets',
-            'expire' => 60,
+            'expire' => 4320, // 3 días (72 horas) en minutos
             'throttle' => 60,
         ],
     ],

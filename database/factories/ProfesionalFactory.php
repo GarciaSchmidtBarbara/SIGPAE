@@ -18,7 +18,10 @@ class ProfesionalFactory extends Factory
 
         $nombreSimulado = $this->faker->firstName();
         $apellidoSimulado = $this->faker->lastName();
-        $usuarioSimulado = strtolower(Str::slug($nombreSimulado . '.' . $apellidoSimulado));
+        // Extraer primer nombre y primer apellido (sin incluir espacios)
+        $primerNombre = explode(' ', trim($nombreSimulado))[0];
+        $primerApellido = explode(' ', trim($apellidoSimulado))[0];
+        $usuarioSimulado = strtolower($primerNombre . '.' . $primerApellido);
         $siglaAleatoria = $this->faker->randomElement(Siglas::cases());
 
         return [

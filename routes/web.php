@@ -148,6 +148,8 @@ Route::get('/usuarios/crear', [ProfesionalController::class, 'crearEditar'])->na
 Route::post('/usuarios', [ProfesionalController::class, 'store'])->name('usuarios.store');
 Route::put('/usuarios/{id}', [ProfesionalController::class, 'update'])->name('usuarios.update');
 Route::patch('/usuarios/{id}/cambiar-estado', [ProfesionalController::class, 'cambiarActivo'])->name('usuarios.cambiarActivo');
+Route::post('/usuarios/{id}/reenviar-activacion', [ProfesionalController::class, 'reenviarMailActivacion'])->name('usuarios.reenviarActivacion');
+Route::delete('/usuarios/{id}/eliminar-sin-profesion', [ProfesionalController::class, 'eliminarSinProfesion'])->name('usuarios.eliminarSinProfesion');
 
 
 //Ruta Perfil
